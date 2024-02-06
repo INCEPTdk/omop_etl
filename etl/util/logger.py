@@ -19,7 +19,7 @@ def log_memory_use(logger: Log) -> None:
     logger.debug("Memory used: %s MB", used_memory / 1024000)
 
 
-# pylint: disable=unused-argument
+# pylint: disable=useless-option-value, unused-argument, no-self-use
 class ErrorHandler(Handler):
     """A handler for checking if a critical error has been raised"""
 

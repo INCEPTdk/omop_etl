@@ -27,7 +27,7 @@ repos:
         files: ^etl/
 
 -   repo: https://github.com/PyCQA/pylint
-    rev: v3.0.3
+    rev: v3.0.1
 
     hooks:
     -   id: pylint

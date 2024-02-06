@@ -92,7 +92,7 @@ class FakeSession(AbstractSession):
         def __exit__(self, *args, **kwargs) -> None:
             pass
 
-        # pylint: disable=unused-argument
+        # pylint: disable=useless-option-value, unused-argument, no-self-use
         def copy_expert(self, sql: str, buffer: Any, buffer_size: int) -> None:
             self._sqllog.append(sql)
 
