@@ -5,11 +5,7 @@ from typing import Any, List, Optional
 
 from etl.models.modelutils import create_tables_sql
 from etl.util.connection import POSTGRES_DB, ConnectionDetails
-from etl.util.db import (
-    make_db_session,
-    make_engine_postgres,
-    session_context,
-)
+from etl.util.db import make_db_session, make_engine_postgres, session_context
 
 
 class PostgresBaseTest(unittest.TestCase):

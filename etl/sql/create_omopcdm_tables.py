@@ -15,6 +15,8 @@ from ..models.omopcdm54 import (
     Death,
     DrugEra,
     DrugExposure,
+    Episode,
+    EpisodeEvent,
     Location,
     Measurement,
     Observation,
@@ -22,6 +24,7 @@ from ..models.omopcdm54 import (
     Person,
     ProcedureOccurrence,
     Provider,
+    VisitDetail,
     VisitOccurrence,
 )
 from ..util.sql import clean_sql
@@ -42,6 +45,9 @@ MODELS: Final[List] = [
     DrugExposure,
     ObservationPeriod,
     VisitOccurrence,
+    Episode,
+    EpisodeEvent,
+    VisitDetail,
 ]
 
 

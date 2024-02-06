@@ -43,7 +43,7 @@ class Loader:
 EmptyLoader = Loader
 
 
-class CSVSourceFileLoader(Loader):
+class CSVFileLoader(Loader):
     """A source data loader for CSV inputs"""
 
     def __init__(

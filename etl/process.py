@@ -5,18 +5,23 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 from .loader import Loader
 from .models.omopcdm54 import (
+    CareSite,
     CDMSource,
     ConditionEra,
     ConditionOccurrence,
     Death,
+    DeviceExposure,
     DrugEra,
     DrugExposure,
+    Location,
     Measurement,
     Observation,
     ObservationPeriod,
     OmopCdmModelBase,
     Person,
     ProcedureOccurrence,
+    Specimen,
+    VisitOccurrence,
 )
 from .transform.cdm_source import transform as cdm_source_transform
 from .transform.create_omopcdm_tables import transform as create_omop_tables
@@ -24,6 +29,7 @@ from .transform.session_operation import SessionOperation
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
+from .util.preprocessing import validate_concept_ids
 
 logger = logging.getLogger("ETL.Core")
 
@@ -99,6 +105,10 @@ def run_etl(
     source_loader.load()
     lookup_loader.load()
 
+    lookup_loader.data = validate_concept_ids(
+        lookup_loader.data, session, "concept_id"
+    )
+
     registry = TransformationRegistry()
 
     transformations = [
@@ -134,6 +144,11 @@ def run_etl(
             ObservationPeriod,
             DrugEra,
             ConditionEra,
+            VisitOccurrence,
+            DeviceExposure,
+            Specimen,
+            Location,
+            CareSite,
         ],
     )
 

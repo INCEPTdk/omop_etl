@@ -2,7 +2,7 @@
 # pylint: disable=no-member
 from typing import Final, List
 
-from ..common import CONCEPT_ID_OBSERVATION_PERIOD, DEFAULT_DATE
+from ..common import CONCEPT_ID_EHR, DEFAULT_DATE
 from ..models.omopcdm54 import (
     ConditionOccurrence,
     Death,
@@ -237,7 +237,7 @@ def _obs_period_sql() -> str:
             ),
             '{DEFAULT_OBSERVATION_DATE}'
         ) AS {ObservationPeriod.observation_period_end_date.key},
-        {CONCEPT_ID_OBSERVATION_PERIOD} AS {ObservationPeriod.period_type_concept_id.key}
+        {CONCEPT_ID_EHR} AS {ObservationPeriod.period_type_concept_id.key}
     FROM
     (
         SELECT

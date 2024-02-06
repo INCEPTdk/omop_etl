@@ -4,7 +4,6 @@ import unittest
 from tests.models.sourcetests import *
 from tests.models.targettests import *
 from tests.processtests import ProcessUnitTests
-from tests.util.batchertests import DataFrameBatcherTests
 from tests.util.connectiontests import *
 from tests.util.loggertests import *
 from tests.util.sqltests import *
@@ -13,7 +12,6 @@ from tests.util.sqltests import *
 if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.processtests import ProcessPostgresTests, RunETLPostgresTests
     from tests.transform.create_omopcdm_tables_tests import *
-    from tests.util.batchertests import DataFrameBatcherPostgresTests
     from tests.util.dbtests import *
 
 

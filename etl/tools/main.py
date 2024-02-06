@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
 
-from etl.loader import CSVSourceFileLoader, EmptyLoader
+from etl.loader import CSVFileLoader, EmptyLoader
 from etl.models.tempmodels import TEMP_MODELS
 from etl.process import run_etl
 from etl.util.connection import get_connection_details
@@ -113,7 +113,7 @@ def main() -> None:
             run_etl(
                 cntx,
                 source_loader=EmptyLoader(),
-                lookup_loader=CSVSourceFileLoader(
+                lookup_loader=CSVFileLoader(
                     Path(csv_dir), TEMP_MODELS, delimiter=";"
                 ),
             )

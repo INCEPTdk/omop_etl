@@ -1,10 +1,6 @@
 from etl.sql.create_omopcdm_tables import MODELS
 from etl.transform.create_omopcdm_tables import transform
-from etl.util.db import (
-    check_table_exists,
-    make_db_session,
-    session_context,
-)
+from etl.util.db import check_table_exists, make_db_session, session_context
 from tests.testutils import PostgresBaseTest
 
 

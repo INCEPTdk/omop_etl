@@ -6,7 +6,7 @@ from typing import Any, Callable, Final, List
 
 import pandas as pd
 
-from etl.loader import CSVSourceFileLoader, Loader
+from etl.loader import CSVFileLoader, Loader
 from etl.models.modelutils import (
     CharField,
     FloatField,
@@ -15,11 +15,7 @@ from etl.models.modelutils import (
 )
 from etl.models.source import SOURCE_MODELS
 from etl.models.tempmodels import TEMP_MODELS
-from etl.process import (
-    TransformationRegistry,
-    run_etl,
-    run_transformations,
-)
+from etl.process import TransformationRegistry, run_etl, run_transformations
 from etl.transform.session_operation import SessionOperation
 from etl.util.db import (
     DataBaseWriterBuilder,
@@ -684,7 +680,7 @@ class RunETLPostgresTests(PostgresBaseTest):
 
     def test_run_etl_with_empty_data(self):
         empty_source_loader = Loader()
-        lookup_loader = CSVSourceFileLoader(
+        lookup_loader = CSVFileLoader(
             Path(self.csv_dir), TEMP_MODELS, delimiter=";"
         )
         with session_context(make_db_session(self.engine)) as session:
@@ -692,7 +688,7 @@ class RunETLPostgresTests(PostgresBaseTest):
 
     def test_run_etl_with_dummy_data(self):
         fake_source_loader = self.RandomSourceLoader(SOURCE_MODELS)
-        lookup_loader = CSVSourceFileLoader(
+        lookup_loader = CSVFileLoader(
             Path(self.csv_dir), TEMP_MODELS, delimiter=";"
         )
         with session_context(make_db_session(self.engine)) as session:

@@ -22,3 +22,4 @@ networks:
   etl-net:
     name:
       rigs-net
+    external: true

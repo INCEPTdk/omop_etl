@@ -385,7 +385,6 @@ class DataBaseWriterBuilder:
         self._writer.write_mode = mode
         return self
 
-    # pylint: disable=no-self-use
     def _validate(self) -> bool:
         """
         Validate the writer options.
