@@ -82,6 +82,7 @@ def validate_concept_ids(
 ) -> pd.DataFrame:
     # Validates concept ids. If they are not present in the existing concept ids, it will log
     # the concept_id and set it to 0.
+
     input_df[concept_column] = input_df.apply(
         lambda x: _validate_concept_id(x[concept_column], session),
         axis=1,
