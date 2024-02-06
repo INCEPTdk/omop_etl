@@ -385,7 +385,8 @@ class DataBaseWriterBuilder:
         self._writer.write_mode = mode
         return self
 
-    def _validate(self) -> bool:
+    @staticmethod
+    def _validate() -> bool:
         """
         Validate the writer options.
 
