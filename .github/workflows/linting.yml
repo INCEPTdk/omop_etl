@@ -1,0 +1,35 @@
+name: Linting
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # https://github.com/actions/checkout
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements.dev.txt
+          export PYTHONPATH=$PWD
+      - name: Run black
+        run: |
+          black --check etl/
+      - name: Run Flake8
+        run: |
+          flake8 etl/
+      - name: Run Isort
+        run: |
+          isort --check etl/
+      - name: Run pylint
+        run: |
+          pylint --reports=no etl/
