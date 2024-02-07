@@ -13,6 +13,8 @@ from ..models.omopcdm54 import (
     ConditionEra,
     ConditionOccurrence,
     Death,
+    DeviceExposure,
+    DoseEra,
     DrugEra,
     DrugExposure,
     Episode,
@@ -48,6 +50,8 @@ MODELS: Final[List] = [
     Episode,
     EpisodeEvent,
     VisitDetail,
+    DeviceExposure,
+    DoseEra,
 ]
 
 
