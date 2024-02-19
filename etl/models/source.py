@@ -4,6 +4,7 @@
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
+from sqlalchemy.orm import declarative_mixin
 
 from ..util.freeze import freeze_instance
 from .modelutils import (
@@ -37,9 +38,16 @@ def register_source_model(cls: Any) -> Any:
     return cls
 
 
+@declarative_mixin
+class PKIdMixin:
+    """A mixin"""
+
+    _id = BigIntField(primary_key=True)
+
+
 @register_source_model
 @freeze_instance
-class CourseMetadata(SourceModelBase):
+class CourseMetadata(SourceModelBase, PKIdMixin):
     """
     The course_metadata source database
     """
@@ -56,7 +64,7 @@ class CourseMetadata(SourceModelBase):
 
 @register_source_model
 @freeze_instance
-class Administrations(SourceModelBase):
+class Administrations(SourceModelBase, PKIdMixin):
     """
     The administrations source database
     """
@@ -84,7 +92,7 @@ class Prescriptions(SourceModelBase):
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField(nullable=False)
-    epaspresid: Final[Column] = BigIntField(primary_key=True)
+    epaspresid: Final[Column] = BigIntField(primary_key=True)  # PK
     epaspresbaseid: Final[Column] = BigIntField(nullable=False)
     epaspresstarttime: Final[Column] = TimeStampField(nullable=False)
     epaspresdose: Final[Column] = FloatField(nullable=False)
@@ -137,7 +145,7 @@ class Prescriptions(SourceModelBase):
 
 @register_source_model
 @freeze_instance
-class DiagnosesProcedures(SourceModelBase):
+class DiagnosesProcedures(SourceModelBase, PKIdMixin):
     """
     The diagnoses_procedures source database
     """
@@ -154,7 +162,7 @@ class DiagnosesProcedures(SourceModelBase):
 
 @register_source_model
 @freeze_instance
-class Observations(SourceModelBase):
+class Observations(SourceModelBase, PKIdMixin):
     """
     The observations- source database
     """
