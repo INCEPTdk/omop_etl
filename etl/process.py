@@ -99,11 +99,8 @@ def run_transformations(
         )
 
 
-def run_etl(
-    session: AbstractSession, source_loader: Loader, lookup_loader: Loader
-) -> None:
+def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
     """Run the full ETL and all transformations"""
-    source_loader.load()
     lookup_loader.load()
 
     validate_concept_ids(
