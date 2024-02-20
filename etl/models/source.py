@@ -11,6 +11,7 @@ from .modelutils import (
     BigIntField,
     BoolField,
     CharField,
+    DateField,
     FloatField,
     TimeStampField,
     make_model_base,
@@ -49,7 +50,7 @@ class PKIdMixin:
 @freeze_instance
 class CourseMetadata(SourceModelBase, PKIdMixin):
     """
-    The course_metadata source database
+    The course_metadata source table
     """
 
     __tablename__: Final[str] = "course_metadata"
@@ -66,7 +67,7 @@ class CourseMetadata(SourceModelBase, PKIdMixin):
 @freeze_instance
 class Administrations(SourceModelBase, PKIdMixin):
     """
-    The administrations source database
+    The administrations source table
     """
 
     __tablename__: Final[str] = "administrations"
@@ -84,7 +85,7 @@ class Administrations(SourceModelBase, PKIdMixin):
 @freeze_instance
 class Prescriptions(SourceModelBase):
     """
-    The prescriptions source database
+    The prescriptions source table
     """
 
     __tablename__: Final[str] = "prescriptions"
@@ -92,7 +93,7 @@ class Prescriptions(SourceModelBase):
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField(nullable=False)
-    epaspresid: Final[Column] = BigIntField(primary_key=True)  # PK
+    epaspresid: Final[Column] = BigIntField(primary_key=True)
     epaspresbaseid: Final[Column] = BigIntField(nullable=False)
     epaspresstarttime: Final[Column] = TimeStampField(nullable=False)
     epaspresdose: Final[Column] = FloatField(nullable=False)
@@ -147,7 +148,7 @@ class Prescriptions(SourceModelBase):
 @freeze_instance
 class DiagnosesProcedures(SourceModelBase, PKIdMixin):
     """
-    The diagnoses_procedures source database
+    The diagnoses_procedures source table
     """
 
     __tablename__: Final[str] = "diagnoses_procedures"
@@ -164,7 +165,7 @@ class DiagnosesProcedures(SourceModelBase, PKIdMixin):
 @freeze_instance
 class Observations(SourceModelBase, PKIdMixin):
     """
-    The observations- source database
+    The observations- source table
     """
 
     __tablename__: Final[str] = "observations"
@@ -175,6 +176,23 @@ class Observations(SourceModelBase, PKIdMixin):
     variable: Final[Column] = CharField(100, nullable=False)
     value: Final[Column] = CharField(580, nullable=False)
     from_file: Final[Column] = CharField(9, nullable=False)
+
+
+@register_source_model
+@freeze_instance
+class Person(SourceModelBase):
+    """
+    The person source table
+    """
+
+    __tablename__: Final[str] = "person"
+    __table_args__ = {"schema": SOURCE_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(26, nullable=False)
+    c_kon: Final[Column] = CharField(1, nullable=False)
+    d_foddato: Final[Column] = DateField(nullable=False)
+    c_status: Final[Column] = CharField(2, nullable=False)
+    d_status_hen_start: Final[Column] = DateField(nullable=False)
 
 
 SOURCE_VERSION: Final[str] = "0.1"
