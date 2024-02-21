@@ -17,6 +17,8 @@ services:
       - db.env
     environment:
       VERBOSITY_LEVEL: "DEBUG"
+      SOURCE_SCHEMA: "source"
+      HOSPITAL_SHAK_CODE: "" # Fill with the hospital specific code
 
 networks:
   etl-net:
