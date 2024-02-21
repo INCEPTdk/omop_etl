@@ -1,6 +1,7 @@
 """Source databse data models"""
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
+import os
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
@@ -17,7 +18,7 @@ from .modelutils import (
     make_model_base,
 )
 
-SOURCE_SCHEMA: Final[str] = "source"
+SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
 
@@ -180,7 +181,7 @@ class Observations(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class Person(SourceModelBase):
+class Person(SourceModelBase, PKIdMixin):
     """
     The person source table
     """
