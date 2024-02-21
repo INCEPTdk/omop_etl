@@ -26,6 +26,7 @@ from .models.omopcdm54 import (
 from .models.tempmodels import ConceptLookup
 from .transform.cdm_source import transform as cdm_source_transform
 from .transform.create_omopcdm_tables import transform as create_omop_tables
+from .transform.location import transform as location_transform
 from .transform.session_operation import SessionOperation
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
@@ -124,7 +125,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             func=cdm_source_transform,
             description="CDM Source transform",
         ),
-        # add transformations here.....
+        SessionOperation(
+            key=str(Location.__table__),
+            session=session,
+            func=location_transform,
+            description="Location transform",
+        ),
     ]
 
     run_transformations(session, transformations, registry)

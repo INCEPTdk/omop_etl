@@ -46,6 +46,10 @@ class AbstractSession(ABC):
     def query(self, *entities, **kwargs) -> Query:
         pass
 
+    @abstractmethod
+    def execute(self, sql: Any, **kwargs):
+        pass
+
 
 class Session(AbstractSession):
     """We wrap the sqlalchemy session in an interface we own, so we can easily fake/mock it"""
@@ -75,6 +79,9 @@ class Session(AbstractSession):
 
     def query(self, *entities, **kwargs) -> Query:
         return self._session.query(*entities, **kwargs)
+
+    def execute(self, sql: Any, **kwargs):
+        self._session.execute(sql, **kwargs)
 
 
 class FakeSession(AbstractSession):
@@ -133,6 +140,7 @@ def make_db_session(engine: Engine) -> Session:
 
 
 def make_fake_session() -> FakeSession:
+    # pylint: disable=(abstract-class-instantiated)
     return FakeSession()
 
 
