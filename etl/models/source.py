@@ -84,7 +84,7 @@ class Administrations(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class Prescriptions(SourceModelBase):
+class Prescriptions(SourceModelBase, PKIdMixin):
     """
     The prescriptions source table
     """
@@ -94,7 +94,7 @@ class Prescriptions(SourceModelBase):
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
-    epaspresid: Final[Column] = BigIntField(primary_key=True)
+    epaspresid: Final[Column] = BigIntField()
     epaspresbaseid: Final[Column] = BigIntField()
     epaspresstarttime: Final[Column] = TimeStampField()
     epaspresdose: Final[Column] = FloatField()
