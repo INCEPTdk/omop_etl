@@ -6,6 +6,7 @@ from typing import Any, Final
 import pandas as pd
 from sqlalchemy import insert
 from sqlalchemy.sql import Insert
+from sqlalchemy.sql.functions import concat
 
 from etl.csv import LOOKUP_DF
 from etl.models.omopcdm54.health_systems import Location
@@ -31,8 +32,7 @@ POSTAL_CODE: Final[Any] = get_postal_code(LOOKUP_DF, HOSPITAL_SHAK_CODE)
 
 
 LOCATION_INSERT: Final[Insert] = insert(Location).values(
-    location_id=1,
     zip=POSTAL_CODE,
-    location_source_value=HOSPITAL_SHAK_CODE,
+    location_source_value=concat("hospital_shak_code|", HOSPITAL_SHAK_CODE),
     country_concept_id=DENMARK_CONCEPT_ID,
 )

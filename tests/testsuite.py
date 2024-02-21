@@ -12,8 +12,7 @@ from tests.util.sqltests import *
 if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.processtests import ProcessPostgresTests, RunETLPostgresTests
     from tests.transform.create_omopcdm_tables_tests import *
-
-    # from tests.transform.location_tests import *
+    from tests.transform.location_tests import *
     from tests.util.dbtests import *
 
 
