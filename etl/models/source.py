@@ -59,9 +59,9 @@ class CourseMetadata(SourceModelBase, PKIdMixin):
 
     courseid: Final[Column] = BigIntField()
     timestamp: Final[Column] = TimeStampField()
-    variable: Final[Column] = CharField(16)
+    variable: Final[Column] = CharField(50)
     value: Final[Column] = FloatField()
-    from_file: Final[Column] = CharField(7)
+    from_file: Final[Column] = CharField(50)
 
 
 @register_source_model
@@ -77,9 +77,9 @@ class Administrations(SourceModelBase, PKIdMixin):
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
     epaspresbaseid: Final[Column] = BigIntField()
-    variable: Final[Column] = CharField(22)
+    variable: Final[Column] = CharField(70)
     value: Final[Column] = FloatField()
-    from_file: Final[Column] = CharField(10)
+    from_file: Final[Column] = CharField(50)
 
 
 @register_source_model
@@ -101,98 +101,98 @@ class Prescriptions(SourceModelBase, PKIdMixin):
     epaspresdosemax: Final[Column] = FloatField()
     epaspresdosestart: Final[Column] = FloatField()
     epaspresdrugunit: Final[Column] = CharField(
-        7,
+        50,
     )
     epaspresdrugunitact: Final[Column] = CharField(
-        12,
+        50,
     )
     epaspresconc: Final[Column] = FloatField()
     epaspresfluids: Final[Column] = CharField(
-        10,
+        50,
     )
     epaspresinfusionmax: Final[Column] = FloatField()
     epaspresmaxconc: Final[Column] = FloatField()
     epaspresmaxbag: Final[Column] = BigIntField()
     epasprescreatetime: Final[Column] = TimeStampField()
     epaspresdisolved: Final[Column] = CharField(
-        9,
+        50,
     )
     epaspresmixammount: Final[Column] = FloatField()
     epasprespn: Final[Column] = CharField(
-        3,
+        50,
     )
     epaspresinint: Final[Column] = CharField(
-        3,
+        50,
     )
     epaspresfreq: Final[Column] = CharField(
-        30,
+        50,
     )
     epasprescreattype: Final[Column] = CharField(
-        20,
+        50,
     )
     epaspresgsubst: Final[Column] = CharField(
-        3,
+        50,
     )
     epasprespsubst: Final[Column] = CharField(
-        3,
+        50,
     )
     epaspresdosemaxdaily: Final[Column] = FloatField()
     epaspresdosemaxtotal: Final[Column] = BigIntField()
     epaspresscheduletype: Final[Column] = CharField(
-        1,
+        50,
     )
     epaspresdosemaxdailyunit: Final[Column] = CharField(
-        7,
+        50,
     )
     epaspresdosemaxtotalunit: Final[Column] = CharField(
-        1,
+        50,
     )
     epaspressecuritydose: Final[Column] = BigIntField()
     epaspressecuritydoseunit: Final[Column] = CharField(
-        7,
+        50,
     )
     epaspressecuritydoseminutes: Final[Column] = BigIntField()
     epaspresminadmtime: Final[Column] = BigIntField()
     epaspresprotname: Final[Column] = CharField(
-        43,
-    )
-    epaspresprotname_right: Final[Column] = CharField(
-        43,
-    )
-    epaspresprotkey: Final[Column] = CharField(
-        37,
-    )
-    epaspresdrugname: Final[Column] = CharField(
         70,
     )
+    epaspresprotname_right: Final[Column] = CharField(
+        70,
+    )
+    epaspresprotkey: Final[Column] = CharField(
+        70,
+    )
+    epaspresdrugname: Final[Column] = CharField(
+        140,
+    )
     epaspresadmmthd: Final[Column] = CharField(
-        117,
+        140,
     )
     epaspresdrugatc: Final[Column] = CharField(
-        7,
+        50,
     )
     epaspresindication: Final[Column] = CharField(
-        100,
+        140,
     )
     epaspresindictext: Final[Column] = CharField(
-        100,
+        140,
     )
     epaspresindicsks: Final[Column] = CharField(
-        100,
+        140,
     )
     epaspresdisctime: Final[Column] = TimeStampField()
     epaspresdiscreason: Final[Column] = CharField(
-        36,
+        70,
     )
     epaspresadmroute: Final[Column] = CharField(
-        2,
+        50,
     )
     epaspresgestage: Final[Column] = BigIntField()
     epaspresweight: Final[Column] = BigIntField()
     epaspresage: Final[Column] = BigIntField()
     epaspresbsa: Final[Column] = BigIntField()
     epasadmdoseunit: Final[Column] = CharField(
-        4,
+        50,
     )
     epasadmdose: Final[Column] = FloatField()
 
@@ -208,10 +208,10 @@ class DiagnosesProcedures(SourceModelBase, PKIdMixin):
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
     courseid: Final[Column] = BigIntField(nullable=False)
-    timestamp: Final[Column] = CharField(100)
-    variable: Final[Column] = CharField(16)
+    timestamp: Final[Column] = CharField(140)
+    variable: Final[Column] = CharField(50)
     value: Final[Column] = BoolField()
-    from_file: Final[Column] = CharField(8)
+    from_file: Final[Column] = CharField(50)
 
 
 @register_source_model
@@ -226,9 +226,9 @@ class Observations(SourceModelBase, PKIdMixin):
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
-    variable: Final[Column] = CharField(100)
+    variable: Final[Column] = CharField(140)
     value: Final[Column] = CharField(580)
-    from_file: Final[Column] = CharField(9)
+    from_file: Final[Column] = CharField(50)
 
 
 @register_source_model
@@ -242,14 +242,14 @@ class Person(SourceModelBase, PKIdMixin):
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(
-        26,
+        50,
     )
     c_kon: Final[Column] = CharField(
-        1,
+        50,
     )
     d_foddato: Final[Column] = DateField()
     c_status: Final[Column] = CharField(
-        2,
+        50,
     )
     d_status_hen_start: Final[Column] = DateField()
 
