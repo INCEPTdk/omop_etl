@@ -23,7 +23,7 @@ def get_postal_code(shak_lookup: pd.DataFrame, shak_code: int):
                 "postal_code",
             ].values[0]
         )
-    except (IndexError, ValueError):
+    except (IndexError, ValueError, TypeError):
         return None
 
 

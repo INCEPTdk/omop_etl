@@ -134,6 +134,9 @@ class FakeSession(AbstractSession):
     def query(self, *entities, **kwargs) -> Query:
         return Query(entities, session=None)
 
+    def execute(self, sql: Any, **kwargs):
+        pass
+
 
 def make_db_session(engine: Engine) -> Session:
     return Session(engine)
