@@ -24,7 +24,6 @@ from .models.omopcdm54 import (
     VisitOccurrence,
 )
 from .models.tempmodels import ConceptLookup
-from .transform.cdm_source import transform as cdm_source_transform
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.location import transform as location_transform
 from .transform.session_operation import SessionOperation
@@ -120,17 +119,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             description="Create OMOP tables",
         ),
         SessionOperation(
-            key=str(CDMSource.__table__),
-            session=session,
-            func=cdm_source_transform,
-            description="CDM Source transform",
-        ),
-        SessionOperation(
             key=str(Location.__table__),
             session=session,
             func=location_transform,
             description="Location transform",
         ),
+        # add transformations here.....
     ]
 
     run_transformations(session, transformations, registry)
@@ -139,22 +133,22 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
     print_summary(
         session,
         [
-            CDMSource,
+            Location,
+            CareSite,
             Person,
-            Death,
-            DrugExposure,
-            Measurement,
             ConditionOccurrence,
-            ProcedureOccurrence,
+            DrugExposure,
             Observation,
+            ProcedureOccurrence,
+            Measurement,
+            Death,
             ObservationPeriod,
             DrugEra,
             ConditionEra,
             VisitOccurrence,
             DeviceExposure,
             Specimen,
-            Location,
-            CareSite,
+            CDMSource,
         ],
     )
 
