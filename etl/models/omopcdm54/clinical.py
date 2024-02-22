@@ -36,7 +36,7 @@ class Person(ModelBase):
     year_of_birth: Final[Column] = IntField(nullable=False)
     month_of_birth: Final[Column] = IntField()
     day_of_birth: Final[Column] = IntField()
-    birth_datetime: Final[Column] = DateField()
+    birth_datetime: Final[Column] = DateTimeField()
     race_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
