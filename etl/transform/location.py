@@ -13,7 +13,7 @@ def transform(session: AbstractSession) -> None:
     logger.info("Starting the location transformation... ")
     session.execute(LOCATION_INSERT)
     logger.info(
-        "Location transformation finished successfully with count %s",
+        "LOCATION Transformation complete! %s Location(s) included",
         session.query(Location).count(),
     )
     if not POSTAL_CODE:
