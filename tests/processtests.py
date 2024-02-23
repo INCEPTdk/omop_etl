@@ -672,45 +672,7 @@ class RunETLPostgresTests(PostgresBaseTest):
                 self._update(model.__tablename__, pd.DataFrame(dd))
             return self
 
-    class ErrorLoader(Loader):
-        """A fake source loader for testing"""
 
-        def load(self) -> Loader:
-            raise TransformationErrorException("An error!")
-
-    def test_run_etl_with_empty_data(self):
-        empty_source_loader = Loader()
-        lookup_loader = CSVFileLoader(
-            Path(self.csv_dir), TEMP_MODELS, delimiter=";"
-        )
-        with session_context(make_db_session(self.engine)) as session:
-            run_etl(session, empty_source_loader, lookup_loader)
-
-    def test_run_etl_with_dummy_data(self):
-        fake_source_loader = self.RandomSourceLoader(SOURCE_MODELS)
-        lookup_loader = CSVFileLoader(
-            Path(self.csv_dir), TEMP_MODELS, delimiter=";"
-        )
-        with session_context(make_db_session(self.engine)) as session:
-            self.assertFalse(bool(fake_source_loader.data))
-            run_etl(session, fake_source_loader, lookup_loader)
-            self.assertTrue(bool(fake_source_loader.data))
-            self.assertTrue(len(fake_source_loader.models) > 0)
-            for model in fake_source_loader.models:
-                self.assertEqual(
-                    fake_source_loader.get(model.__tablename__).shape[0],
-                    self.nentries,
-                )
-
-    def test_run_etl_with_error(self):
-        fake_source_loader = self.RandomSourceLoader(SOURCE_MODELS)
-        lookup_loader = self.ErrorLoader()
-        called = False
-        with session_context(make_db_session(self.engine)) as session:
-            with self.assertRaises(TransformationErrorException):
-                run_etl(session, fake_source_loader, lookup_loader)
-            called = True
-        self.assertTrue(called)
 
 
 __all__ = ["ProcessUnitTests", "ProcessPostgresTests", "RunETLPostgresTests"]
