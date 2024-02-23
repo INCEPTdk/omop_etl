@@ -18,6 +18,6 @@ def transform(session: AbstractSession) -> None:
     )
     if not POSTAL_CODE:
         logger.warning(
-            "Could not find shak_code %s in the lookup file, this code needs to be added manualy",
+            "Could not find shak_code %s in the lookup file, this code needs to be added manually",
             HOSPITAL_SHAK_CODE,
         )
