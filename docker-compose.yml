@@ -18,7 +18,7 @@ services:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
       SOURCE_SCHEMA: "source"
-      HOSPITAL_SHAK_CODE: "" # Fill with the hospital specific code
+      DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
 
 networks:
   etl-net:

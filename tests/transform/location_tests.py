@@ -24,14 +24,14 @@ class LocationTransformationTest(PostgresBaseTest):
 
     def test_transform(self):
         with session_context(make_db_session(self.engine)) as session:
-            shak_code = '1301'
+            shak_code = '1301011'
             self._run_location_transformation(session, shak_code)
 
             result = session.query(Location).all()
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0].location_id, 1)
             self.assertEqual(result[0].zip, "2100")
-            self.assertEqual(result[0].location_source_value, "hospital_shak_code|1301")
+            self.assertEqual(result[0].location_source_value, "department_shak_code|1301011")
             self.assertEqual(result[0].country_concept_id, 4330435)
 
     def test_transform_empty_shak_code(self):
@@ -43,7 +43,7 @@ class LocationTransformationTest(PostgresBaseTest):
             self.assertEqual(len(result), 1)
             self.assertEqual(result[0].location_id, 1)
             self.assertEqual(result[0].zip, None)
-            self.assertEqual(result[0].location_source_value, "hospital_shak_code|")
+            self.assertEqual(result[0].location_source_value, "department_shak_code|")
             self.assertEqual(result[0].country_concept_id, 4330435)
 
 

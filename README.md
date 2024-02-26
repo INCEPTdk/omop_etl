@@ -34,7 +34,7 @@ services:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
       SOURCE_SCHEMA: "source" # Add the actual source schema
-      HOSPITAL_SHAK_CODE: "" # Fill with the hospital specific code
+      DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
     volumes:
       - "/path/to/input/data/dir:/data:ro"
 ```
