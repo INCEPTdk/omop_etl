@@ -1,6 +1,4 @@
 """Location transformation tests"""
-import os
-from unittest import mock
 
 from etl.models.omopcdm54.health_systems import Location
 from etl.sql.location import get_location_insert
