@@ -11,13 +11,13 @@ from etl.models.source import Person as SourcePerson
 from etl.transform.person import transform as person_transform
 from etl.transform.death import transform as death_transform
 from etl.util.db import make_db_session, session_context
-from tests.testutils import PostgresBaseTest, write_to_db
+from tests.testutils import base_path, PostgresBaseTest, write_to_db
 
 class DeathTransformationTest(PostgresBaseTest):
     SOURCE_MODELS = [SourcePerson]
     TARGET_MODEL = [OmopPerson, OmopDeath]
-    INPUT_FILE = f"{pathlib.Path(__file__).parent.resolve()}/test_data/person/in_person.parquet.csv"
-    OUTPUT_FILE = f"{pathlib.Path(__file__).parent.resolve()}/test_data/person/out_death.csv"
+    INPUT_FILE = f"{base_path()}/test_data/person/in_person.parquet.csv"
+    OUTPUT_FILE = f"{base_path()}/test_data/person/out_death.csv"
     
     def setUp(self):
         super().setUp()

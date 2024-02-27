@@ -2,7 +2,9 @@
 import os
 import unittest
 from typing import Any, List, Optional
+from pathlib import Path
 
+import inspect
 import pandas as pd
 
 from etl.models.modelutils import create_tables_sql
@@ -55,3 +57,7 @@ class PostgresBaseTest(unittest.TestCase):
 
 def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):
     table_frame.to_sql(table_name, db_engine, if_exists="append", index=False, schema=schema)
+
+def base_path() -> Path:
+    caller_module = inspect.getmodule(inspect.stack()[1][0])
+    return Path(caller_module.__file__).parent.resolve()
