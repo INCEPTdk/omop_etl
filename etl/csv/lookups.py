@@ -6,6 +6,7 @@ from sqlalchemy import case
 from sqlalchemy.sql.elements import Case
 
 from etl.models.tempmodels import ConceptLookup
+from collections import defaultdict
 
 SHAK_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
     "etl/csv/shak_lookup.tsv", sep="\t", dtype=str
@@ -17,15 +18,22 @@ CONCEPT_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
 
 
 def get_concept_lookup_dict(filter_: str) -> Dict:
+    
+    d = defaultdict(lambda: None)
+
     fdf = CONCEPT_LOOKUP_DF[
         CONCEPT_LOOKUP_DF[ConceptLookup.filter.key] == filter_
     ]
-    return dict(
-        zip(
-            fdf[ConceptLookup.concept_string.key],
-            fdf[ConceptLookup.concept_id.key],
+    d.update(
+        dict(
+            zip(
+                fdf[ConceptLookup.concept_string.key],
+                fdf[ConceptLookup.concept_id.key],
+            )
         )
     )
+
+    return d
 
 
 def generate_lookup_case(
