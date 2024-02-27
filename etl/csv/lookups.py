@@ -8,7 +8,7 @@ from sqlalchemy.sql.elements import Case
 from etl.models.tempmodels import ConceptLookup
 
 SHAK_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
-    "etl/csv/shak_lookup.csv", sep="\t", encoding="iso-8859-1"
+    "etl/csv/shak_lookup.tsv", sep="\t", dtype=str
 )
 
 CONCEPT_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(

@@ -1,66 +1,66 @@
 department_shak_code	hospital_name	department_name	region	include	surgical	postal_code	hospital_shak_code
-1309010	Bispebjerg og Frederiksberg Hospitaler	Anæstesiol.afd.R, intens.ter	capital	1	0	2400	1309
+1309010	Bispebjerg og Frederiksberg Hospitaler	An√¶stesiol.afd.R, intens.ter	capital	1	0	2400	1309
 1301011	Rigshospitalet	RH 4131 Intensiv Terapiklinik	capital	1	0	2100	1301
 1301211	Rigshospitalet	RH 2093 (Neuro-intensivt afsnit)	capital	1	1	2100	1301
 1301341	Rigshospitalet	RH 2143 Hjertemedicinsk intensivt afdeling	capital	1	0	2100	1301
 1301341	Rigshospitalet	RH 4141 (Thoraxkirurgisk intensivt afsnit)	capital	1	1	2100	1301
-1301342	Rigshospitalet	Thoraxanæstesiologisk klinik RT	capital	1	1	2100	1301
+1301342	Rigshospitalet	Thoraxan√¶stesiologisk klinik RT	capital	1	1	2100	1301
 1309610	Bispebjerg Hospital	Bispebjerg RIT	capital	1	0	2400	1309
 1330250	Hvidovre Hospital	Hvidovre 542	capital	1	0	2650	1330
-1401010	Frederiksberg Hospital	Anæst.klinik intensiv terapi	capital	1	0	2000	1401
+1401010	Frederiksberg Hospital	An√¶st.klinik intensiv terapi	capital	1	0	2000	1401
 1502010	Glostrup Hospital	Glostrup Y 13	capital	1	0	2600	1502
-1502010	Rigshospitalet	Anæstesiologisk klinik NEU GLO	capital	1	0	2100	1301
+1502010	Rigshospitalet	An√¶stesiologisk klinik NEU GLO	capital	1	0	2100	1301
 1502120	Glostrup Hospital	Glostrup NITA H17	capital	1	0	2600	1502
 1516011	Herlev Hospital	KAS Herlev I 104	capital	1	0	2730	1516
-1516011	Herlev Hospital	Anæstesiologisk afdeling I	capital	1	0	2730	1516
+1516011	Herlev Hospital	An√¶stesiologisk afdeling I	capital	1	0	2730	1516
 1516420	Gentofte Hospital	Gentofte ITA 303 + RITA (hjertekirurgisk intensvi)	capital	1	1	2900	1501
 1516420	Gentofte Hospital	INTENSIV AFDELING Q, GE	capital	1	0	2900	1516
-2000341	Hillerød Hospital	Hillerød	capital	1	0	3400	2000
-2000343	Helsingør Hospital	Helsingør	capital	1	0	3000	2000
+2000341	Hiller√∏d Hospital	Hiller√∏d	capital	1	0	3400	2000
+2000343	Helsing√∏r Hospital	Helsing√∏r	capital	1	0	3000	2000
 2000345	Frederikssund Hospital	Frederikssund	capital	1	0	3600	2000
-2000541	Helsingør Hospital	Helsingør	capital	1	0	3000	2000
-2502010	Køge Sygehus	Anæstesiafdeling	zealand	1	0	4600	2502
-3000570	Sygehus Vestsjælland	Anæstesiologisk afdeling, Holbæk	zealand	1	0	4300	3000
-3000580	Sygehus Vestsjælland	Anæstesiologisk afdeling, Slagelse	zealand	1	0	4200	3000
-3000590	Sygehus Vestsjælland	Anæstesiologisk afdeling, Kalundborg	zealand	1	0	4400	3000
-3500310	Storstrømmens Sygehus	Næ Anæstesi senge	zealand	1	0	4700	3500
-3500320	Storstrømmens Sygehus	Ny Anæstesi senge	zealand	1	0	4700	3500
+2000541	Helsing√∏r Hospital	Helsing√∏r	capital	1	0	3000	2000
+2502010	K√∏ge Sygehus	An√¶stesiafdeling	zealand	1	0	4600	2502
+3000570	Sygehus Vestsj√¶lland	An√¶stesiologisk afdeling, Holb√¶k	zealand	1	0	4300	3000
+3000580	Sygehus Vestsj√¶lland	An√¶stesiologisk afdeling, Slagelse	zealand	1	0	4200	3000
+3000590	Sygehus Vestsj√¶lland	An√¶stesiologisk afdeling, Kalundborg	zealand	1	0	4400	3000
+3500310	Storstr√∏mmens Sygehus	N√¶ An√¶stesi senge	zealand	1	0	4700	3500
+3500320	Storstr√∏mmens Sygehus	Ny An√¶stesi senge	zealand	1	0	4700	3500
 3800C30	Roskilde Sygehus	RAS Roskilde I12	zealand	1	0	4000	3800
 3800C30	Roskilde Sygehus	RAS Roskilde I12	zealand	1	0	4000	3800
 3800C30	Roskilde Sygehus	RAS Roskilde I12	zealand	1	0	4000	3800
 3800C30	Roskilde Sygehus	Intensiv terapiafdeling, senge	zealand	1	0	4000	2501
-3800E50	Køge Sygehus	RAS Køge Intensiv Afsnit	zealand	1	0	4600	3800
-3800J70	Holbæk Sygehus	Holbæk Intensiv FBE	zealand	1	0	4300	3800
+3800E50	K√∏ge Sygehus	RAS K√∏ge Intensiv Afsnit	zealand	1	0	4600	3800
+3800J70	Holb√¶k Sygehus	Holb√¶k Intensiv FBE	zealand	1	0	4300	3800
 3800M30	Kalundborg Sygehus	Kalundborg	zealand	1	0	4400	3800
-3800Q20	Næstved Sygehus	Næstved ITA 3	zealand	1	0	4700	3800
+3800Q20	N√¶stved Sygehus	N√¶stved ITA 3	zealand	1	0	4700	3800
 3800S80	Slagelse Sygehus	Slagelse Intensiv afd H	zealand	1	0	4200	3800
-3800X30	Nykøbing F. Sygehus	Nykøbing F Intensiv	zealand	1	0	4800	3800
-4001010	Bornholms Hospital	Bornholm ota-opvågning	capital	1	0	3700	4001
+3800X30	Nyk√∏bing F. Sygehus	Nyk√∏bing F Intensiv	zealand	1	0	4800	3800
+4001010	Bornholms Hospital	Bornholm ota-opv√•gning	capital	1	0	3700	4001
 4202010	Odense Universitetshospital	OUH ITA/BRITA/PITA	south	1	0	5000	4202
 4202011	Odense Universitetshospital	OUH VITA	south	1	0	5000	4202
 4202150	Odense Universitetshospital	OUH NIA	south	1	1	5000	4202
 4202790	OUH, Svendborg Sygehus	Svendborg Intensiv afd. V	south	1	0	5700	4212
 4202790	OUH, Svendborg Sygehus	OUH Intensiv Afsnit (Svendborg)	south	1	0	5700	4202
 4202790	OUH, Svendborg Sygehus	OUH Intensiv Amb. SV (Svendborg)	south	1	0	5700	4202
-5000040	Sygehus Sønderjylland, Sønderborg	Sønderborg Intensiv afd.	south	1	0	6400	5000
-5000040	Sygehus Sønderjylland, Sønderborg	Sønderborg Intensiv afd.	south	1	0	6400	5001
-5004011	Sygehus Sønderjylland, Aabenraa	Åbenrå 	south	1	0	6200	5004
-5004011	Sygehus Sønderjylland, Aabenraa	Åbenrå 	south	1	0	6200	5000
+5000040	Sygehus S√∏nderjylland, S√∏nderborg	S√∏nderborg Intensiv afd.	south	1	0	6400	5000
+5000040	Sygehus S√∏nderjylland, S√∏nderborg	S√∏nderborg Intensiv afd.	south	1	0	6400	5001
+5004011	Sygehus S√∏nderjylland, Aabenraa	√Öbenr√• 	south	1	0	6200	5004
+5004011	Sygehus S√∏nderjylland, Aabenraa	√Öbenr√• 	south	1	0	6200	5000
 5501024	Sydvestjysk Sygehus (Esbjerg)	Esbjerg Intensiv 241	south	1	0	6700	5501
 5510018	Hjertecenter Varde		south	1	0	6800	5510
-6003010	Fredericia Sygehus	Anæsthesiologisk afdeling	south	1	0	7000	6003
+6003010	Fredericia Sygehus	An√¶sthesiologisk afdeling	south	1	0	7000	6003
 6006011	Regionshospitalet Horsens		central	1	0	8700	6006
-6007011	Sygehus Lillebælt, Kolding Sygehus	Kolding Intensiv Afd F	south	1	0	6000	6007
-6008011	Sygehus Lillebælt, Vejle Sygehus	Vejle sygehus A25	south	1	0	7100	6008
-6620011	Århus Universitetshospital, Århus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	7003
-6620011	Århus Universitetshospital, 'Intensiv Afdeling Aarhus'	AUH 'Intensiv Afdeling Aarhus'	central	1	0	8000	6620
-6620011	Århus Universitetshospital, Århus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	6620
-6620011	Århus Universitetshospital, Århus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	6620
-6620013	Århus Universitetshospital, Århus Sygehus THG	Opvågning Intensiv Terapi Afsnit (OVITA)	central	1	0	8000	6620
-6620311	Århus Universitetshospital, Skejby		central	1	0	8000	6620
-6620311	Århus Universitetshospital, Skejby		central	1	0	8000	7026
-6620311	Århus Universitetshospital, Skejby	Perioperativ Enheder Øst	central	1	0	8000	6620
-6620313	Århus Universitetshospital		central	1	0	8000	6620
+6007011	Sygehus Lilleb√¶lt, Kolding Sygehus	Kolding Intensiv Afd F	south	1	0	6000	6007
+6008011	Sygehus Lilleb√¶lt, Vejle Sygehus	Vejle sygehus A25	south	1	0	7100	6008
+6620011	√Örhus Universitetshospital, √Örhus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	7003
+6620011	√Örhus Universitetshospital, 'Intensiv Afdeling Aarhus'	AUH 'Intensiv Afdeling Aarhus'	central	1	0	8000	6620
+6620011	√Örhus Universitetshospital, √Örhus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	6620
+6620011	√Örhus Universitetshospital, √Örhus Sygehus NBG	Intensiv Terapi Afsnit (ITA)	central	1	0	8000	6620
+6620013	√Örhus Universitetshospital, √Örhus Sygehus THG	Opv√•gning Intensiv Terapi Afsnit (OVITA)	central	1	0	8000	6620
+6620311	√Örhus Universitetshospital, Skejby		central	1	0	8000	6620
+6620311	√Örhus Universitetshospital, Skejby		central	1	0	8000	7026
+6620311	√Örhus Universitetshospital, Skejby	Perioperativ Enheder √òst	central	1	0	8000	6620
+6620313	√Örhus Universitetshospital		central	1	0	8000	6620
 6630011	Regionshospitalet Viborg		central	1	0	8800	7601
 6630011	Regionshospitalet Viborg		central	1	0	8800	6630
 6630011	Hospitalsenhed Midt	Intensiv Afdeling Viborg	central	1	0	8800	6630
@@ -70,11 +70,11 @@ department_shak_code	hospital_name	department_name	region	include	surgical	posta
 6650222	Regionshospitalet Herning		central	1	0	7400	6502
 7002012	Regionshospitalet Silkeborg		central	1	0	8600	6630
 7002012	Regionshospitalet Silkeborg		central	1	0	8600	7002
-7003131	Århus Universitetshospital	Neurointensivt Afsnit NIA	central	1	1	8000	6620
-7003131	Århus Universitetshospital, Århus Sygehus NBG	Neurointensivt Afsnit NIA	central	1	1	8000	7003
-7003131	Århus Universitetshospital, Århus Sygehus NBG	Neurointensivt Afsnit NIA	central	1	1	8000	6620
+7003131	√Örhus Universitetshospital	Neurointensivt Afsnit NIA	central	1	1	8000	6620
+7003131	√Örhus Universitetshospital, √Örhus Sygehus NBG	Neurointensivt Afsnit NIA	central	1	1	8000	7003
+7003131	√Örhus Universitetshospital, √Örhus Sygehus NBG	Neurointensivt Afsnit NIA	central	1	1	8000	6620
 7003131	Hospitalsenhed Midt	Intensiv NIA Nord	central	1	0	8000	6620
-7004010	Århus Universitetshospital, Århus Sygehus THG	Opvågning Intensiv Terapi Afsnit (OVITA)	central	1	0	8000	7004
+7004010	√Örhus Universitetshospital, √Örhus Sygehus THG	Opv√•gning Intensiv Terapi Afsnit (OVITA)	central	1	0	8000	7004
 7005013	Regionshospitalet Randers		central	1	0	8900	7005
 7603010	Regionshospital Nordjylland, Thisted		north	1	0	7700	7603
 8001311	Aalborg Sygehus	Neurokir. Afd.	north	1	1	9000	8001
@@ -84,18 +84,18 @@ department_shak_code	hospital_name	department_name	region	include	surgical	posta
 8001561	Aalborg Sygehus	Hjerte-Thorax-Kar intensiv afsnit TIA	north	1	1	9000	8001
 8001561	Aalborg Sygehus	Hjerte-Thorax-Kar intensiv afsnit TIA	north	1	1	9000	8001
 8001571	Aalborg Sygehus	Almen intensivafdeling R	north	1	0	9000	8001
-8001573	Aalborg Sygehus	Opvågningen Syd	north	1	0	9000	8050
-8001573	Aalborg Sygehus	Opvågningen Syd	north	1	0	9000	8001
-8001573	Aalborg Sygehus	Opvågningen Syd	north	1	0	9000	8001
+8001573	Aalborg Sygehus	Opv√•gningen Syd	north	1	0	9000	8050
+8001573	Aalborg Sygehus	Opv√•gningen Syd	north	1	0	9000	8001
+8001573	Aalborg Sygehus	Opv√•gningen Syd	north	1	0	9000	8001
 8001575	Sygehus Himmerland (Hobro)	Intensivafsnittet Hobro 	north	1	0	9500	8001
 8001575	Sygehus Himmerland (Hobro)	Intensivafsnittet Hobro 	north	1	0	9500	8001
-8003401	Regionshospital Nordjylland, Hjørring	Intensivafsnittet Hjørring	north	1	0	9800	8003
+8003401	Regionshospital Nordjylland, Hj√∏rring	Intensivafsnittet Hj√∏rring	north	1	0	9800	8003
 8050011	Aalborg Sygehus Nord	Intensiv afsnit 103	north	1	0	9000	8050
 8050021	Aalborg Sygehus	Neuro-, orto- og traumeintensiv (NOTIA)	north	1	0	9000	8050
 8050031	Aalborg Sygehus	Hjerte-Thorax-Kar intensiv afsnit TIA	north	1	1	9000	8050
 8050031	Aalborg Sygehus	Hjerte-Thorax-Kar intensiv afsnit TIA	north	1	1	9000	8050
 8050041	Aalborg Sygehus	Almen intensivafdeling R	north	1	0	9000	8050
 8050045	Sygehus Himmerland (Hobro)	Intensivafsnittet Hobro 	north	1	0	9500	8050
-8050061	Sygehus Vendsyssel (Hjørring)	Intensivafsnittet Hjørring	north	1	0	9500	8050
+8050061	Sygehus Vendsyssel (Hj√∏rring)	Intensivafsnittet Hj√∏rring	north	1	0	9500	8050
 8050073	Sygehus Thy-Mors		north	1	0	7700	7603
 8050073	Sygehus Thy-Mors		north	1	0	7700	8050
