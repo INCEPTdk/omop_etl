@@ -15,6 +15,7 @@ DENMARK_CONCEPT_ID: Final[int] = 4330435
 
 DEPARTMENT_SHAK_CODE = os.getenv("DEPARTMENT_SHAK_CODE")
 
+
 def get_postal_code(shak_lookup: pd.DataFrame, shak_code: str) -> Any:
     try:
         return str(
@@ -28,6 +29,7 @@ def get_postal_code(shak_lookup: pd.DataFrame, shak_code: str) -> Any:
 
 
 POSTAL_CODE: Final[Any] = get_postal_code(SHAK_LOOKUP_DF, DEPARTMENT_SHAK_CODE)
+
 
 def get_location_insert(shak_code: str) -> Insert:
     return insert(Location).values(
