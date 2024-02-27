@@ -21,8 +21,8 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
-from sqlalchemy.orm import declarative_mixin
+from sqlalchemy.ext.declarative import DeclarativeMeta 
+from sqlalchemy.orm import declarative_mixin, declarative_base
 from sqlalchemy.schema import (
     AddConstraint,
     CreateIndex,
