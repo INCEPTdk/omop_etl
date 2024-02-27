@@ -2,7 +2,7 @@
 import logging
 
 from ..models.omopcdm54.health_systems import Location
-from ..sql.location import HOSPITAL_SHAK_CODE, LOCATION_INSERT, POSTAL_CODE
+from ..sql.location import HOSPITAL_SHAK_CODE, POSTAL_CODE, get_location_insert
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Location")
@@ -11,7 +11,7 @@ logger = logging.getLogger("ETL.Location")
 def transform(session: AbstractSession) -> None:
     """Run the location transformation"""
     logger.info("Starting the location transformation... ")
-    session.execute(LOCATION_INSERT)
+    session.execute(get_location_insert(HOSPITAL_SHAK_CODE))
     logger.info(
         "LOCATION Transformation complete! %s Location(s) included",
         session.query(Location).count(),

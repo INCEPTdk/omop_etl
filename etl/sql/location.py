@@ -31,8 +31,9 @@ def get_postal_code(shak_lookup: pd.DataFrame, shak_code: int):
 POSTAL_CODE: Final[Any] = get_postal_code(LOOKUP_DF, HOSPITAL_SHAK_CODE)
 
 
-LOCATION_INSERT: Final[Insert] = insert(Location).values(
-    zip=POSTAL_CODE,
-    location_source_value=concat("hospital_shak_code|", HOSPITAL_SHAK_CODE),
-    country_concept_id=DENMARK_CONCEPT_ID,
-)
+def get_location_insert(shak_code: str) -> Insert:
+    return insert(Location).values(
+        zip=get_postal_code(LOOKUP_DF, shak_code),
+        location_source_value=concat("hospital_shak_code|", shak_code),
+        country_concept_id=DENMARK_CONCEPT_ID,
+    )
