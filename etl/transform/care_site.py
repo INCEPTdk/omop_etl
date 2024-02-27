@@ -1,8 +1,8 @@
 """Care site transformations"""
 import logging
 
-from ..sql.care_site import get_care_site_insert
 from ..sql import DEPARTMENT_SHAK_CODE
+from ..sql.care_site import get_care_site_insert
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.CareSite")

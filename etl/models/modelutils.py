@@ -22,7 +22,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy.orm import declarative_mixin, declarative_base
+from sqlalchemy.orm import declarative_base, declarative_mixin
 from sqlalchemy.schema import (
     AddConstraint,
     CreateIndex,

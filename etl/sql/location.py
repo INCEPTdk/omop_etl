@@ -9,6 +9,7 @@ from sqlalchemy.sql.functions import concat
 
 from etl.csv.lookups import SHAK_LOOKUP_DF
 from etl.models.omopcdm54.health_systems import Location
+
 from . import DEPARTMENT_SHAK_CODE
 
 DENMARK_CONCEPT_ID: Final[int] = 4330435

@@ -1,6 +1,6 @@
 """ Care site transformation logic """
 
-from typing import Any, Final, Dict
+from typing import Any, Dict, Final
 
 import pandas as pd
 from sqlalchemy import insert, literal, select

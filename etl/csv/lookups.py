@@ -1,4 +1,5 @@
 """csv files and lookups"""
+from collections import defaultdict
 from typing import Any, Dict, Final, Optional
 
 import pandas as pd
@@ -6,7 +7,6 @@ from sqlalchemy import case
 from sqlalchemy.sql.elements import Case
 
 from etl.models.tempmodels import ConceptLookup
-from collections import defaultdict
 
 SHAK_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
     "etl/csv/shak_lookup.tsv", sep="\t", dtype=str
