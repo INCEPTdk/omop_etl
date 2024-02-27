@@ -7,10 +7,13 @@ from sqlalchemy import insert, literal, select
 from sqlalchemy.sql import Insert
 from sqlalchemy.sql.functions import concat
 
-from etl.csv.lookups import SHAK_LOOKUP_DF, get_concept_lookup_dict 
+from etl.csv.lookups import SHAK_LOOKUP_DF, get_concept_lookup_dict
 from etl.models.omopcdm54.health_systems import CareSite, Location
 
-def get_department_info(shak_lookup: pd.DataFrame, shak_code: str, col_info: str) -> Any:
+
+def get_department_info(
+    shak_lookup: pd.DataFrame, shak_code: str, col_info: str
+) -> Any:
     try:
         return str(
             shak_lookup.loc[
@@ -21,9 +24,11 @@ def get_department_info(shak_lookup: pd.DataFrame, shak_code: str, col_info: str
     except (IndexError, ValueError, TypeError):
         return None
 
-PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP: Final[Dict[str, int]] = get_concept_lookup_dict(
-    CareSite.__tablename__
-)
+
+PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP: Final[
+    Dict[str, int]
+] = get_concept_lookup_dict(CareSite.__tablename__)
+
 
 def get_care_site_insert(shak_code: str) -> Insert:
 
@@ -38,19 +43,30 @@ def get_care_site_insert(shak_code: str) -> Insert:
         select=select(
             [
                 Location.location_id,
-                literal(get_department_info(SHAK_LOOKUP_DF, shak_code, "department_name")),
+                literal(
+                    get_department_info(
+                        SHAK_LOOKUP_DF, shak_code, "department_name"
+                    )
+                ),
                 literal(
                     PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP[
-                        get_department_info(SHAK_LOOKUP_DF, shak_code, "department_type")
+                        get_department_info(
+                            SHAK_LOOKUP_DF, shak_code, "department_type"
+                        )
                     ]
                 ),
                 concat("department_shak_code|", shak_code),
-                
-                concat("department_type|", 
-                    get_department_info(SHAK_LOOKUP_DF, shak_code, "department_type")
+                concat(
+                    "department_type|",
+                    get_department_info(
+                        SHAK_LOOKUP_DF, shak_code, "department_type"
+                    ),
                 ),
-
             ],
-        ).select_from(Location)
-        .where(Location.location_source_value == concat("department_shak_code|", shak_code)),
+        )
+        .select_from(Location)
+        .where(
+            Location.location_source_value
+            == concat("department_shak_code|", shak_code)
+        ),
     )
