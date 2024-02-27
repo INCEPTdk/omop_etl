@@ -2,7 +2,8 @@
 import logging
 
 from ..models.omopcdm54.health_systems import Location
-from ..sql.location import DEPARTMENT_SHAK_CODE, POSTAL_CODE, get_location_insert
+from ..sql.location import POSTAL_CODE, get_location_insert
+from ..sql import DEPARTMENT_SHAK_CODE
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Location")
