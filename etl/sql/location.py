@@ -12,7 +12,7 @@ from etl.models.omopcdm54.health_systems import Location
 
 DENMARK_CONCEPT_ID: Final[int] = 4330435
 
-DEPARTMENT_SHAK_CODE = str(os.getenv("DEPARTMENT_SHAK_CODE"))
+DEPARTMENT_SHAK_CODE = os.getenv("DEPARTMENT_SHAK_CODE")
 
 
 def get_postal_code(
