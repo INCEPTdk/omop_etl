@@ -1,7 +1,7 @@
 """ Location transformation logic """
 
 import os
-from typing import Any, Final
+from typing import Any, Dict, Final
 
 from sqlalchemy import insert
 from sqlalchemy.sql import Insert
@@ -15,7 +15,7 @@ DENMARK_CONCEPT_ID: Final[int] = 4330435
 DEPARTMENT_SHAK_CODE = str(os.getenv("DEPARTMENT_SHAK_CODE"))
 
 
-def get_postal_code(shak_lookup: dict[dict], department_shak_code: str) -> Any:
+def get_postal_code(shak_lookup: Dict[Dict], department_shak_code: str) -> Any:
     return shak_lookup.get(department_shak_code, {}).get("postal_code")
 
 
