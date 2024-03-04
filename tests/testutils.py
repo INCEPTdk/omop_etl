@@ -1,10 +1,10 @@
 """ A module for integration testing with postgres"""
+import inspect
 import os
 import unittest
-from typing import Any, List, Optional
 from pathlib import Path
+from typing import Any, List, Optional
 
-import inspect
 import pandas as pd
 
 from etl.models.modelutils import create_tables_sql

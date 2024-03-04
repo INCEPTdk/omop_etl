@@ -5,20 +5,23 @@ import pathlib
 import pandas as pd
 from sqlalchemy import select
 
-from etl.models.omopcdm54.clinical import Person as OmopPerson
-from etl.models.omopcdm54.clinical import Death as OmopDeath
+from etl.models.omopcdm54.clinical import (
+    Death as OmopDeath,
+    Person as OmopPerson,
+)
 from etl.models.source import Person as SourcePerson
-from etl.transform.person import transform as person_transform
 from etl.transform.death import transform as death_transform
+from etl.transform.person import transform as person_transform
 from etl.util.db import make_db_session, session_context
-from tests.testutils import base_path, PostgresBaseTest, write_to_db
+from tests.testutils import PostgresBaseTest, base_path, write_to_db
+
 
 class DeathTransformationTest(PostgresBaseTest):
     SOURCE_MODELS = [SourcePerson]
     TARGET_MODEL = [OmopPerson, OmopDeath]
-    INPUT_FILE = f"{base_path()}/test_data/person/in_person.parquet.csv"
-    OUTPUT_FILE = f"{base_path()}/test_data/person/out_death.csv"
-    
+    INPUT_FILE = f"{base_path()}/test_data/death/in_death.csv"
+    OUTPUT_FILE = f"{base_path()}/test_data/death/out_death.csv"
+
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
@@ -26,7 +29,7 @@ class DeathTransformationTest(PostgresBaseTest):
         self.test_data_in = pd.read_csv(self.INPUT_FILE, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=['death_date', 'death_datetime'])
         self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list()]
-    
+
     def tearDown(self) -> None:
         super().tearDown()
         self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
