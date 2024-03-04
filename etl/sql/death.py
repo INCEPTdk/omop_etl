@@ -2,9 +2,9 @@
 
 from typing import Final
 
-from sqlalchemy import TIMESTAMP, and_, cast, insert, select
+from sqlalchemy import TIMESTAMP, and_, cast, insert, literal, select
 from sqlalchemy.sql import Insert
-from sqlalchemy.sql.functions import concat
+from sqlalchemy.sql.functions import concat, count
 
 from etl.models.omopcdm54.clinical import (
     Death as OmopDeath,
@@ -17,9 +17,13 @@ REGISTRY_DEATH_TYPE_CONCEPT_ID: Final[int] = 32879
 MergedOmopSourcePerson = (
     select(
         OmopPerson.person_id,
+        SourcePerson.d_foddato,
+        SourcePerson.c_status,
         SourcePerson.d_status_hen_start,
-        cast(SourcePerson.d_status_hen_start, TIMESTAMP),
-        REGISTRY_DEATH_TYPE_CONCEPT_ID,
+        cast(SourcePerson.d_status_hen_start, TIMESTAMP).label(
+            "death_datetime"
+        ),
+        literal(REGISTRY_DEATH_TYPE_CONCEPT_ID).label("death_type_concept_id"),
     )
     .select_from(OmopPerson)
     .join(
@@ -37,11 +41,27 @@ DEATH_INSERT: Final[Insert] = insert(OmopDeath).from_select(
         OmopDeath.death_datetime,
         OmopDeath.death_type_concept_id,
     ],
-    select=MergedOmopSourcePerson.where(
+    select=select(
+        MergedOmopSourcePerson.c.person_id,
+        MergedOmopSourcePerson.c.d_status_hen_start,
+        MergedOmopSourcePerson.c.death_datetime,
+        MergedOmopSourcePerson.c.death_type_concept_id,
+    ).where(
         and_(
-            SourcePerson.c_status == "90",
-            SourcePerson.d_status_hen_start.is_not(None),
-            SourcePerson.d_foddato.is_not(None),
+            MergedOmopSourcePerson.c.c_status == "90",
+            MergedOmopSourcePerson.c.d_status_hen_start.is_not(None),
+            MergedOmopSourcePerson.c.d_foddato.is_not(None),
         )
     ),
 )
+
+DEATH_EXCLUDED: Final[count] = count(
+    select(MergedOmopSourcePerson.c.person_id).where(
+        and_(
+            MergedOmopSourcePerson.c.c_status == "90",
+            MergedOmopSourcePerson.c.d_status_hen_start.is_(None),
+        )
+    )
+)
+
+DEATH_UPLOADED: Final[count] = count(OmopDeath.person_id)
