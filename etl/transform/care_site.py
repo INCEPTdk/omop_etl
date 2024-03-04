@@ -2,7 +2,7 @@
 import logging
 
 from ..sql import DEPARTMENT_SHAK_CODE
-from ..sql.care_site import get_care_site_insert
+from ..sql.care_site import CARE_SITE_COUNT, get_care_site_insert
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.CareSite")
@@ -14,5 +14,6 @@ def transform(session: AbstractSession) -> None:
     care_site_insert = get_care_site_insert(DEPARTMENT_SHAK_CODE)
     session.execute(care_site_insert)
     logger.info(
-        "Care site transformation completed.",
+        "Care site transformation completed., %s Care site(s) included.",
+        session.query(CARE_SITE_COUNT).scalar(),
     )

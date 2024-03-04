@@ -5,7 +5,7 @@ from typing import Any, Dict, Final
 import pandas as pd
 from sqlalchemy import insert, literal, select
 from sqlalchemy.sql import Insert
-from sqlalchemy.sql.functions import concat
+from sqlalchemy.sql.functions import concat, count
 
 from etl.csv.lookups import SHAK_LOOKUP_DF, get_concept_lookup_dict
 from etl.models.omopcdm54.health_systems import CareSite, Location
@@ -28,6 +28,8 @@ def get_department_info(
 PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP: Final[
     Dict[str, int]
 ] = get_concept_lookup_dict(CareSite.__tablename__)
+
+CARE_SITE_COUNT: Final[count] = count(CareSite.care_site_id)
 
 
 def get_care_site_insert(shak_code: str) -> Insert:
