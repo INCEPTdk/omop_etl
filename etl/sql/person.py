@@ -50,6 +50,8 @@ PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
         and_(
             SourcePerson.c_kon.in_(GENDER_CONCEPT_ID_LOOKUP.keys()),
             SourcePerson.d_foddato.is_not(None),
+            SourcePerson.c_status.is_not(None),
+            SourcePerson.cpr_enc.is_not(None),
         )
     )
     .distinct(SourcePerson.cpr_enc),

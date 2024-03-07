@@ -21,7 +21,7 @@ class PersonTransformationTest(PostgresBaseTest):
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._create_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
         base_path = pathlib.Path(__file__).parent.resolve()
-        self.test_data_in = pd.read_csv(f"{base_path}/test_data/person/in_person.parquet.csv", index_col=False, sep=';')
+        self.test_data_in = pd.read_csv(f"{base_path}/test_data/person/in_person.csv", index_col=False, sep=';')
         self.expected_df = pd.read_csv(f"{base_path}/test_data/person/out_person.csv", index_col=False, sep=';')
         self.expected_cols = [getattr(self.TARGET_MODEL, col) for col in self.expected_df.columns.to_list()]
 
