@@ -16,4 +16,3 @@ def transform(session: AbstractSession) -> None:
         "PERSON Transformation complete! %s rows included",
         session.query(OmopPerson).count(),
     )
-    logger.info("Person transformation finished successfully!")
