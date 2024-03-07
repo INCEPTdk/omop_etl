@@ -5,6 +5,14 @@ from tests.testutils import PostgresBaseTest
 
 
 class CreateOMOPTablesPostgresTests(PostgresBaseTest):
+    def setUp(self):
+        super().setUp()
+        self._create_tables_and_schema(MODELS, schema='omopcdm')
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        self._drop_tables_and_schema(MODELS, schema='omopcdm')
+
     def test_transform(self):
         with session_context(make_db_session(self.engine)) as session:
             transform(session)
