@@ -14,7 +14,7 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
 
 from .connection import ConnectionDetails
-from .exceptions import DBConnectionException, DependencyNotFoundException
+from .exceptions import DependencyNotFoundException
 
 logger = logging.getLogger("ETL.Core")
 
@@ -180,16 +180,6 @@ def _create_engine_postgres(
     return create_engine(url, connect_args=connect_args, **kwargs)
 
 
-def _create_engine_sqlite(
-    filename: str = "tempdb.sqlite",
-    **kwargs,
-) -> Engine:
-    """Create a Sqlite database engine based on a filename"""
-
-    url = f"sqlite:///{filename}"
-    return create_engine(url, **kwargs)
-
-
 def make_engine_postgres(connection: ConnectionDetails, **kwargs) -> Engine:
     """Checks if postgres is installed and creates an engine"""
     try:
@@ -208,21 +198,6 @@ def make_engine_postgres(connection: ConnectionDetails, **kwargs) -> Engine:
     except ModuleNotFoundError as excep:
         raise DependencyNotFoundException(
             "psycopg2 is needed for a Postgres DBMS! Please install it!"
-        ) from excep
-
-
-def make_engine_sqlite(connection: ConnectionDetails, **kwargs) -> Engine:
-    """Checks if sqlite is installed and creates an engine"""
-    if not connection.host:
-        raise DBConnectionException(
-            "Connection host is empty! For Sqlite this needs to be a filename."
-        )
-
-    try:
-        return _create_engine_sqlite(filename=connection.host, **kwargs)
-    except ModuleNotFoundError as excep:
-        raise DependencyNotFoundException(
-            "sqlite3 is needed for a Sqlite DBMS! Please install it!"
         ) from excep
 
 
