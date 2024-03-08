@@ -27,6 +27,7 @@ from .models.tempmodels import ConceptLookup
 from .transform.care_site import transform as care_site_transform
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.location import transform as location_transform
+from .transform.person import transform as person_transform
 from .transform.session_operation import SessionOperation
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
@@ -131,7 +132,13 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             func=care_site_transform,
             description="Care site transform",
         ),
-        # add transformations here.....
+        SessionOperation(
+            # add transformations here.....
+            key=str(Person.__table__),
+            session=session,
+            func=person_transform,
+            description="Person transform",
+        ),
     ]
 
     run_transformations(session, transformations, registry)
