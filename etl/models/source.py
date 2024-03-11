@@ -5,7 +5,6 @@ import os
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
-from sqlalchemy.orm import declarative_mixin
 
 from ..util.freeze import freeze_instance
 from .modelutils import (
@@ -14,6 +13,7 @@ from .modelutils import (
     CharField,
     DateField,
     FloatField,
+    PKIdMixin,
     TimeStampField,
     make_model_base,
 )
@@ -38,13 +38,6 @@ def register_source_model(cls: Any) -> Any:
     # pylint: disable=no-member
     borg.registered[cls.__name__] = cls
     return cls
-
-
-@declarative_mixin
-class PKIdMixin:
-    """A mixin"""
-
-    _id = BigIntField(primary_key=True)
 
 
 @register_source_model

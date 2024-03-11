@@ -164,12 +164,3 @@ def generate_dummy_data(
     }
     data = {c.key: mappings[type(c.type)](c) for c in columns}
     return data
-
-
-def generate_dummy_model(
-    model: Any, model_config: Optional[Dict] = None
-) -> Any:
-    """
-    Uses generate_dummy_data to make a dummy model entry
-    """
-    return model(**generate_dummy_data(model, model_config))
