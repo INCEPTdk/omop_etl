@@ -672,7 +672,4 @@ class RunETLPostgresTests(PostgresBaseTest):
                 self._update(model.__tablename__, pd.DataFrame(dd))
             return self
 
-
-
-
 __all__ = ["ProcessUnitTests", "ProcessPostgresTests", "RunETLPostgresTests"]
