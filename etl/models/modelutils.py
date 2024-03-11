@@ -114,52 +114,6 @@ def make_model_base(schema: Optional[str] = None) -> Any:
     )
 
 
-def rebase_model(klass: Any, new_base: Any) -> Any:
-    """
-    Use to change the metadata i.e. the schema.
-
-    Usage example (remove the schema from Person model):
-    ```
-        ModelBaseWithoutSchema = make_model_base()
-        _ = rebase_model(Person, ModelBaseWithoutSchema)
-    ```
-    """
-    new_dict = {
-        k: v
-        for k, v in klass.__dict__.items()
-        if not k.startswith("_") or k in {"__tablename__", "__table_args__"}
-    }
-
-    # klass.__table__.metadata.clear()
-    # Associate the new table with the new metadata instead
-    # of the old/other pool
-    new_dict["__table__"] = klass.__table__.to_metadata(
-        new_base.metadata, schema=new_base.metadata.schema
-    )
-    new_dict["schema"] = new_base.metadata.schema
-    klass.__table__.schema = new_base.metadata.schema
-
-    # Construct and return a new type
-    return type(klass.__name__, (new_base,), new_dict)
-
-
-def rebase_all(old_base: Any, new_base: Any) -> None:
-    """
-    Use to change the metadata i.e. the schema.
-
-    Usage example (remove the schema from Person model):
-    ```
-        ModelBaseWithoutSchema = make_model_base()
-        rebase_all(ModelBase, ModelBaseWithoutSchema)
-    ```
-    """
-    for mapper in old_base.registry.mappers:
-        cls = mapper.class_
-        classname = cls.__name__
-        if not classname.startswith("_"):
-            _ = rebase_model(cls, new_base)
-
-
 @clean_sql
 def drop_tables_sql(models: List[Any], cascade=True) -> str:
     cascade_str = ""
@@ -262,7 +216,7 @@ def drop_constraints_sql(
 class PKIdMixin:
     """A mixin"""
 
-    _id = IntField(primary_key=True)
+    _id = BigIntField(primary_key=True)
 
 
 ModelBase: Final[Any] = make_model_base()
@@ -273,20 +227,6 @@ def set_default_schema_sql(schema: str) -> str:
     return f"""
     CREATE SCHEMA IF NOT EXISTS {schema};
     SET search_path TO {schema};"""
-
-
-@clean_sql
-def truncate_tables_sql(models: List[ModelBase], cascade=True) -> str:
-    cascade_str = ""
-    if cascade:
-        cascade_str = "CASCADE"
-    drop_sql = (
-        "; ".join(
-            [f"TRUNCATE TABLE {str(m.__table__)} {cascade_str}" for m in models]
-        )
-        + ";"
-    )
-    return drop_sql
 
 
 @clean_sql
