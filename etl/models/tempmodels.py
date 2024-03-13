@@ -56,10 +56,10 @@ class ConceptLookup(TempModelBase):
 
 @register_temp_model
 @freeze_instance
-class MappingLookup(TempModelBase):
+class ConceptLookupStem(TempModelBase):
     """lookup table to map source concepts to target concept_ids"""
 
-    __tablename__: Final = "mapping_lookup"
+    __tablename__: Final = "concept_lookup_stem"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
     uid: Final[Column] = IntField(primary_key=True)

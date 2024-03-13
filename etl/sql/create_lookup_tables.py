@@ -7,12 +7,12 @@ from ..models.modelutils import (
     create_tables_sql,
     drop_tables_sql,
 )
-from ..models.tempmodels import LOOKUPS_SCHEMA, ConceptLookup, MappingLookup
+from ..models.tempmodels import LOOKUPS_SCHEMA, ConceptLookup, ConceptLookupStem
 from ..util.sql import clean_sql
 
 MODELS: Final[List] = [
     ConceptLookup,
-    MappingLookup,
+    ConceptLookupStem,
 ]
 
 SQL_CREATE_SCHEMA: Final[str] = f"CREATE SCHEMA IF NOT EXISTS {LOOKUPS_SCHEMA};"
