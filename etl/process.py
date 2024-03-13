@@ -110,6 +110,7 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
         session,
         "concept_id",
     )
+    create_lookup_tables(session, lookup_loader.data)
 
     registry = TransformationRegistry()
 
@@ -119,12 +120,6 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             session=session,
             func=create_omop_tables,
             description="Create OMOP tables",
-        ),
-        SessionOperation(
-            key="create_lookups",
-            session=session,
-            func=create_lookup_tables,
-            description="Create lookup tables",
         ),
         SessionOperation(
             key=str(Location.__table__),
