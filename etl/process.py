@@ -24,6 +24,7 @@ from .models.omopcdm54 import (
     VisitOccurrence,
 )
 from .models.tempmodels import ConceptLookup
+from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
@@ -109,6 +110,7 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
         session,
         "concept_id",
     )
+    create_lookup_tables(session, lookup_loader.data)
 
     registry = TransformationRegistry()
 
@@ -161,7 +163,7 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
 
 def print_summary(
     session: AbstractSession,
-    models: List[OmopCdmModelBase],
+    models: List[OmopCdmModelBase],  # type: ignore
 ) -> None:
     """Print DB summary"""
     output_str = (
