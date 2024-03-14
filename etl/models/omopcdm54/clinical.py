@@ -524,7 +524,6 @@ class Stem(ModelBase):
         FK(VisitDetail.visit_detail_id), nullable=True
     )
     care_site: Final[Column] = CharField(50)
-    type_concept_id: Final[Column] = IntField()
     source_value: Final[Column] = CharField(50)
     source_concept_id: Final[Column] = CharField(50)
     value_as_number: Final[Column] = NumericField()
