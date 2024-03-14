@@ -75,6 +75,7 @@ class ConceptLookupStem(TempModelBase):
     end_date: Final[Column] = TimeStampField()
     provider: Final[Column] = IntField()
     care_site: Final[Column] = IntField()
+    type_concept_id: Final[Column] = IntField()
     mapped_standard_code: Final[Column] = IntField()
     mapped_std_code_desc: Final[Column] = CharField(200)
     std_code_vocabulary: Final[Column] = CharField(30)
