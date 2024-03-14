@@ -1,15 +1,10 @@
 """ SQL query string definition for the stem functions"""
-import os
 from typing import Final
 
-from ..models.omopcdm54.clinical import Stem, VisitOccurrence
 from ..models.omopcdm54.registry import SCHEMA_NAME
 from ..models.source import SOURCE_SCHEMA
-from ..models.tempmodels import ConceptLookupStem
 
-DEPARTMENT_SHAK_CODE = os.getenv("DEPARTMENT_SHAK_CODE")
-
-sql_functions: Final[
+SQL_FUNCTIONS: Final[
     str
 ] = f"""
 /*
@@ -27,38 +22,37 @@ BEGIN
             'with my_source AS (
     SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
            pt.person_id,
-           t.patient_id,
-           u.id
+           pt.person_source_value
+           u.courseid
     FROM {SOURCE_SCHEMA}.%s u
         INNER JOIN {SCHEMA_NAME}.course_id_cpr_mapping c
         ON c.courseid = u.courseid
         INNER JOIN {SCHEMA_NAME}.person pt
         ON (c.courseid||c.cpr_enc)::VARCHAR = pt.person_source_value
     WHERE pt.person_source_value IS NOT NULL AND value IS NOT NULL
-    AND t.patient_id IS NOT NULL #FIX ME
 ),
      my_pivot_pre_join AS (
          SELECT DISTINCT
                 ms.col_value,
-                ms.patient_id,
+                ms.person_source_value,
                 ms.id,
                 ma.start_date,
                 ma.end_date,
                 ms.person_id
          FROM my_source ms
-                  INNER JOIN {str(ConceptLookupStem.__table__)} ma ON LOWER(ms.col_value) =
+                  INNER JOIN {SCHEMA_NAME}.concept_lookup_stem ma ON LOWER(ms.col_value) =
                   LOWER(ma.source_concept_code)
         WHERE LOWER(ma.datasource) = LOWER(''%s'')
      ),
      my_pivot AS (
          SELECT mpp.col_value,
-                mpp.patient_id,
+                mpp.person_source_value,
                 mpp.person_id,
                 mpp.id as source_id,
                 v.visit_occurrence_id
          FROM my_pivot_pre_join mpp
-                  JOIN {str(VisitOccurrence.__table__)} v
-                        ON 'courseid'||mpp.courseid = v.visit_source_value
+                  JOIN {SCHEMA_NAME}.visit_occurrence v
+                        ON ''courseid''||mpp.courseid = v.visit_source_value
      ),
      my_merge AS (
          SELECT ma.source_concept_code,
@@ -75,20 +69,20 @@ BEGIN
                 ma.modifier_concept_id,
                 ma.route_concept_id,
                 ma.quantity,
-                pi.patient_id,
+                pi.person_source_value,
                 pi.col_value,
                 pi.start_date,
                 pi.end_date,
                 pi.person_id,
                 pi.visit_occurrence_id
          FROM my_pivot pi
-                  INNER JOIN {str(ConceptLookupStem.__table__)} ma
+                  INNER JOIN {SCHEMA_NAME}.concept_lookup_stem ma
                              ON lower(ma.source_concept_code) = lower(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''categorical'')
          AND LOWER(ma.datasource) = LOWER(''%s'')
      )
 INSERT
-INTO {str(Stem.__table__)} (domain_id,
+INTO {SCHEMA_NAME}.stem (domain_id,
                    person_id,
                    concept_id,
                    start_date,

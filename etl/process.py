@@ -21,6 +21,7 @@ from .models.omopcdm54 import (
     Person,
     ProcedureOccurrence,
     Specimen,
+    Stem,
     VisitOccurrence,
 )
 from .models.tempmodels import ConceptLookup
@@ -29,6 +30,7 @@ from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
 from .transform.session_operation import SessionOperation
+from .transform.stem import transform as stem_transform
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
@@ -132,6 +134,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             session=session,
             func=person_transform,
             description="Person transform",
+        ),
+        SessionOperation(
+            key=str(Stem.__table__),
+            session=session,
+            func=stem_transform,
+            description="Stem transform",
         ),
     ]
 
