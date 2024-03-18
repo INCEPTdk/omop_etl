@@ -53,5 +53,5 @@ class PostgresBaseTest(unittest.TestCase):
                     sql = create_tables_sql(models)
                     cursor.execute(sql)
 
-def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):
-    table_frame.to_sql(table_name, db_engine, if_exists="append", index=False, schema=schema)
+def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None, if_exists: str="append"):
+    table_frame.to_sql(table_name, db_engine, if_exists=if_exists, index=False, schema=schema)
