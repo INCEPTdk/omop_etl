@@ -25,6 +25,7 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup
 from .transform.create_omopcdm_tables import transform as create_omop_tables
+from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
 from .transform.session_operation import SessionOperation
@@ -130,6 +131,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             session=session,
             func=person_transform,
             description="Person transform",
+        ),
+        SessionOperation(
+            key=str(Death.__table__),
+            session=session,
+            func=death_transform,
+            description="Death transform",
         ),
     ]
 
