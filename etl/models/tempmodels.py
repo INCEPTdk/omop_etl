@@ -1,4 +1,5 @@
 """Temporary table data models"""
+
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
 from typing import Any, Dict, Final, List
@@ -57,7 +58,7 @@ class ConceptLookupStem(TempModelBase):
 
     uid: Final[Column] = IntField(primary_key=True)
     datasource: Final[Column] = CharField(200)
-    source_file: Final[Column] = NumericField()
+    source_file: Final[Column] = CharField(50)
     source_concept_code: Final[Column] = CharField(50)
     source_variable: Final[Column] = CharField(50)
     value: Final[Column] = CharField(50)
@@ -68,7 +69,7 @@ class ConceptLookupStem(TempModelBase):
     end_date: Final[Column] = CharField(50)
     provider: Final[Column] = CharField(50)
     care_site: Final[Column] = CharField(50)
-    type_concept_id: Final[Column] = IntField()
+    type_concept_id: Final[Column] = NumericField()
     mapped_standard_code: Final[Column] = IntField()
     mapped_std_code_desc: Final[Column] = CharField(200)
     std_code_vocabulary: Final[Column] = CharField(30)
@@ -76,21 +77,21 @@ class ConceptLookupStem(TempModelBase):
     std_code_domain: Final[Column] = CharField(30)
     reviewer_comment: Final[Column] = CharField(200)
     value_as_number: Final[Column] = CharField(50)
-    value_as_concept_id: Final[Column] = IntField()
+    value_as_concept_id: Final[Column] = NumericField()
     value_as_string: Final[Column] = CharField(200)
-    operator_concept_id: Final[Column] = IntField()
+    operator_concept_id: Final[Column] = NumericField()
     unit_source_value: Final[Column] = CharField(50)
-    unit_concept_id: Final[Column] = IntField()
+    unit_concept_id: Final[Column] = NumericField()
     conversion: Final[Column] = NumericField()
-    modifier_concept_id: Final[Column] = IntField()
-    anatomic_site_concept_id: Final[Column] = IntField()
-    quantity: Final[Column] = CharField(50)
+    modifier_concept_id: Final[Column] = NumericField()
+    anatomic_site_concept_id: Final[Column] = NumericField()
+    quantity: Final[Column] = NumericField()
     days_supply: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
     range_low: Final[Column] = NumericField()
     range_high: Final[Column] = NumericField()
     stop_reason: Final[Column] = CharField(20)
-    route_concept_id: Final[Column] = IntField()
+    route_concept_id: Final[Column] = NumericField()
     route_source_value: Final[Column] = CharField(50)
     refills: Final[Column] = CharField(50)
 

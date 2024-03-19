@@ -23,7 +23,7 @@ from .models.omopcdm54 import (
     Specimen,
     VisitOccurrence,
 )
-from .models.tempmodels import ConceptLookup
+from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.location import transform as location_transform
@@ -110,6 +110,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
         session,
         "concept_id",
     )
+    validate_concept_ids(
+        lookup_loader.data.get(ConceptLookupStem.__tablename__),
+        session,
+        "mapped_standard_code",
+    )
+
     create_lookup_tables(session, lookup_loader.data)
 
     registry = TransformationRegistry()
