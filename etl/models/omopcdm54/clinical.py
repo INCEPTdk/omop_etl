@@ -511,10 +511,10 @@ class Stem(ModelBase):
     concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
-    start_date: Final[Column] = CharField(20)
-    start_datetime: Final[Column] = CharField(40)
-    end_date: Final[Column] = CharField(20)
-    end_datetime: Final[Column] = CharField(40)
+    start_date: Final[Column] = DateField()
+    start_datetime: Final[Column] = DateTimeField()
+    end_date: Final[Column] = DateField()
+    end_datetime: Final[Column] = DateTimeField()
     type_concept_id: Final[Column] = IntField()
     provider_id: Final[Column] = IntField()
     visit_occurrence_id: Final[Column] = IntField(
@@ -523,7 +523,9 @@ class Stem(ModelBase):
     visit_detail_id: Final[Column] = IntField(
         FK(VisitDetail.visit_detail_id), nullable=True
     )
-    care_site: Final[Column] = CharField(50)
+    care_site_id: Final[Column] = IntField(
+        FK(CareSite.care_site_id), nullable=True
+    )
     source_value: Final[Column] = CharField(50)
     source_concept_id: Final[Column] = CharField(50)
     value_as_number: Final[Column] = NumericField()
@@ -544,7 +546,7 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     modifier_source_value: Final[Column] = CharField(50)
-    measurement_time: Final[Column] = CharField(50)
+    measurement_time: Final[Column] = DateField()
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
