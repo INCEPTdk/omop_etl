@@ -1,7 +1,5 @@
 """Person transformation tests"""
 
-import pathlib
-
 import pandas as pd
 from sqlalchemy import select
 
@@ -15,14 +13,15 @@ from tests.testutils import PostgresBaseTest, base_path, write_to_db
 class PersonTransformationTest(PostgresBaseTest):
     SOURCE_MODELS = [SourcePerson]
     TARGET_MODEL = OmopPerson
+    INPUT_SOURCE_PERSON = f"{base_path()}/test_data/person/in_person.csv"
+    OUTPUT_OMOP_PERSON = f"{base_path()}/test_data/person/out_person.csv"
 
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._create_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
-        base_path = pathlib.Path(__file__).parent.resolve()
-        self.test_data_in = pd.read_csv(f"{base_path}/test_data/person/in_person.csv", index_col=False, sep=';')
-        self.expected_df = pd.read_csv(f"{base_path}/test_data/person/out_person.csv", index_col=False, sep=';')
+        self.test_data_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
+        self.expected_df = pd.read_csv(self.OUTPUT_OMOP_PERSON, index_col=False, sep=';')
         self.expected_cols = [getattr(self.TARGET_MODEL, col) for col in self.expected_df.columns.to_list()]
 
     def tearDown(self) -> None:

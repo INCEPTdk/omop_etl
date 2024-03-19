@@ -1,7 +1,5 @@
 """Death transformation tests"""
 
-import pathlib
-
 import pandas as pd
 from sqlalchemy import select
 
@@ -11,7 +9,6 @@ from etl.models.omopcdm54.clinical import (
 )
 from etl.models.source import Person as SourcePerson
 from etl.transform.death import transform as death_transform
-from etl.transform.person import transform as person_transform
 from etl.util.db import make_db_session, session_context
 from tests.testutils import PostgresBaseTest, base_path, write_to_db
 
