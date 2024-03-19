@@ -1,13 +1,11 @@
 """Care site transformation tests"""
 
-import pathlib
-
 import pandas as pd
 
 from etl.models.omopcdm54.health_systems import CareSite, Location
 from etl.sql.care_site import get_care_site_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import PostgresBaseTest, write_to_db
+from tests.testutils import PostgresBaseTest, base_path, write_to_db
 
 
 class CareSiteTransformationTest(PostgresBaseTest):
@@ -17,12 +15,11 @@ class CareSiteTransformationTest(PostgresBaseTest):
         super().setUp()
         self._drop_tables_and_schema(self.MODELS, schema="omopcdm")
         self._create_tables_and_schema(self.MODELS, schema="omopcdm")
-        base_path = pathlib.Path(__file__).parent.resolve()
         self.in_empty_location = pd.read_csv(
-            f"{base_path}/test_data/care_site/in_empty_location.csv"
+            f"{base_path()}/test_data/care_site/in_empty_location.csv"
         )
         self.in_location = pd.read_csv(
-            f"{base_path}/test_data/care_site/in_location.csv"
+            f"{base_path()}/test_data/care_site/in_location.csv"
         )
 
     def tearDown(self) -> None:
