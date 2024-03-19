@@ -19,14 +19,16 @@ from tests.testutils import PostgresBaseTest, base_path, write_to_db
 class DeathTransformationTest(PostgresBaseTest):
     SOURCE_MODELS = [SourcePerson]
     TARGET_MODEL = [OmopPerson, OmopDeath]
-    INPUT_FILE = f"{base_path()}/test_data/death/in_death.csv"
+    INPUT_OMOP_PERSON = f"{base_path()}/test_data/death/in_omop_person.csv"
+    INPUT_SOURCE_PERSON = f"{base_path()}/test_data/death/in_source_person.csv"
     OUTPUT_FILE = f"{base_path()}/test_data/death/out_death.csv"
 
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-        self.test_data_in = pd.read_csv(self.INPUT_FILE, index_col=False, sep=';')
+        self.source_person_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
+        self.omop_person_in = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=['death_date', 'death_datetime'])
         self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list()]
 
@@ -36,12 +38,12 @@ class DeathTransformationTest(PostgresBaseTest):
         self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
 
     def _insert_test_data(self, engine):
-        write_to_db(engine, self.test_data_in, SourcePerson.__tablename__, schema=SourcePerson.metadata.schema)
+        write_to_db(engine, self.source_person_in, SourcePerson.__tablename__, schema=SourcePerson.metadata.schema)
+        write_to_db(engine, self.omop_person_in, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
 
     def test_transform(self):
         self._insert_test_data(self.engine)
         with session_context(make_db_session(self.engine)) as session:
-            person_transform(session)
             death_transform(session)
 
         # Only queries the columns that exist in the self.test_data_in
