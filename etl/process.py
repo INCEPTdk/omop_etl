@@ -24,6 +24,7 @@ from .models.omopcdm54 import (
     VisitOccurrence,
 )
 from .models.tempmodels import ConceptLookup
+from .transform.care_site import transform as care_site_transform
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
@@ -127,6 +128,13 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             description="Location transform",
         ),
         SessionOperation(
+            key=str(CareSite.__table__),
+            session=session,
+            func=care_site_transform,
+            description="Care site transform",
+        ),
+        SessionOperation(
+            # add transformations here.....
             key=str(Person.__table__),
             session=session,
             func=person_transform,

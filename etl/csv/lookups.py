@@ -1,4 +1,5 @@
 """csv files and lookups"""
+from collections import defaultdict
 from typing import Any, Dict, Final, Optional
 
 import pandas as pd
@@ -17,15 +18,22 @@ CONCEPT_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
 
 
 def get_concept_lookup_dict(filter_: str) -> Dict:
+
+    d = defaultdict(lambda: None)
+
     fdf = CONCEPT_LOOKUP_DF[
         CONCEPT_LOOKUP_DF[ConceptLookup.filter.key] == filter_
     ]
-    return dict(
-        zip(
-            fdf[ConceptLookup.concept_string.key],
-            fdf[ConceptLookup.concept_id.key],
+    d.update(
+        dict(
+            zip(
+                fdf[ConceptLookup.concept_string.key],
+                fdf[ConceptLookup.concept_id.key],
+            )
         )
     )
+
+    return d
 
 
 def generate_lookup_case(
