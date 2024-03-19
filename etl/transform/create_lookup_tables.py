@@ -9,7 +9,7 @@ from ..sql.create_lookup_tables import SQL
 from ..util.db import AbstractSession, df_to_sql
 from .transformutils import execute_sql_transform
 
-logger = logging.getLogger("ETL.Core")
+logger = logging.getLogger("ETL.Core.CreateLookupTables")
 
 
 def transform(
