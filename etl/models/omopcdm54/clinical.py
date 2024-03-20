@@ -1,4 +1,5 @@
 """clinical models for OMOPCDM"""
+
 # pylint: disable=invalid-name
 from typing import Final
 
@@ -506,6 +507,7 @@ class Stem(ModelBase):
     __tablename__: Final[Column] = "stem"
 
     domain_id: Final[Column] = CharField(50)
+    datasource: Final[Column] = CharField(50)
     stem_id: Final[Column] = IntField(primary_key=True)
     person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     concept_id: Final[Column] = IntField(
