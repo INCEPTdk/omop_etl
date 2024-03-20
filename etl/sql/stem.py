@@ -3,6 +3,7 @@ from typing import Final
 
 from ..models.omopcdm54.registry import SCHEMA_NAME
 from ..models.source import SOURCE_SCHEMA
+from ..models.tempmodels import LOOKUPS_SCHEMA
 
 SQL_FUNCTIONS: Final[
     str
@@ -22,25 +23,25 @@ BEGIN
             'with my_source AS (
     SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
            pt.person_id,
-           pt.person_source_value
+           pt.person_source_value,
            u.courseid
     FROM {SOURCE_SCHEMA}.%s u
-        INNER JOIN {SCHEMA_NAME}.course_id_cpr_mapping c
+        INNER JOIN {SOURCE_SCHEMA}.courseid_cpr_mapping c
         ON c.courseid = u.courseid
         INNER JOIN {SCHEMA_NAME}.person pt
-        ON (c.courseid||c.cpr_enc)::VARCHAR = pt.person_source_value
+        ON (''cpr_enc|''||c.cpr_enc)::VARCHAR = pt.person_source_value
     WHERE pt.person_source_value IS NOT NULL AND value IS NOT NULL
 ),
      my_pivot_pre_join AS (
          SELECT DISTINCT
                 ms.col_value,
                 ms.person_source_value,
-                ms.id,
+                ms.courseid,
                 ma.start_date,
                 ma.end_date,
                 ms.person_id
          FROM my_source ms
-                  INNER JOIN {SCHEMA_NAME}.concept_lookup_stem ma ON LOWER(ms.col_value) =
+                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.col_value) =
                   LOWER(ma.source_concept_code)
         WHERE LOWER(ma.datasource) = LOWER(''%s'')
      ),
@@ -48,7 +49,7 @@ BEGIN
          SELECT mpp.col_value,
                 mpp.person_source_value,
                 mpp.person_id,
-                mpp.id as source_id,
+                mpp.courseid as source_id,
                 v.visit_occurrence_id
          FROM my_pivot_pre_join mpp
                   JOIN {SCHEMA_NAME}.visit_occurrence v
@@ -71,12 +72,15 @@ BEGIN
                 ma.quantity,
                 pi.person_source_value,
                 pi.col_value,
-                pi.start_date,
-                pi.end_date,
+                ma.start_date,
+                ma.end_date,
                 pi.person_id,
-                pi.visit_occurrence_id
+                pi.visit_occurrence_id,
+                ma.type_concept_id,
+                ma.days_supply,
+                ma.dose_unit_source_value
          FROM my_pivot pi
-                  INNER JOIN {SCHEMA_NAME}.concept_lookup_stem ma
+                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
                              ON lower(ma.source_concept_code) = lower(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''categorical'')
          AND LOWER(ma.datasource) = LOWER(''%s'')
@@ -118,7 +122,7 @@ SELECT DISTINCT
        end_date,
        type_concept_id,
        visit_occurrence_id,
-       variable|value,
+       col_value,
        uid,
        value_as_string,
        value_as_concept_id,
