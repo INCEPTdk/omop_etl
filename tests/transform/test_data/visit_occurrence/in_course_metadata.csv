@@ -1,0 +1,83 @@
+courseid;timestamp;variable;value;from_file
+1;;saps2ventilated;Yes;0-4.csv
+1;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+1;;height;280;0-1.csv
+1;;ibw;55;0-1.csv
+1;;ageadm;130;0-1.csv
+1;;weightkg;80;0-1.csv
+1;;admdatetime;1812-12-12 13:13:00;0-1.csv
+1;;dischdt;1812-12-31 12:13:00;0-1.csv
+1;;transfromid;;0-1.csv
+2;;saps2urinaloutput;1400;0-4.csv
+2;1890-11-08 13:30:30;sofa;1.0;1-0.csv
+2;;height;230;0-1.csv
+2;;ibw;155;0-1.csv
+2;;ageadm;150;0-1.csv
+2;;weightkg;180;0-1.csv
+2;;admdatetime;;0-1.csv
+2;;dischdt;1812-31-12 12:13:00;0-1.csv
+3;;saps2bilirubin;100;0-4.csv
+3;1820-09-20 11:30:30;sofa;1000.5;1-0.csv
+3;;height;230;0-1.csv
+3;;ibw;155;0-1.csv
+3;;ageadm;150;0-1.csv
+3;;weightkg;180;0-1.csv
+3;;admdate;1890-12-12;0-1.csv
+3;;dischdt;;0-1.csv
+4;;saps2ventilated;Yes;0-4.csv
+4;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+4;;height;280;0-1.csv
+4;;ibw;55;0-1.csv
+4;;ageadm;130;0-1.csv
+4;;weightkg;80;0-1.csv
+4;;admdate;1813-12-12;0-1.csv
+4;;dischdate;1813-12-31;0-1.csv
+4;;transfromid;Non-ICU dept. - this hospital;0-1.csv
+4;;chkouttoid;Home;0-1.csv
+5;;saps2ventilated;Yes;0-4.csv
+5;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+5;;height;280;0-1.csv
+5;;ibw;55;0-1.csv
+5;;ageadm;130;0-1.csv
+5;;weightkg;80;0-1.csv
+5;;admdate;1813-12-12;0-1.csv
+5;;admdatetime;1813-12-13 12:12:12;0-1.csv
+5;;dischdate;1813-12-31;0-1.csv
+5;;transfromid;Non-ICU dept. - this hospital;0-1.csv
+5;;chkouttoid;Home;0-1.csv
+6;;saps2ventilated;Yes;0-4.csv
+6;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+6;;height;280;0-1.csv
+6;;ibw;55;0-1.csv
+6;;ageadm;130;0-1.csv
+6;;weightkg;80;0-1.csv
+6;;admdate;1809-12-12;0-1.csv
+6;;admdatetime;1809-12-12 12:12:12;0-1.csv
+6;;dischdate;1809-12-31;0-1.csv
+6;;dischdt;1809-12-29 13:13:13;0-1.csv
+6;;transfromid;Non-ICU dept. - this hospital;0-1.csv
+6;;chkouttoid;Home;0-1.csv
+7;;saps2ventilated;Yes;0-4.csv
+7;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+7;;height;280;0-1.csv
+7;;ibw;55;0-1.csv
+7;;ageadm;130;0-1.csv
+7;;weightkg;80;0-1.csv
+7;;admdate;1807-11-11;0-1.csv
+7;;admdatetime;1807-11-11 12:12:12;0-1.csv
+7;;dischdate;1807-06-06;0-1.csv
+7;;dischdt;1807-06-06 10:10:10;0-1.csv
+7;;transfromid;Non-ICU dept. - this hospital;0-1.csv
+7;;chkouttoid;Non-ICU dept. - this hospital;0-1.csv
+8;;saps2ventilated;Yes;0-4.csv
+8;1878-12-12 13:30:30;sofa;7.0;1-0.csv
+8;;height;280;0-1.csv
+8;;ibw;55;0-1.csv
+8;;ageadm;130;0-1.csv
+8;;weightkg;80;0-1.csv
+8;;admdate;1807-11-11;0-1.csv
+8;;admdatetime;1807-11-11 12:12:12;0-1.csv
+8;;dischdate;1807-06-06;0-1.csv
+8;;dischdt;1807-06-06 10:10:10;0-1.csv
+8;;transfromid;Non-ICU dept. - this hospital;0-1.csv
+8;;chkouttoid;Non-ICU dept. - this hospital;0-1.csv

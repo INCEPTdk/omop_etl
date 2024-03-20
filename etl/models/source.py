@@ -247,16 +247,30 @@ class Person(SourceModelBase, PKIdMixin):
     d_status_hen_start: Final[Column] = DateField()
 
 
+@register_source_model
+@freeze_instance
+class CourseIdCprMapping(SourceModelBase, PKIdMixin):
+    """
+    The courseid_cpr_mapping table
+    """
+
+    __tablename__: Final[str] = "courseid_cpr_mapping"
+    __table_args__ = {"schema": SOURCE_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    courseid: Final[Column] = BigIntField(nullable=False)
+
+
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
 SOURCE_REGISTRY: Final[
-    Dict[str, SourceModelBase]
+    Dict[str, SourceModelBase]  # type: ignore
 ] = SourceModelRegistry().registered
 
 # pylint: disable=no-member
 SOURCE_MODELS: Final[
-    List[SourceModelBase]
+    List[SourceModelBase]  # type: ignore
 ] = SourceModelRegistry().registered.values()
 
 # pylint: disable=no-member
