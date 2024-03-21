@@ -160,6 +160,7 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             Person,
             Death,
             VisitOccurrence,
+            Stem,
             ConditionOccurrence,
             DrugExposure,
             Observation,

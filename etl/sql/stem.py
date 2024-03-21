@@ -89,10 +89,18 @@ BEGIN
                 mpp.person_source_value,
                 mpp.person_id,
                 mpp.courseid as source_id,
-                v.visit_occurrence_id
+                v.visit_occurrence_id,
+                dt1.date_val as start_date,
+                dt2.date_val as end_date
          FROM my_pivot_pre_join mpp
-                  JOIN {TARGET_SCHEMA}.visit_occurrence v
+                  LEFT JOIN {TARGET_SCHEMA}.visit_occurrence v
                         ON ''courseid''||mpp.courseid = v.visit_source_value
+                    LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
+                  ''%s'')) dt1
+                            ON mpp.start_date = dt1.date_name AND mpp.courseid = dt1.courseid
+                  LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
+                  ''%s'')) dt2
+                            ON mpp.end_date = dt2.date_name AND mpp.courseid = dt2.courseid
      ),
      my_merge AS (
          SELECT ma.source_concept_code,
@@ -111,13 +119,17 @@ BEGIN
                 ma.quantity,
                 pi.person_source_value,
                 pi.col_value,
-                ma.start_date,
-                ma.end_date,
+                pi.start_date,
+                pi.end_date,
                 pi.person_id,
                 pi.visit_occurrence_id,
                 ma.type_concept_id,
                 ma.days_supply,
-                ma.dose_unit_source_value
+                ma.dose_unit_source_value,
+                ma.range_low,
+                ma.range_high,
+                ma.stop_reason,
+                ma.route_source_value
          FROM my_pivot pi
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
                              ON lower(ma.source_concept_code) = lower(pi.col_value)
@@ -149,36 +161,38 @@ INTO {TARGET_SCHEMA}.stem (domain_id,
                    range_high,
                    stop_reason,
                    route_concept_id,
-                   route_source_value
+                   route_source_value,
+                   datasource
                  )
 SELECT DISTINCT
        std_code_domain,
        person_id,
        mapped_standard_code,
        start_date::DATE,
-       start_date,
+       start_date::TIMESTAMP,
        end_date::DATE,
-       end_date,
-       type_concept_id,
+       end_date::TIMESTAMP,
+       type_concept_id::INTEGER,
        visit_occurrence_id,
        col_value,
        uid,
        value_as_string,
-       value_as_concept_id,
-       unit_concept_id,
+       value_as_concept_id::INTEGER,
+       unit_concept_id::INTEGER,
        unit_source_value,
        days_supply,
        dose_unit_source_value,
-       modifier_concept_id,
-       operator_concept_id,
-       quantity,
+       modifier_concept_id::INTEGER,
+       operator_concept_id::INTEGER,
+       quantity::NUMERIC,
        range_low,
        range_high,
        stop_reason,
-       route_concept_id,
-       route_source_value
+       route_concept_id::INTEGER,
+       route_source_value,
+       datasource
 FROM my_merge m;',
-            source_table, source_table, source_table, source_table));
+            source_table, source_table, source_table, source_table, source_table, source_table));
 END
 $func$;
 """
