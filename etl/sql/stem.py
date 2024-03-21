@@ -1,7 +1,8 @@
 """ SQL query string definition for the stem functions"""
+
 from typing import Final
 
-from ..models.omopcdm54.registry import SCHEMA_NAME
+from ..models.omopcdm54.registry import TARGET_SCHEMA
 from ..models.source import SOURCE_SCHEMA
 from ..models.tempmodels import LOOKUPS_SCHEMA
 
@@ -9,12 +10,50 @@ SQL_FUNCTIONS: Final[
     str
 ] = f"""
 /*
+The date_cols function selects all the possible date fields in a specific table,
+as well as the unique id of the record in the source that can be used to link
+the date to the correct event, if one person has multiple entries in a table
+and therefore multiple date values for the same date field. Depending on the
+date field that is defined in the semantic mapping document the correct date
+will be selected in the stem transform.
+*/
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.date_cols(text, text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.date_cols(sname text, tname text)
+RETURNS TABLE(date_name text,date_val text, courseid bigint) LANGUAGE plpgsql
+AS $$
+DECLARE
+    select_list text;
+BEGIN
+    SELECT string_agg(column_name, ',')
+    INTO select_list
+    FROM information_schema.columns
+    WHERE table_schema = sname
+    AND table_name = tname
+    AND data_type IN ('date', 'timestamp without time zone',
+    'timestamp with time zone');
+    IF (select_list IS NOT NULL AND select_list != '') THEN
+        RETURN QUERY
+        EXECUTE format($fmt$
+            select (json_each_text(row_to_json(t))).*, courseid
+            from (
+                select %s, courseid
+                from %I.%I
+                ) t
+            $fmt$, select_list, sname, tname);
+    ELSE
+        RETURN QUERY
+            SELECT 'no_date_found', NULL, NULL::BIGINT;
+    END IF;
+END $$;
+
+
+/*
 The pivot_categorical function performs the stem transformation in case of a
 categorical value, which is defined in the semantic mapping document as
 'categorical' in the value_type column.
 */
-DROP FUNCTION IF EXISTS {SCHEMA_NAME}.pivot_categorical(text);
-CREATE OR REPLACE FUNCTION {SCHEMA_NAME}.pivot_categorical(source_table text) returns void
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_categorical(text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_categorical(source_table text) returns void
     language plpgsql
 as
 $func$
@@ -28,7 +67,7 @@ BEGIN
     FROM {SOURCE_SCHEMA}.%s u
         INNER JOIN {SOURCE_SCHEMA}.courseid_cpr_mapping c
         ON c.courseid = u.courseid
-        INNER JOIN {SCHEMA_NAME}.person pt
+        INNER JOIN {TARGET_SCHEMA}.person pt
         ON (''cpr_enc|''||c.cpr_enc)::VARCHAR = pt.person_source_value
     WHERE pt.person_source_value IS NOT NULL AND value IS NOT NULL
 ),
@@ -52,7 +91,7 @@ BEGIN
                 mpp.courseid as source_id,
                 v.visit_occurrence_id
          FROM my_pivot_pre_join mpp
-                  JOIN {SCHEMA_NAME}.visit_occurrence v
+                  JOIN {TARGET_SCHEMA}.visit_occurrence v
                         ON ''courseid''||mpp.courseid = v.visit_source_value
      ),
      my_merge AS (
@@ -86,7 +125,7 @@ BEGIN
          AND LOWER(ma.datasource) = LOWER(''%s'')
      )
 INSERT
-INTO {SCHEMA_NAME}.stem (domain_id,
+INTO {TARGET_SCHEMA}.stem (domain_id,
                    person_id,
                    concept_id,
                    start_date,
