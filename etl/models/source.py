@@ -11,7 +11,7 @@ from .modelutils import (
     BigIntField,
     BoolField,
     CharField,
-    DateField,
+    DateTimeField,
     FloatField,
     PKIdMixin,
     TimeStampField,
@@ -240,11 +240,11 @@ class Person(SourceModelBase, PKIdMixin):
     c_kon: Final[Column] = CharField(
         50,
     )
-    d_foddato: Final[Column] = DateField()
+    d_foddato: Final[Column] = DateTimeField()
     c_status: Final[Column] = CharField(
         50,
     )
-    d_status_hen_start: Final[Column] = DateField()
+    d_status_hen_start: Final[Column] = DateTimeField()
 
 
 SOURCE_VERSION: Final[str] = "0.1"
