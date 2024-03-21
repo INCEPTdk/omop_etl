@@ -6,14 +6,7 @@ from typing import Any, Dict, Final, List
 from sqlalchemy import Column
 
 from ..util.freeze import freeze_instance
-from .modelutils import (
-    FK,
-    CharField,
-    IntField,
-    NumericField,
-    TimeStampField,
-    make_model_base,
-)
+from .modelutils import FK, CharField, IntField, NumericField, make_model_base
 from .omopcdm54 import Concept
 
 LOOKUPS_SCHEMA: Final[str] = "lookups"
@@ -64,42 +57,42 @@ class ConceptLookupStem(TempModelBase):
 
     uid: Final[Column] = IntField(primary_key=True)
     datasource: Final[Column] = CharField(200)
-    source_file: Final[Column] = NumericField()
+    source_file: Final[Column] = CharField(50)
     source_concept_code: Final[Column] = CharField(50)
     source_variable: Final[Column] = CharField(50)
     value: Final[Column] = CharField(50)
     value_type: Final[Column] = CharField(50)
     variable_definition: Final[Column] = CharField(200)
     value_definition: Final[Column] = CharField(200)
-    start_date: Final[Column] = TimeStampField()
-    end_date: Final[Column] = TimeStampField()
-    provider: Final[Column] = IntField()
-    care_site: Final[Column] = IntField()
-    type_concept_id: Final[Column] = IntField()
+    start_date: Final[Column] = CharField(50)
+    end_date: Final[Column] = CharField(50)
+    provider: Final[Column] = CharField(50)
+    care_site: Final[Column] = CharField(50)
+    type_concept_id: Final[Column] = CharField(50)
     mapped_standard_code: Final[Column] = IntField()
     mapped_std_code_desc: Final[Column] = CharField(200)
     std_code_vocabulary: Final[Column] = CharField(30)
     std_code_concept_code: Final[Column] = CharField(200)
     std_code_domain: Final[Column] = CharField(30)
     reviewer_comment: Final[Column] = CharField(200)
-    value_as_number: Final[Column] = NumericField()
-    value_as_concept_id: Final[Column] = IntField()
+    value_as_number: Final[Column] = CharField(50)
+    value_as_concept_id: Final[Column] = CharField(50)
     value_as_string: Final[Column] = CharField(200)
-    operator_concept_id: Final[Column] = IntField()
+    operator_concept_id: Final[Column] = CharField(50)
     unit_source_value: Final[Column] = CharField(50)
-    unit_concept_id: Final[Column] = IntField()
+    unit_concept_id: Final[Column] = CharField(50)
     conversion: Final[Column] = NumericField()
-    modifier_concept_id: Final[Column] = IntField()
-    anatomic_site_concept_id: Final[Column] = IntField()
-    quantity: Final[Column] = NumericField()
-    days_supply: Final[Column] = IntField()
+    modifier_concept_id: Final[Column] = CharField(50)
+    anatomic_site_concept_id: Final[Column] = CharField(50)
+    quantity: Final[Column] = CharField(50)
+    days_supply: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
     range_low: Final[Column] = NumericField()
     range_high: Final[Column] = NumericField()
     stop_reason: Final[Column] = CharField(20)
-    route_concept_id: Final[Column] = IntField()
+    route_concept_id: Final[Column] = CharField(50)
     route_source_value: Final[Column] = CharField(50)
-    refills: Final[Column] = IntField()
+    refills: Final[Column] = CharField(50)
 
 
 TEMP_VERSION: Final[str] = "0.1"
