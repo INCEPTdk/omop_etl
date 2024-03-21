@@ -1,11 +1,12 @@
 """OMOP CDM model common utilities"""
+
 from typing import Any, Final
 
 from ..modelutils import make_model_base
 
-SCHEMA_NAME: Final[str] = "omopcdm"
+TARGET_SCHEMA: Final[str] = "omopcdm"
 
-OmopCdmModelBase: Any = make_model_base(schema=SCHEMA_NAME)
+OmopCdmModelBase: Any = make_model_base(schema=TARGET_SCHEMA)
 
 
 class OmopCdmModelRegistry:
