@@ -31,6 +31,7 @@ from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
 from .transform.session_operation import SessionOperation
+from .transform.visit_occurrence import transform as visit_occurrence_transform
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
@@ -147,6 +148,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             session=session,
             func=death_transform,
             description="Death transform",
+        ),
+        SessionOperation(
+            key=str(VisitOccurrence.__table__),
+            session=session,
+            func=visit_occurrence_transform,
+            description="Visit occurrence transform",
         ),
     ]
 

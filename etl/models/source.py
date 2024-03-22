@@ -53,7 +53,7 @@ class CourseMetadata(SourceModelBase, PKIdMixin):
     courseid: Final[Column] = BigIntField()
     timestamp: Final[Column] = TimeStampField()
     variable: Final[Column] = CharField(50)
-    value: Final[Column] = FloatField()
+    value: Final[Column] = CharField(145)
     from_file: Final[Column] = CharField(50)
 
 
