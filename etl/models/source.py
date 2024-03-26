@@ -251,12 +251,12 @@ SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
 SOURCE_REGISTRY: Final[
-    Dict[str, SourceModelBase]
+    Dict[str, SourceModelBase]  # type: ignore
 ] = SourceModelRegistry().registered
 
 # pylint: disable=no-member
 SOURCE_MODELS: Final[
-    List[SourceModelBase]
+    List[SourceModelBase]  # type: ignore
 ] = SourceModelRegistry().registered.values()
 
 # pylint: disable=no-member
