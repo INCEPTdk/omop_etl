@@ -23,9 +23,11 @@ from .models.omopcdm54 import (
     Specimen,
     VisitOccurrence,
 )
-from .models.tempmodels import ConceptLookup
+from .models.tempmodels import ConceptLookup, ConceptLookupStem
+from .transform.care_site import transform as care_site_transform
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
+from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
 from .transform.session_operation import SessionOperation
@@ -110,6 +112,12 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
         session,
         "concept_id",
     )
+    validate_concept_ids(
+        lookup_loader.data.get(ConceptLookupStem.__tablename__),
+        session,
+        "mapped_standard_code",
+    )
+
     create_lookup_tables(session, lookup_loader.data)
 
     registry = TransformationRegistry()
@@ -128,10 +136,23 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
             description="Location transform",
         ),
         SessionOperation(
+            key=str(CareSite.__table__),
+            session=session,
+            func=care_site_transform,
+            description="Care site transform",
+        ),
+        SessionOperation(
+            # add transformations here.....
             key=str(Person.__table__),
             session=session,
             func=person_transform,
             description="Person transform",
+        ),
+        SessionOperation(
+            key=str(Death.__table__),
+            session=session,
+            func=death_transform,
+            description="Death transform",
         ),
     ]
 
