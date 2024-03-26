@@ -132,7 +132,7 @@ BEGIN
                 ma.route_source_value
          FROM my_pivot pi
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
-                             ON lower(ma.source_concept_code) = lower(pi.col_value)
+                             ON LOWER(ma.source_concept_code) = LOWER(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''categorical'')
          AND LOWER(ma.datasource) = LOWER(''%s'')
      )

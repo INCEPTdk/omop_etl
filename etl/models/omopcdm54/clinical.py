@@ -548,7 +548,7 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     modifier_source_value: Final[Column] = CharField(50)
-    measurement_time: Final[Column] = DateField()
+    measurement_datetime: Final[Column] = DateTimeField()
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
