@@ -35,6 +35,7 @@ from ..models.omopcdm54 import (
     ProcedureOccurrence,
     Provider,
     Specimen,
+    Stem,
     VisitDetail,
     VisitOccurrence,
 )
@@ -70,6 +71,7 @@ MODELS: Final[List] = [
     Metadata,
     Cohort,
     CohortDefinition,
+    Stem,
 ]
 
 

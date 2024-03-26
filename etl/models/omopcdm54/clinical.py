@@ -1,4 +1,5 @@
 """clinical models for OMOPCDM"""
+
 # pylint: disable=invalid-name
 from typing import Final
 
@@ -496,6 +497,96 @@ class FactRelationship(ModelBase, PKIdMixin):
     )
 
 
+@register_omop_model
+@freeze_instance
+class Stem(ModelBase):
+    """
+    Stem table
+    """
+
+    __tablename__: Final[Column] = "stem"
+
+    domain_id: Final[Column] = CharField(50)
+    datasource: Final[Column] = CharField(50)
+    stem_id: Final[Column] = IntField(primary_key=True)
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
+    concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    start_date: Final[Column] = DateField()
+    start_datetime: Final[Column] = DateTimeField()
+    end_date: Final[Column] = DateField()
+    end_datetime: Final[Column] = DateTimeField()
+    type_concept_id: Final[Column] = IntField()
+    provider_id: Final[Column] = IntField()
+    visit_occurrence_id: Final[Column] = IntField(
+        FK(VisitOccurrence.visit_occurrence_id), nullable=True
+    )
+    visit_detail_id: Final[Column] = IntField(
+        FK(VisitDetail.visit_detail_id), nullable=True
+    )
+    care_site_id: Final[Column] = IntField(
+        FK(CareSite.care_site_id), nullable=True
+    )
+    source_value: Final[Column] = CharField(50)
+    source_concept_id: Final[Column] = CharField(50)
+    value_as_number: Final[Column] = NumericField()
+    value_as_string: Final[Column] = CharField(250)
+    value_as_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    unit_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    value_source_value: Final[Column] = CharField(150)
+    unit_source_concept_id: Final[Column] = CharField(150)
+    unit_source_value: Final[Column] = CharField(50)
+    verbatim_end_date: Final[Column] = CharField(50)
+    days_supply: Final[Column] = CharField(50)
+    dose_unit_source_value: Final[Column] = CharField(50)
+    modifier_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    modifier_source_value: Final[Column] = CharField(50)
+    measurement_datetime: Final[Column] = DateTimeField()
+    operator_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    quantity: Final[Column] = NumericField()
+    range_low: Final[Column] = IntField()
+    range_high: Final[Column] = IntField()
+    stop_reason: Final[Column] = CharField(50)
+    refills: Final[Column] = IntField()
+    sig: Final[Column] = CharField(None)
+    route_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    route_source_value: Final[Column] = CharField(50)
+    lot_number: Final[Column] = CharField(50)
+    unique_device_id: Final[Column] = IntField()
+    production_id: Final[Column] = CharField(255)
+    anatomic_site_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    disease_status_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    specimen_source_id: Final[Column] = CharField(50)
+    anatomic_site_source_value: Final[Column] = CharField(50)
+    disease_status_source_value: Final[Column] = CharField(50)
+    condition_status_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    condition_status_source_value: Final[Column] = CharField(50)
+    qualifier_concept_id: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=True, index=True
+    )
+    qualifier_source_value: Final[Column] = CharField(50)
+    event_id: Final[Column] = IntField()
+    event_field_concept_id: Final[Column] = IntField()
+    episode_id_source: Final[Column] = CharField(50)
+
+
 __all__ = [
     "Person",
     "ObservationPeriod",
@@ -512,4 +603,5 @@ __all__ = [
     "NoteNlp",
     "Specimen",
     "FactRelationship",
+    "Stem",
 ]

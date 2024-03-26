@@ -231,7 +231,7 @@ def set_default_schema_sql(schema: str) -> str:
 
 @clean_sql
 def load_from_csv(
-    models: List[ModelBase], base_path: str = ".", delimiter: str = ";"
+    models: List[ModelBase], base_path: str = ".", delimiter: str = ";"  # type: ignore
 ) -> str:
     sql = []
     for model in models:
