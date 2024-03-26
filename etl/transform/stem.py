@@ -30,21 +30,13 @@ def transform(session: AbstractSession) -> None:
         session.execute(
             f"SELECT * FROM omopcdm.date_cols('{SOURCE_SCHEMA}','{model.__tablename__}');"
         )
-        session.execute(
-            f"SELECT COUNT(*) FROM omopcdm.stem WHERE datasource = '{model.__tablename__}'"
+        logger.info(
+            "STEM Transform in Progress, %s Events Included from source %s.",
+            session.query(OmopStem)
+            .where(OmopStem.datasource == model.__tablename__)
+            .count(),
+            model.__tablename__,
         )
-        try:
-            stem_overview = session.cursor().fetchall()
-            logger.info(
-                "STEM Transform in Progress, %s Events Included from source %s.",
-                stem_overview[0][0],
-                model.__tablename__,
-            )
-        except:  # noqa: E722
-            logger.info(
-                "No results to fetch from %s",
-                model.__tablename__,
-            )
     logger.info(
         "STEM Transformation complete! %s rows included",
         session.query(OmopStem).count(),
