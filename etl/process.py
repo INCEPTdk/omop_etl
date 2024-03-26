@@ -30,6 +30,7 @@ from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
+from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
@@ -103,7 +104,9 @@ def run_transformations(
         )
 
 
-def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
+def run_etl(
+    session: AbstractSession, lookup_loader: Loader, reload_vocab: bool
+) -> None:
     """Run the full ETL and all transformations"""
     lookup_loader.load()
 
@@ -119,6 +122,8 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
     )
 
     create_lookup_tables(session, lookup_loader.data)
+
+    reload_vocab_files(session=session, reload_vocab=reload_vocab)
 
     registry = TransformationRegistry()
 

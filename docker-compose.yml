@@ -19,6 +19,7 @@ services:
       VERBOSITY_LEVEL: "DEBUG"
       SOURCE_SCHEMA: "source"
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
+      RELOAD_VOCAB: "FALSE"
 
 networks:
   etl-net:
