@@ -85,7 +85,7 @@ class ConceptLookupStem(TempModelBase):
     conversion: Final[Column] = NumericField()
     modifier_concept_id: Final[Column] = NumericField()
     anatomic_site_concept_id: Final[Column] = NumericField()
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = CharField(50)
     days_supply: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
     range_low: Final[Column] = NumericField()
