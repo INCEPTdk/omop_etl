@@ -23,13 +23,14 @@ from .models.omopcdm54 import (
     Specimen,
     VisitOccurrence,
 )
-from .models.tempmodels import ConceptLookup
+from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
 from .transform.person import transform as person_transform
+from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .transform.visit_occurrence import transform as visit_occurrence_transform
 from .util.db import AbstractSession
@@ -104,7 +105,9 @@ def run_transformations(
         )
 
 
-def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
+def run_etl(
+    session: AbstractSession, lookup_loader: Loader, reload_vocab: bool
+) -> None:
     """Run the full ETL and all transformations"""
     lookup_loader.load()
 
@@ -113,7 +116,15 @@ def run_etl(session: AbstractSession, lookup_loader: Loader) -> None:
         session,
         "concept_id",
     )
+    validate_concept_ids(
+        lookup_loader.data.get(ConceptLookupStem.__tablename__),
+        session,
+        "mapped_standard_code",
+    )
+
     create_lookup_tables(session, lookup_loader.data)
+
+    reload_vocab_files(session=session, reload_vocab=reload_vocab)
 
     registry = TransformationRegistry()
 

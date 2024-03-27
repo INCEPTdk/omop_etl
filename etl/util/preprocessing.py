@@ -13,6 +13,8 @@ logger = logging.getLogger("ETL.Core.PreProcessing")
 
 
 def _validate_concept_id(concept_id: int, session: AbstractSession) -> int:
+    if not concept_id:
+        return 0
     with session_context(session):
         counter_result = (
             session.query(Concept)
@@ -42,5 +44,5 @@ def validate_concept_ids(
     input_df[concept_column] = input_df.apply(
         lambda x: _validate_concept_id(x[concept_column], session),
         axis=1,
-    )
+    ).astype(int)
     return input_df
