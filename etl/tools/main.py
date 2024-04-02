@@ -42,6 +42,14 @@ def process_args() -> Any:
         help="The verbosity level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
     )
+    parser.add_argument(
+        "-r",
+        "--reload_vocab",
+        dest="reload_vocab",
+        required=False,
+        default="FALSE",
+        help="Boolean value to turn the vocab load on or off.",
+    )
     args = parser.parse_args()
     return args
 
@@ -90,6 +98,7 @@ def main() -> None:
     csv_dir = os.path.join(Path(__file__).parent.parent.absolute(), "csv")
     verbosity = args.verbosity_level
     conn_file = args.conn_file
+    reload_vocab = args.reload_vocab == "TRUE"
 
     cnxn = get_connection_details(load_config_from_file(conn_file))
 
@@ -115,6 +124,7 @@ def main() -> None:
                 lookup_loader=CSVFileLoader(
                     Path(csv_dir), TEMP_MODELS, delimiter=";"
                 ),
+                reload_vocab=reload_vocab,
             )
     except KeyboardInterrupt:
         print("\n")

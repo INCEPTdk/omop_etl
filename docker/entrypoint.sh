@@ -41,7 +41,7 @@ main() {
   fi
 
   warn "starting as $(id) in ${PWD}"
-  exec python3 etl/tools/main.py -v "${VERBOSITY_LEVEL}"
+  exec python3 etl/tools/main.py -v "${VERBOSITY_LEVEL}" -r "${RELOAD_VOCAB}"
 }
 
 main "$@"; exit
