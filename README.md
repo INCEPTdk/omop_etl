@@ -35,6 +35,7 @@ services:
       VERBOSITY_LEVEL: "DEBUG"
       SOURCE_SCHEMA: "source" # Add the actual source schema
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
+      RELOAD_VOCAB: "FALSE" # Set to TRUE to reload all of the OMOPCDM vocab tables
     volumes:
       - "/path/to/input/data/dir:/data:ro"
 ```
