@@ -88,7 +88,6 @@ BEGIN
          SELECT mpp.col_value,
                 mpp.person_source_value,
                 mpp.person_id,
-                mpp.courseid as source_id,
                 v.visit_occurrence_id,
                 dt1.date_val as start_date,
                 dt2.date_val as end_date
