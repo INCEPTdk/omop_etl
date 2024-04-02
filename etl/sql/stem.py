@@ -19,7 +19,7 @@ will be selected in the stem transform.
 */
 DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.date_cols(text, text);
 CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.date_cols(sname text, tname text)
-RETURNS TABLE(date_name text,date_val text, courseid bigint) LANGUAGE plpgsql
+RETURNS TABLE(date_name text,date_val text, courseid bigint, _id bigint) LANGUAGE plpgsql
 AS $$
 DECLARE
     select_list text;
@@ -34,9 +34,9 @@ BEGIN
     IF (select_list IS NOT NULL AND select_list != '') THEN
         RETURN QUERY
         EXECUTE format($fmt$
-            select (json_each_text(row_to_json(t))).*, courseid
+            select (json_each_text(row_to_json(t))).*, courseid, _id
             from (
-                select %s, courseid
+                select %s, courseid, _id
                 from %I.%I
                 ) t
             $fmt$, select_list, sname, tname);
@@ -63,7 +63,8 @@ BEGIN
     SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
            pt.person_id,
            pt.person_source_value,
-           u.courseid
+           u.courseid,
+           u._id
     FROM {SOURCE_SCHEMA}.%s u
         INNER JOIN {SOURCE_SCHEMA}.courseid_cpr_mapping c
         ON c.courseid = u.courseid
@@ -78,7 +79,8 @@ BEGIN
                 ms.courseid,
                 ma.start_date,
                 ma.end_date,
-                ms.person_id
+                ms.person_id,
+                ms._id
          FROM my_source ms
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.col_value) =
                   LOWER(ma.source_concept_code)
@@ -97,9 +99,11 @@ BEGIN
                     LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
                   ''%s'')) dt1
                             ON mpp.start_date = dt1.date_name AND mpp.courseid = dt1.courseid
+                                AND mpp._id = dt1._id
                   LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
                   ''%s'')) dt2
                             ON mpp.end_date = dt2.date_name AND mpp.courseid = dt2.courseid
+                                AND mpp._id = dt2._id
      ),
      my_merge AS (
          SELECT ma.source_concept_code,
