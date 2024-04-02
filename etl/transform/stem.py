@@ -4,7 +4,6 @@ import logging
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
-    SOURCE_SCHEMA,
     Administrations,
     CourseMetadata,
     DiagnosesProcedures,
@@ -28,7 +27,7 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__,
         )
         session.execute(
-            f"SELECT * FROM omopcdm.date_cols('{SOURCE_SCHEMA}','{model.__tablename__}');"
+            f"SELECT * FROM omopcdm.pivot_categorical('{model.__tablename__}');"
         )
         logger.info(
             "STEM Transform in Progress, %s Events Included from source %s.",

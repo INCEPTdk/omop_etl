@@ -179,6 +179,7 @@ def run_etl(
             Person,
             Death,
             VisitOccurrence,
+            Stem,
             ConditionOccurrence,
             DrugExposure,
             Observation,
