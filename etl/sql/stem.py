@@ -152,11 +152,8 @@ INTO {TARGET_SCHEMA}.stem (domain_id,
                    value_as_concept_id,
                    unit_concept_id,
                    unit_source_value,
-                   days_supply,
-                   dose_unit_source_value,
                    modifier_concept_id,
                    operator_concept_id,
-                   quantity,
                    range_low,
                    range_high,
                    stop_reason,
@@ -180,11 +177,8 @@ SELECT DISTINCT
        value_as_concept_id::INTEGER,
        unit_concept_id::INTEGER,
        unit_source_value,
-       days_supply,
-       dose_unit_source_value,
        modifier_concept_id::INTEGER,
        operator_concept_id::INTEGER,
-       quantity::NUMERIC,
        range_low,
        range_high,
        stop_reason,
@@ -195,4 +189,26 @@ FROM my_merge m;',
             source_table, source_table, source_table, source_table, source_table, source_table));
 END
 $func$;
-"""
+
+DROP FUNCTION IF EXISTS omopcdm.pivot_stem(text, text);
+CREATE OR REPLACE FUNCTION omopcdm.pivot_stem(source_table text) returns void
+    language plpgsql
+as
+$func$
+DECLARE
+    name TEXT;
+BEGIN
+    for name in select column_name
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE table_name = source_table
+                    AND column_name = 'variable'
+        LOOP
+            EXECUTE (format(
+                    'SELECT omopcdm.pivot_categorical(''%s'');',
+                    source_table));
+        END LOOP;
+END ;
+$func$;
+""".strip().replace(
+    "\n", " "
+)

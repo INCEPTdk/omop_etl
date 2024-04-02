@@ -27,7 +27,7 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__,
         )
         session.execute(
-            f"SELECT * FROM omopcdm.pivot_categorical('{model.__tablename__}');"
+            f"SELECT * FROM omopcdm.pivot_stem('{model.__tablename__}');"
         )
         logger.info(
             "STEM Transform in Progress, %s Events Included from source %s.",
