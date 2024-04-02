@@ -1,4 +1,4 @@
-"""Death transformation tests"""
+"""Visit occurrence transformation tests"""
 
 import pandas as pd
 from sqlalchemy import select
