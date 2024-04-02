@@ -1,4 +1,5 @@
 """Source databse data models"""
+
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
 import os
@@ -201,7 +202,7 @@ class DiagnosesProcedures(SourceModelBase, PKIdMixin):
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
     courseid: Final[Column] = BigIntField(nullable=False)
-    timestamp: Final[Column] = CharField(140)
+    timestamp: Final[Column] = TimeStampField()
     variable: Final[Column] = CharField(50)
     value: Final[Column] = BoolField()
     from_file: Final[Column] = CharField(50)
