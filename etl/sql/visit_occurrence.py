@@ -14,7 +14,7 @@ from sqlalchemy import (
     select,
 )
 from sqlalchemy.orm import aliased
-from sqlalchemy.sql import Insert
+from sqlalchemy.sql import Insert, Select
 from sqlalchemy.sql.expression import Case
 from sqlalchemy.sql.functions import concat, count
 
@@ -117,7 +117,7 @@ cl1 = aliased(ConceptLookup)
 cl2 = aliased(ConceptLookup)
 
 
-def get_visit_occurrence_select(shak_code: str) -> select:
+def get_visit_occurrence_select(shak_code: str) -> Select:
     department_info = get_department_info(
         SHAK_LOOKUP_DF, shak_code, "department_type"
     )
