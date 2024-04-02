@@ -2,6 +2,7 @@
 
 venv
 .venv
+.python-version
 
 **/__pycache__/**
 
@@ -9,6 +10,7 @@ docker-compose.override.yml
 
 env.secret.db_password
 db.env
+env.sh
 
 log/
 
