@@ -94,7 +94,7 @@ BEGIN
                 dt2.date_val as end_date
          FROM my_pivot_pre_join mpp
                   LEFT JOIN {TARGET_SCHEMA}.visit_occurrence v
-                        ON ''courseid''||mpp.courseid = v.visit_source_value
+                        ON ''courseid|''||mpp.courseid = v.visit_source_value
                     LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
                   ''%s'')) dt1
                             ON mpp.start_date = dt1.date_name AND mpp.courseid = dt1.courseid
