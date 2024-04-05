@@ -46,21 +46,17 @@ BEGIN
     END IF;
 END $$;
 
-
-/*
-The pivot_categorical function performs the stem transformation in case of a
-categorical value, which is defined in the semantic mapping document as
-'categorical' in the value_type column.
-*/
-DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_categorical(text);
-CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_categorical(source_table text) returns void
-    language plpgsql
-as
-$func$
+/*create a function to create a general pivot that can be passed to a categorical or numerical pivot function*/
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_stem(text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_stem(source_table text)
+RETURNS TABLE (col_value text, variable varchar(140), person_source_value varchar(50), person_id integer, visit_occurrence_id integer, start_date text, end_date text) LANGUAGE plpgsql
+as $$
 BEGIN
+    RETURN QUERY
     EXECUTE (format(
             'with my_source AS (
     SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
+           u.variable,
            pt.person_id,
            pt.person_source_value,
            u.courseid,
@@ -71,10 +67,11 @@ BEGIN
         INNER JOIN {TARGET_SCHEMA}.person pt
         ON (''cpr_enc|''||c.cpr_enc)::VARCHAR = pt.person_source_value
     WHERE pt.person_source_value IS NOT NULL AND value IS NOT NULL
-),
+    ),
      my_pivot_pre_join AS (
          SELECT DISTINCT
                 ms.col_value,
+                ms.variable,
                 ms.person_source_value,
                 ms.courseid,
                 ma.start_date,
@@ -82,12 +79,12 @@ BEGIN
                 ms.person_id,
                 ms._id
          FROM my_source ms
-                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.col_value) =
-                  LOWER(ma.source_concept_code)
+                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.variable) =
+                  LOWER(ma.source_variable)
         WHERE LOWER(ma.datasource) = LOWER(''%s'')
-     ),
-     my_pivot AS (
+     ), my_pivot AS (
          SELECT mpp.col_value,
+                mpp.variable,
                 mpp.person_source_value,
                 mpp.person_id,
                 v.visit_occurrence_id,
@@ -104,8 +101,23 @@ BEGIN
                   ''%s'')) dt2
                             ON mpp.end_date = dt2.date_name AND mpp.courseid = dt2.courseid
                                 AND mpp._id = dt2._id
-     ),
-     my_merge AS (
+     ) select * from my_pivot;', source_table, source_table, source_table, source_table));
+END $$;
+
+
+/*
+The pivot_categorical function performs the stem transformation in case of a
+categorical value, which is defined in the semantic mapping document as
+'categorical' in the value_type column.
+*/
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_categorical(text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_categorical(source_table text) returns void
+    language plpgsql
+as
+$func$
+BEGIN
+    EXECUTE (format(
+            'with my_merge AS (
          SELECT ma.source_concept_code,
                 ma.value_type,
                 ma.uid,
@@ -133,7 +145,7 @@ BEGIN
                 ma.range_high,
                 ma.stop_reason,
                 ma.route_source_value
-         FROM my_pivot pi
+         FROM temp_pivot pi
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
                              ON LOWER(ma.source_concept_code) = LOWER(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''categorical'')
@@ -189,26 +201,130 @@ SELECT DISTINCT
        route_source_value,
        datasource
 FROM my_merge m;',
-            source_table, source_table, source_table, source_table, source_table, source_table));
+            source_table));
 END
 $func$;
 
-DROP FUNCTION IF EXISTS omopcdm.pivot_stem(text, text);
-CREATE OR REPLACE FUNCTION omopcdm.pivot_stem(source_table text) returns void
+
+/*
+The pivot_numerical function performs the stem transformation in case of a
+numerical value, which is defined in the semantic mapping document as
+'numerical' in the value_type column.
+*/
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_numerical(text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_numerical(source_table text) returns void
+    language plpgsql
+as
+$func$
+BEGIN
+    EXECUTE (format(
+            'with my_merge AS (
+         SELECT ma.source_concept_code,
+                ma.value_type,
+                ma.uid,
+                ma.datasource,
+                ma.mapped_standard_code,
+                ma.std_code_domain,
+                ma.value_as_concept_id,
+                ma.value_as_number,
+                ma.operator_concept_id,
+                ma.unit_source_value,
+                ma.unit_concept_id,
+                ma.modifier_concept_id,
+                ma.route_concept_id,
+                ma.quantity,
+                pi.person_source_value,
+                pi.col_value,
+                pi.start_date,
+                pi.end_date,
+                pi.person_id,
+                pi.visit_occurrence_id,
+                ma.type_concept_id,
+                ma.days_supply,
+                ma.dose_unit_source_value,
+                ma.range_low,
+                ma.range_high,
+                ma.stop_reason,
+                ma.route_source_value
+         FROM temp_pivot pi
+                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
+                             ON LOWER(ma.source_variable) = LOWER(pi.variable)
+         WHERE (LOWER(ma.value_type) = ''numerical'')
+ 		 AND ma.mapped_standard_code is not NULL
+         AND LOWER(ma.datasource) = LOWER(''%s'')
+     )
+INSERT
+INTO {TARGET_SCHEMA}.stem (domain_id,
+                   person_id,
+                   concept_id,
+                   start_date,
+                   start_datetime,
+                   end_date,
+                   end_datetime,
+                   type_concept_id,
+                   visit_occurrence_id,
+                   source_value,
+                   source_concept_id,
+                   value_as_string,
+                   value_as_concept_id,
+                   unit_concept_id,
+                   unit_source_value,
+                   modifier_concept_id,
+                   operator_concept_id,
+                   range_low,
+                   range_high,
+                   stop_reason,
+                   route_concept_id,
+                   route_source_value,
+                   datasource
+                 )
+SELECT DISTINCT
+       std_code_domain,
+       person_id,
+       mapped_standard_code,
+       start_date::DATE,
+       start_date::TIMESTAMP,
+       end_date::DATE,
+       end_date::TIMESTAMP,
+       type_concept_id::INTEGER,
+       visit_occurrence_id,
+       col_value,
+       uid,
+       col_value,
+       value_as_concept_id::INTEGER,
+       unit_concept_id::INTEGER,
+       unit_source_value,
+       modifier_concept_id::INTEGER,
+       operator_concept_id::INTEGER,
+       range_low,
+       range_high,
+       stop_reason,
+       route_concept_id::INTEGER,
+       route_source_value,
+       datasource
+FROM my_merge m;',
+            source_table));
+END
+$func$;
+
+DROP FUNCTION IF EXISTS omopcdm.stem_loop(text, text);
+CREATE OR REPLACE FUNCTION omopcdm.stem_loop(source_table text) returns void
     language plpgsql
 as
 $func$
 DECLARE
     name TEXT;
 BEGIN
+    drop table if exists temp_pivot;
+    create temp table temp_pivot as select * from omopcdm.pivot_stem(source_table);
     for name in select column_name
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE table_name = source_table
                     AND column_name = 'variable'
         LOOP
             EXECUTE (format(
-                    'SELECT omopcdm.pivot_categorical(''%s'');',
-                    source_table));
+                     'SELECT omopcdm.pivot_categorical(''%s''); SELECT omopcdm.pivot_numerical(''%s'');',
+                     source_table, source_table));
         END LOOP;
 END ;
 $func$;

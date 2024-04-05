@@ -61,3 +61,16 @@ def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: O
 def base_path() -> Path:
     caller_module = inspect.getmodule(inspect.stack()[1][0])
     return Path(caller_module.__file__).parent.resolve()
+
+def enforce_dtypes(df_source, df_target):
+    source_dtypes = df_source.dtypes
+    df_target_converted = df_target.copy()  # To avoid modifying the original df_target
+
+    for column, dtype in source_dtypes.items():
+        if column in df_target_converted.columns:
+            try:
+                df_target_converted[column] = df_target_converted[column].astype(dtype)
+            except ValueError as e:
+                print(f"Cannot convert column {column} to {dtype}: {e}")
+
+    return df_target_converted
