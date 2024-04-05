@@ -49,14 +49,14 @@ END $$;
 /*create a function to create a general pivot that can be passed to a categorical or numerical pivot function*/
 DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_stem(text);
 CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_stem(source_table text)
-RETURNS TABLE (col_value text, variable varchar(140), person_source_value varchar(50), person_id integer, visit_occurrence_id integer, start_date text, end_date text) LANGUAGE plpgsql
+RETURNS TABLE (variable varchar(140), value text, col_value varchar(140), person_source_value varchar(50), person_id integer, visit_occurrence_id integer, start_date text, end_date text) LANGUAGE plpgsql
 as $$
 BEGIN
     RETURN QUERY
     EXECUTE (format(
             'with my_source AS (
-    SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
-           u.variable,
+    SELECT u.variable,
+           u.value,
            pt.person_id,
            pt.person_source_value,
            u.courseid,
@@ -70,8 +70,9 @@ BEGIN
     ),
      my_pivot_pre_join AS (
          SELECT DISTINCT
-                ms.col_value,
                 ms.variable,
+                ms.value,
+                case when ma.value_type = ''categorical'' then concat(ms.variable, ''__'', ms.value::TEXT) else ms.variable end as col_value,
                 ms.person_source_value,
                 ms.courseid,
                 ma.start_date,
@@ -79,12 +80,13 @@ BEGIN
                 ms.person_id,
                 ms._id
          FROM my_source ms
-                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.variable) =
+                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(variable) =
                   LOWER(ma.source_variable)
         WHERE LOWER(ma.datasource) = LOWER(''%s'')
      ), my_pivot AS (
-         SELECT mpp.col_value,
-                mpp.variable,
+         SELECT mpp.variable,
+                mpp.value::TEXT,
+                mpp.col_value,
                 mpp.person_source_value,
                 mpp.person_id,
                 v.visit_occurrence_id,
@@ -235,6 +237,7 @@ BEGIN
                 ma.quantity,
                 pi.person_source_value,
                 pi.col_value,
+                pi.value::double precision,
                 pi.start_date,
                 pi.end_date,
                 pi.person_id,
@@ -248,7 +251,7 @@ BEGIN
                 ma.route_source_value
          FROM temp_pivot pi
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
-                             ON LOWER(ma.source_variable) = LOWER(pi.variable)
+                             ON LOWER(ma.source_variable) = LOWER(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''numerical'')
  		 AND ma.mapped_standard_code is not NULL
          AND LOWER(ma.datasource) = LOWER(''%s'')
@@ -265,7 +268,7 @@ INTO {TARGET_SCHEMA}.stem (domain_id,
                    visit_occurrence_id,
                    source_value,
                    source_concept_id,
-                   value_as_string,
+                   value_as_number,
                    value_as_concept_id,
                    unit_concept_id,
                    unit_source_value,
@@ -288,9 +291,9 @@ SELECT DISTINCT
        end_date::TIMESTAMP,
        type_concept_id::INTEGER,
        visit_occurrence_id,
-       col_value,
+       concat(col_value, ''__'', value::TEXT) as source_value,
        uid,
-       col_value,
+       value,
        value_as_concept_id::INTEGER,
        unit_concept_id::INTEGER,
        unit_source_value,
@@ -307,8 +310,8 @@ FROM my_merge m;',
 END
 $func$;
 
-DROP FUNCTION IF EXISTS omopcdm.stem_loop(text, text);
-CREATE OR REPLACE FUNCTION omopcdm.stem_loop(source_table text) returns void
+DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.stem_loop(text, text);
+CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.stem_loop(source_table text) returns void
     language plpgsql
 as
 $func$
@@ -316,14 +319,14 @@ DECLARE
     name TEXT;
 BEGIN
     drop table if exists temp_pivot;
-    create temp table temp_pivot as select * from omopcdm.pivot_stem(source_table);
+    create temp table temp_pivot as select * from {TARGET_SCHEMA}.pivot_stem(source_table);
     for name in select column_name
                 FROM INFORMATION_SCHEMA.COLUMNS
                 WHERE table_name = source_table
                     AND column_name = 'variable'
         LOOP
             EXECUTE (format(
-                     'SELECT omopcdm.pivot_categorical(''%s''); SELECT omopcdm.pivot_numerical(''%s'');',
+                     'SELECT {TARGET_SCHEMA}.pivot_categorical(''%s''); SELECT {TARGET_SCHEMA}.pivot_numerical(''%s'');',
                      source_table, source_table));
         END LOOP;
 END ;

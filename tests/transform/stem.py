@@ -92,6 +92,7 @@ class StemTransformationTest(PostgresBaseTest):
         result = select(self.expected_cols)
         result_df = pd.read_sql(result, self.engine)
         result_df = enforce_dtypes(self.expected_df, result_df)
+        import pdb; pdb.set_trace()
         pd.testing.assert_frame_equal(result_df,
                                       self.expected_df)
 
