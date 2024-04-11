@@ -56,12 +56,13 @@ DEATH_INSERT: Final[Insert] = insert(OmopDeath).from_select(
 )
 
 DEATH_EXCLUDED: Final[count] = count(
-    select(MergedOmopSourcePerson.c.person_id).where(
+    select(MergedOmopSourcePerson.c.person_id)
+    .where(
         and_(
             MergedOmopSourcePerson.c.c_status == "90",
             MergedOmopSourcePerson.c.d_status_hen_start.is_(None),
         )
     )
+    .scalar_subquery()
 )
-
 DEATH_UPLOADED: Final[count] = count(OmopDeath.person_id)
