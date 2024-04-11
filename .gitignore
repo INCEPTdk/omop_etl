@@ -16,7 +16,8 @@ log/
 
 .vscode
 .idea
-
+dummy_data/
+scripts/
 connection.json
 
 .coverage
