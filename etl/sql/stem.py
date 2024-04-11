@@ -19,11 +19,13 @@ will be selected in the stem transform.
 */
 DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.date_cols(text, text);
 CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.date_cols(sname text, tname text)
-RETURNS TABLE(date_name text,date_val text, courseid bigint, _id bigint) LANGUAGE plpgsql
+RETURNS void LANGUAGE plpgsql
 AS $$
 DECLARE
     select_list text;
 BEGIN
+    drop table if exists temp_date_cols;
+    create temp table temp_date_cols (date_name text, date_val text, courseid bigint, _id bigint);
     SELECT string_agg(column_name, ',')
     INTO select_list
     FROM information_schema.columns
@@ -32,8 +34,8 @@ BEGIN
     AND data_type IN ('date', 'timestamp without time zone',
     'timestamp with time zone');
     IF (select_list IS NOT NULL AND select_list != '') THEN
-        RETURN QUERY
         EXECUTE format($fmt$
+            insert into temp_date_cols
             select (json_each_text(row_to_json(t))).*, courseid, _id
             from (
                 select %s, courseid, _id
@@ -41,8 +43,7 @@ BEGIN
                 ) t
             $fmt$, select_list, sname, tname);
     ELSE
-        RETURN QUERY
-            SELECT 'no_date_found', NULL, NULL::BIGINT;
+        EXECUTE format($fmt$ SELECT 'no_date_found', NULL, NULL::BIGINT,NULL::BIGINT into temp_date_cols $fmt$);
     END IF;
 END $$;
 
@@ -95,12 +96,10 @@ BEGIN
          FROM my_pivot_pre_join mpp
                   LEFT JOIN {TARGET_SCHEMA}.visit_occurrence v
                         ON ''courseid|''||mpp.courseid = v.visit_source_value
-                    LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
-                  ''%s'')) dt1
+                    LEFT JOIN temp_date_cols dt1
                             ON mpp.start_date = dt1.date_name AND mpp.courseid = dt1.courseid
                                 AND mpp._id = dt1._id
-                  LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
-                  ''%s'')) dt2
+                  LEFT JOIN temp_date_cols dt2
                             ON mpp.end_date = dt2.date_name AND mpp.courseid = dt2.courseid
                                 AND mpp._id = dt2._id
      ) select * from my_pivot;', source_table, source_table, source_table, source_table));
@@ -318,6 +317,8 @@ $func$
 DECLARE
     name TEXT;
 BEGIN
+    EXECUTE format(
+             'SELECT {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'', %L);', source_table);
     drop table if exists temp_pivot;
     create temp table temp_pivot as select * from {TARGET_SCHEMA}.pivot_stem(source_table);
     for name in select column_name
