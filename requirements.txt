@@ -1,8 +1,8 @@
-numpy~=1.22.4
-pandas~=1.4.2
-psutil~=5.9.1
-psycopg2-binary~=2.9.3
-python-dateutil~=2.8.2
-pytz~=2022.1
+SQLAlchemy~=2.0.29
+numpy~=1.26.4
+pandas~=2.2.2
+psutil~=5.9.8
+psycopg2-binary~=2.9.9
+python-dateutil~=2.9.0.post0
+pytz~=2024.1
 six~=1.16.0
-SQLAlchemy~=1.4.37

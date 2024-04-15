@@ -14,22 +14,26 @@ jobs:
     steps:
       # https://github.com/actions/checkout
       - name: Checkout the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
       - name: Install dependencies
         run: |
+          set -eux
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements.dev.txt
-          export PYTHONPATH=$PWD
+          python -m pip install -r requirements.txt -r requirements.dev.txt
+
       - name: Run black
         run: |
           black --check etl/
+
       - name: Run Flake8
         run: |
           flake8 etl/
+
       - name: Run Isort
         run: |
           isort --check etl/
+
       - name: Run pylint
         run: |
           pylint --reports=no etl/
