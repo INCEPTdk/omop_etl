@@ -1,10 +1,12 @@
 name: Linting
 
-on:
-  push:
-    branches: [main, master]
+"on":
   pull_request:
-    branches: [main, master]
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   linting:
@@ -16,24 +18,20 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
+      # https://github.com/actions/setup-python
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          cache: 'pip'  # caching pip dependencies
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
           set -eux
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt -r requirements.dev.txt
+          pip install -r requirements.txt -r requirements.dev.txt
 
-      - name: Run black
-        run: |
-          black --check etl/
-
-      - name: Run Flake8
-        run: |
-          flake8 etl/
-
-      - name: Run Isort
-        run: |
-          isort --check etl/
-
-      - name: Run pylint
-        run: |
-          pylint --reports=no etl/
+      # https://github.com/pre-commit/action
+      - name: run pre-commit
+        uses: pre-commit/action@v3.0.1
+        env:
+          SKIP: no-commit-to-branch
