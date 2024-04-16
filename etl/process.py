@@ -26,6 +26,9 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.condition_occurrence import (
+    transform as condition_occurrence_transform,
+)
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
@@ -35,7 +38,6 @@ from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .transform.stem import transform as stem_transform
 from .transform.visit_occurrence import transform as visit_occurrence_transform
-from .transform.condition_occurrence import transform as condition_occurrence_transform
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler

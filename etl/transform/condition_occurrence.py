@@ -1,8 +1,11 @@
 """Condition occurrence transformations"""
 
 import logging
+
+from ..models.omopcdm54.clinical import (
+    ConditionOccurrence as OmopConditionOccurrence,
+)
 from ..sql.condition_occurrence import ConditionOccurrenceInsert
-from ..models.omopcdm54.clinical import ConditionOccurrence as OmopConditionOccurrence
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.ConditionOccurrence")
