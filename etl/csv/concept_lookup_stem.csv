@@ -20,3 +20,4 @@ uid;datasource;source_file;source_concept_code;source_variable;value;value_type;
 2000000019;observations;;gcs__13;gcs;13;categorical;;;timestamp;;;;32817;3032652;glasgow coma scale;LOINC;;Condition;;;45882913;;;;;;;;;;;;;;;;
 2000000020;observations;;gcs__14;gcs;14;categorical;;;timestamp;;;;32817;3032652;glasgow coma scale;LOINC;;Condition;;;45876965;;;;;;;;;;;;;;;;
 2000000021;observations;;gcs__15;gcs;15;categorical;;;timestamp;;;;32817;3032652;glasgow coma scale;LOINC;;Condition;;;45879165;;;;;;;;;;;;;;;;
+2000000022;diagnoses_procedures;;trkstmtbudn__true;trkstmtbudn;true;categorical;;;timestamp;;;;32817;4143728;tracheostomy without cuffs;SNOMED;;Procedure;;;;;;;;;;;;;;;;;;;

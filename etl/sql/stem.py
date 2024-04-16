@@ -252,7 +252,7 @@ BEGIN
                   INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
                              ON LOWER(ma.source_variable) = LOWER(pi.col_value)
          WHERE (LOWER(ma.value_type) = ''numerical'')
- 		 AND ma.mapped_standard_code is not NULL
+          AND ma.mapped_standard_code is not NULL
          AND LOWER(ma.datasource) = LOWER(''%s'')
      )
 INSERT
