@@ -2,21 +2,9 @@
 
 from typing import Final
 
-from sqlalchemy import (
-    Date,
-    DateTime,
-    and_,
-    cast,
-    func,
-    insert,
-    literal,
-    or_,
-    select,
-)
-from sqlalchemy.orm import aliased
+from sqlalchemy import Date, DateTime, and_, cast, func, insert, or_, select
 from sqlalchemy.sql import Insert, Select
 from sqlalchemy.sql.expression import Case
-from sqlalchemy.sql.functions import concat, count
 
 from ..models.omopcdm54.clinical import (
     ConditionOccurrence as OmopConditionOccurrence,
