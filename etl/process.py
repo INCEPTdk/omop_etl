@@ -35,6 +35,7 @@ from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .transform.stem import transform as stem_transform
 from .transform.visit_occurrence import transform as visit_occurrence_transform
+from .transform.condition_occurrence import transform as condition_occurrence_transform
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
@@ -172,6 +173,12 @@ def run_etl(
             session=session,
             func=stem_transform,
             description="Stem transform",
+        ),
+        SessionOperation(
+            key=str(ConditionOccurrence.__table__),
+            session=session,
+            func=condition_occurrence_transform,
+            description="Condition Occurrence transform",
         ),
     ]
 
