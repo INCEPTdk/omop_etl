@@ -2,9 +2,8 @@
 
 from typing import Final
 
-from sqlalchemy import Date, DateTime, and_, cast, func, insert, or_, select
+from sqlalchemy import Date, and_, cast, insert, or_, select
 from sqlalchemy.sql import Insert, Select
-from sqlalchemy.sql.expression import Case
 
 from ..models.omopcdm54.clinical import (
     Observation as OmopObservation,
