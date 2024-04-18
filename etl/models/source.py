@@ -236,16 +236,10 @@ class Person(SourceModelBase, PKIdMixin):
     __tablename__: Final[str] = "person"
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
-    cpr_enc: Final[Column] = CharField(
-        50,
-    )
-    c_kon: Final[Column] = CharField(
-        50,
-    )
+    cpr_enc: Final[Column] = CharField(50)
+    c_kon: Final[Column] = CharField(50)
     d_foddato: Final[Column] = DateField()
-    c_status: Final[Column] = CharField(
-        50,
-    )
+    c_status: Final[Column] = CharField(50)
     d_status_hen_start: Final[Column] = DateField()
 
 
