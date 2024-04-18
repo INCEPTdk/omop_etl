@@ -20,6 +20,7 @@ from .modelutils import (
 )
 
 SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
+REGISTRY_SCHEMA: Final[str] = os.getenv("REGISTRY_SCHEMA", default="registries")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
 
