@@ -26,11 +26,18 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.condition_occurrence import (
+    transform as condition_occurrence_transform,
+)
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
+from .transform.measurement import transform as measurement_transform
 from .transform.person import transform as person_transform
+from .transform.procedure_occurrence import (
+    transform as procedure_occurrence_transform,
+)
 from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .transform.stem import transform as stem_transform
@@ -172,6 +179,24 @@ def run_etl(
             session=session,
             func=stem_transform,
             description="Stem transform",
+        ),
+        SessionOperation(
+            key=str(ConditionOccurrence.__table__),
+            session=session,
+            func=condition_occurrence_transform,
+            description="Condition Occurrence transform",
+        ),
+        SessionOperation(
+            key=str(ProcedureOccurrence.__table__),
+            session=session,
+            func=procedure_occurrence_transform,
+            description="Procedure occurrence transform",
+        ),
+        SessionOperation(
+            key=str(Measurement.__table__),
+            session=session,
+            func=measurement_transform,
+            description="Measurement transform",
         ),
     ]
 
