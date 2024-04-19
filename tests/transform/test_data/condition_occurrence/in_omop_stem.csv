@@ -1,0 +1,13 @@
+domain_id;datasource;stem_id;person_id;concept_id;start_date;start_datetime;end_date;end_datetime;type_concept_id;provider_id;visit_occurrence_id;visit_detail_id;care_site_id;source_value;source_concept_id;value_as_number;value_as_string;value_as_concept_id;unit_concept_id;value_source_value;unit_source_concept_id;unit_source_value;verbatim_end_date;days_supply;dose_unit_source_value;modifier_concept_id;modifier_source_value;measurement_datetime;operator_concept_id;quantity;range_low;range_high;stop_reason;refills;sig;route_concept_id;route_source_value;lot_number;unique_device_id;production_id;anatomic_site_concept_id;disease_status_concept_id;specimen_source_id;anatomic_site_source_value;disease_status_source_value;condition_status_concept_id;condition_status_source_value;qualifier_concept_id;qualifier_source_value;event_id;event_field_concept_id;episode_id_source
+Measurement;observations;1;3;3032652;1812-12-15;1812-12-15 13:30:30;;;32817;;1;;;gcs__14;2000000020;;;45876965;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;2;3;3032652;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;gcs__10;2000000016;;;45878306;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;3;3;3032652;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;gcs__11;2000000017;;;45881814;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;4;3;3032652;1813-12-17;1813-12-17 09:14:09;;;32817;;2;;;gcs__12;2000000018;;;45882131;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;5;3;3032652;1813-12-17;1813-12-17 09:17:09;;;32817;;2;;;gcs__14;2000000020;;;45876965;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;6;3;3027018;1812-12-15;1812-12-15 14:30:30;;;32817;;1;;;hf__85;2000000014;85;;;8541;;;/min;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;7;3;3027018;1813-12-17;1813-12-17 09:24:09;;;32817;;2;;;hf__80;2000000014;80;;;8541;;;/min;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Condition;diag;8;3;4180793;1800-01-01;1800-01-01 00:00:00;;;32879;;5;;;DC25__true;2000000123;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Condition;diag;9;4;4180793;1800-01-01;1800-01-05 00:00:00;;;32879;;6;;;DC25__true;2000000123;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Condition;diag;10;5;36685503;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;7;;;bakterimifrr__true;2000000456;;;4135944;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Condition;diag;11;5;0;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;7;;;bakterimifrr__true;2000000456;;;4135944;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Condition;diag;12;5;;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;7;;;bakterimifrr__true;2000000456;;;4135944;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

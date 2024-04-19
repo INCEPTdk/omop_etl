@@ -33,7 +33,6 @@ CARE_SITE_COUNT: Final[count] = count(CareSite.care_site_id)
 
 
 def get_care_site_insert(shak_code: str) -> Insert:
-
     return insert(CareSite).from_select(
         names=[
             CareSite.location_id,
