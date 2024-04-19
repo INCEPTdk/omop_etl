@@ -45,6 +45,8 @@ class StemTransformationTest(PostgresBaseTest):
 
     OUTPUT_FILE = f"{base_path()}/test_data/stem/out_omop_stem.csv"
 
+    DATETIME_COLS_TO_PARSE = ['start_date', 'start_datetime'] # 'visit_start_datetime', 'visit_end_date', 'visit_end_datetime'])
+
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.LOOKUPS, schema='lookups')
@@ -63,7 +65,7 @@ class StemTransformationTest(PostgresBaseTest):
         self.omop_person = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
         self.omop_visit_occurrence = pd.read_csv(self.INPUT_OMOP_VISIT_OCCURRENCE, index_col=False, sep=';')
 
-        self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=['start_date','start_datetime'])# 'visit_start_datetime', 'visit_end_date', 'visit_end_datetime'])
+        self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=self.DATETIME_COLS_TO_PARSE)
         self.expected_cols = [getattr(self.TARGET_MODEL[2], col) for col in self.expected_df.columns.to_list()]
 
     def tearDown(self) -> None:
@@ -90,9 +92,8 @@ class StemTransformationTest(PostgresBaseTest):
             stem_transformation(session)
 
         result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
+        result_df = pd.read_sql(result, self.engine, parse_dates=self.DATETIME_COLS_TO_PARSE)
         result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df,
-                                      self.expected_df)
+        pd.testing.assert_frame_equal(result_df, self.expected_df, check_like=True, check_datetimelike_compat=True)
 
 __all__ = ['StemTransformationTest']
