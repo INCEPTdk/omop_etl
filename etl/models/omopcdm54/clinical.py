@@ -528,7 +528,9 @@ class Stem(ModelBase):
     care_site_id: Final[Column] = IntField(
         FK(CareSite.care_site_id), nullable=True
     )
-    source_value: Final[Column] = CharField(50)
+    source_value: Final[Column] = CharField(
+        600
+    )  # this may be too small for some sources
     source_concept_id: Final[Column] = CharField(50)
     value_as_number: Final[Column] = NumericField()
     value_as_string: Final[Column] = CharField(250)

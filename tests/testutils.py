@@ -70,7 +70,7 @@ def enforce_dtypes(df_source, df_target):
         if column in df_target_converted.columns:
             try:
                 df_target_converted[column] = df_target_converted[column].astype(dtype)
-            except ValueError as e:
+            except (TypeError, ValueError) as e:
                 print(f"Cannot convert column {column} to {dtype}: {e}")
 
     return df_target_converted
