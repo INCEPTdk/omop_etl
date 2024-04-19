@@ -1,0 +1,27 @@
+domain_id;datasource;stem_id;person_id;concept_id;start_date;start_datetime;end_date;end_datetime;type_concept_id;provider_id;visit_occurrence_id;visit_detail_id;care_site_id;source_value;source_concept_id;value_as_number;value_as_string;value_as_concept_id;unit_concept_id;value_source_value;unit_source_concept_id;unit_source_value;verbatim_end_date;days_supply;dose_unit_source_value;modifier_concept_id;modifier_source_value;measurement_datetime;operator_concept_id;quantity;range_low;range_high;stop_reason;refills;sig;route_concept_id;route_source_value;lot_number;unique_device_id;production_id;anatomic_site_concept_id;disease_status_concept_id;specimen_source_id;anatomic_site_source_value;disease_status_source_value;condition_status_concept_id;condition_status_source_value;qualifier_concept_id;qualifier_source_value;event_id;event_field_concept_id;episode_id_source
+Measurement;observations;1;3;3032652;1812-12-15;1812-12-15 13:30:30;;;32817;;1;;;gcs__14;2000000020;;;45876965;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;2;3;3032652;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;gcs__10;2000000016;;;45878306;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;3;3;3032652;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;gcs__11;2000000017;;;45881814;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;4;3;3032652;1813-12-17;1813-12-17 09:14:09;;;32817;;2;;;gcs__12;2000000018;;;45882131;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;5;3;3032652;1813-12-17;1813-12-17 09:17:09;;;32817;;2;;;gcs__14;2000000020;;;45876965;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;6;3;3027018;1812-12-15;1812-12-15 14:30:30;;;32817;;1;;;hf__85;2000000014;85;;;8541;;;/min;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;7;3;3027018;1813-12-17;1813-12-17 09:24:09;;;32817;;2;;;hf__80;2000000014;80;;;8541;;;/min;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Procedure;procedures;8;3;4142645;1800-01-01;1800-01-01 00:00:00;;;32879;;5;;;UXAC85A__true;2000000987;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Procedure;procedures;9;4;4142645;1800-01-01;1800-01-05 00:00:00;;;32879;;6;;;UXAC85A__true;2000000987;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Procedure;diagnoses_procedures;10;5;4046030;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;7;;;piccoktt__true;2000000456;;;4135944;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;11;3;3027598;1812-12-15;1812-12-15 13:30:30;;;32817;;1;;;map__80;2000000090;80;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;12;3;3027598;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;map__45;2000000090;45;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;13;3;3027598;1813-12-17;1813-12-17 09:09:39;;;32817;;2;;;map__54;2000000090;54;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;14;3;3027598;1813-12-17;1813-12-17 09:14:59;;;32817;;2;;;map__65;2000000090;65;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;15;3;3027598;1813-12-17;1813-12-17 09:17:09;;;32817;;2;;;map__76;2000000090;76;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;16;4;3027598;1812-12-10;1812-12-10 13:30:30;;;32817;;1;;;map__56;2000000090;56;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;17;5;3027598;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;map__77;2000000090;77;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;18;6;3027598;1813-11-17;1813-11-17 19:15:09;;;32817;;2;;;map__87;2000000090;87;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;19;6;3027598;1813-11-17;1813-11-17 19:16:09;;;32817;;2;;;map__76;2000000090;76;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Measurement;observations;20;6;3027598;1813-11-17;1813-11-17 19:17:09;;;32817;;2;;;map__83;2000000090;83;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Observation;observations;21;7;4287468;1810-11-17;1810-11-17 19:17:09;;;32817;;4;;;lejringplc__rygleje;2000000090;;rygleje;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Observation;observations;22;7;4287468;1810-11-17;1810-11-17 21:17:09;;;32817;;4;;;lejringplc__højre;2000000090;;;24028007;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Device;observations;11;3;3027598;1812-12-15;1812-12-15 13:30:30;;;32817;;1;;;map__80;2000000090;80;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Device;observations;12;3;3027598;1813-12-17;1813-12-17 09:09:09;;;32817;;2;;;map__45;2000000090;45;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Device;observations;13;3;3027598;1813-12-17;1813-12-17 09:09:39;;;32817;;2;;;map__54;2000000090;54;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Device;observations;14;3;3027598;1813-12-17;1813-12-17 09:14:59;;;32817;;2;;;map__65;2000000090;65;;;8876;;;mmhg;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
