@@ -1,198 +1,224 @@
 """ SQL query string definition for the stem functions"""
 
-from typing import Final
+from typing import Any, Final, List
 
-from ..models.omopcdm54.registry import TARGET_SCHEMA
-from ..models.source import SOURCE_SCHEMA
-from ..models.tempmodels import LOOKUPS_SCHEMA
+from sqlalchemy import (
+    DATE,
+    FLOAT,
+    INT,
+    TEXT,
+    TIMESTAMP,
+    BigInteger,
+    Column,
+    Table,
+    and_,
+    cast,
+    insert,
+    literal,
+    or_,
+    select,
+)
+from sqlalchemy.sql import Insert, case, func
+from sqlalchemy.sql.functions import concat
 
-SQL_FUNCTIONS: Final[
-    str
-] = f"""
-/*
-The date_cols function selects all the possible date fields in a specific table,
-as well as the unique id of the record in the source that can be used to link
-the date to the correct event, if one person has multiple entries in a table
-and therefore multiple date values for the same date field. Depending on the
-date field that is defined in the semantic mapping document the correct date
-will be selected in the stem transform.
-*/
-DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.date_cols(text, text);
-CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.date_cols(sname text, tname text)
-RETURNS TABLE(date_name text,date_val text, courseid bigint) LANGUAGE plpgsql
-AS $$
-DECLARE
-    select_list text;
-BEGIN
-    SELECT string_agg(column_name, ',')
-    INTO select_list
-    FROM information_schema.columns
-    WHERE table_schema = sname
-    AND table_name = tname
-    AND data_type IN ('date', 'timestamp without time zone',
-    'timestamp with time zone');
-    IF (select_list IS NOT NULL AND select_list != '') THEN
-        RETURN QUERY
-        EXECUTE format($fmt$
-            select (json_each_text(row_to_json(t))).*, courseid
-            from (
-                select %s, courseid
-                from %I.%I
-                ) t
-            $fmt$, select_list, sname, tname);
-    ELSE
-        RETURN QUERY
-            SELECT 'no_date_found', NULL, NULL::BIGINT;
-    END IF;
-END $$;
+from ..models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ..models.tempmodels import ConceptLookupStem
+from ..util.stemutils import find_datetime_columns, flatten_to_set
+
+TARGET_STEM_COLUMNS: Final[list] = [
+    OmopStem.domain_id,
+    OmopStem.person_id,
+    OmopStem.concept_id,
+    OmopStem.start_date,
+    OmopStem.start_datetime,
+    OmopStem.type_concept_id,
+    OmopStem.visit_occurrence_id,
+    OmopStem.source_value,
+    OmopStem.source_concept_id,
+    OmopStem.value_as_number,
+    OmopStem.value_as_string,
+    OmopStem.value_as_concept_id,
+    OmopStem.unit_concept_id,
+    OmopStem.unit_source_value,
+    OmopStem.modifier_concept_id,
+    OmopStem.operator_concept_id,
+    OmopStem.range_low,
+    OmopStem.range_high,
+    OmopStem.stop_reason,
+    OmopStem.route_concept_id,
+    OmopStem.route_source_value,
+    OmopStem.datasource,
+]
 
 
-/*
-The pivot_categorical function performs the stem transformation in case of a
-categorical value, which is defined in the semantic mapping document as
-'categorical' in the value_type column.
-*/
-DROP FUNCTION IF EXISTS {TARGET_SCHEMA}.pivot_categorical(text);
-CREATE OR REPLACE FUNCTION {TARGET_SCHEMA}.pivot_categorical(source_table text) returns void
-    language plpgsql
-as
-$func$
-BEGIN
-    EXECUTE (format(
-            'with my_source AS (
-    SELECT CONCAT(variable, ''__'', value::TEXT) as col_value,
-           pt.person_id,
-           pt.person_source_value,
-           u.courseid
-    FROM {SOURCE_SCHEMA}.%s u
-        INNER JOIN {SOURCE_SCHEMA}.courseid_cpr_mapping c
-        ON c.courseid = u.courseid
-        INNER JOIN {TARGET_SCHEMA}.person pt
-        ON (''cpr_enc|''||c.cpr_enc)::VARCHAR = pt.person_source_value
-    WHERE pt.person_source_value IS NOT NULL AND value IS NOT NULL
-),
-     my_pivot_pre_join AS (
-         SELECT DISTINCT
-                ms.col_value,
-                ms.person_source_value,
-                ms.courseid,
-                ma.start_date,
-                ma.end_date,
-                ms.person_id
-         FROM my_source ms
-                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma ON LOWER(ms.col_value) =
-                  LOWER(ma.source_concept_code)
-        WHERE LOWER(ma.datasource) = LOWER(''%s'')
-     ),
-     my_pivot AS (
-         SELECT mpp.col_value,
-                mpp.person_source_value,
-                mpp.person_id,
-                mpp.courseid as source_id,
-                v.visit_occurrence_id,
-                dt1.date_val as start_date,
-                dt2.date_val as end_date
-         FROM my_pivot_pre_join mpp
-                  LEFT JOIN {TARGET_SCHEMA}.visit_occurrence v
-                        ON ''courseid''||mpp.courseid = v.visit_source_value
-                    LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
-                  ''%s'')) dt1
-                            ON mpp.start_date = dt1.date_name AND mpp.courseid = dt1.courseid
-                  LEFT JOIN (SELECT * FROM {TARGET_SCHEMA}.date_cols(''{SOURCE_SCHEMA}'',
-                  ''%s'')) dt2
-                            ON mpp.end_date = dt2.date_name AND mpp.courseid = dt2.courseid
-     ),
-     my_merge AS (
-         SELECT ma.source_concept_code,
-                ma.value_type,
-                ma.uid,
-                ma.datasource,
-                ma.mapped_standard_code,
-                ma.std_code_domain,
-                ma.value_as_concept_id,
-                ma.value_as_string,
-                ma.operator_concept_id,
-                ma.unit_source_value,
-                ma.unit_concept_id,
-                ma.modifier_concept_id,
-                ma.route_concept_id,
-                ma.quantity,
-                pi.person_source_value,
-                pi.col_value,
-                pi.start_date,
-                pi.end_date,
-                pi.person_id,
-                pi.visit_occurrence_id,
-                ma.type_concept_id,
-                ma.days_supply,
-                ma.dose_unit_source_value,
-                ma.range_low,
-                ma.range_high,
-                ma.stop_reason,
-                ma.route_source_value
-         FROM my_pivot pi
-                  INNER JOIN {LOOKUPS_SCHEMA}.concept_lookup_stem ma
-                             ON LOWER(ma.source_concept_code) = LOWER(pi.col_value)
-         WHERE (LOWER(ma.value_type) = ''categorical'')
-         AND LOWER(ma.datasource) = LOWER(''%s'')
-     )
-INSERT
-INTO {TARGET_SCHEMA}.stem (domain_id,
-                   person_id,
-                   concept_id,
-                   start_date,
-                   start_datetime,
-                   end_date,
-                   end_datetime,
-                   type_concept_id,
-                   visit_occurrence_id,
-                   source_value,
-                   source_concept_id,
-                   value_as_string,
-                   value_as_concept_id,
-                   unit_concept_id,
-                   unit_source_value,
-                   days_supply,
-                   dose_unit_source_value,
-                   modifier_concept_id,
-                   operator_concept_id,
-                   quantity,
-                   range_low,
-                   range_high,
-                   stop_reason,
-                   route_concept_id,
-                   route_source_value,
-                   datasource
-                 )
-SELECT DISTINCT
-       std_code_domain,
-       person_id,
-       mapped_standard_code,
-       start_date::DATE,
-       start_date::TIMESTAMP,
-       end_date::DATE,
-       end_date::TIMESTAMP,
-       type_concept_id::INTEGER,
-       visit_occurrence_id,
-       col_value,
-       uid,
-       value_as_string,
-       value_as_concept_id::INTEGER,
-       unit_concept_id::INTEGER,
-       unit_source_value,
-       days_supply,
-       dose_unit_source_value,
-       modifier_concept_id::INTEGER,
-       operator_concept_id::INTEGER,
-       quantity::NUMERIC,
-       range_low,
-       range_high,
-       stop_reason,
-       route_concept_id::INTEGER,
-       route_source_value,
-       datasource
-FROM my_merge m;',
-            source_table, source_table, source_table, source_table, source_table, source_table));
-END
-$func$;
-"""
+def create_simple_stem_insert(
+    model: Any = None,
+    datetime_column_name: str = None,
+    value_as_number_column_name: str = None,
+    value_as_string_column_name: str = None,
+) -> Insert:
+    if not value_as_number_column_name:
+        value_as_number = None
+    else:
+        value_as_number = case(
+            (
+                ConceptLookupStem.value_type == "numerical",
+                getattr(model, value_as_number_column_name),
+            ),
+            else_=None,
+        )
+
+    if not value_as_string_column_name:
+        value_as_string = None
+    else:
+        value_as_string = case(
+            (
+                ConceptLookupStem.value_type == "categorical",
+                getattr(model, value_as_string_column_name),
+                # std_code_domain must be observations to have any value in value_as_string
+            ),
+            else_=None,
+        )
+
+    StemSelect = (
+        select(
+            ConceptLookupStem.std_code_domain,
+            VisitOccurrence.person_id,
+            cast(ConceptLookupStem.mapped_standard_code, INT).label(
+                "concept_id"
+            ),
+            cast(getattr(model, datetime_column_name), DATE).label(
+                "start_date"
+            ),
+            cast(getattr(model, datetime_column_name), TIMESTAMP).label(
+                "start_datetime"
+            ),
+            cast(ConceptLookupStem.type_concept_id, INT),
+            VisitOccurrence.visit_occurrence_id,
+            concat(model.variable, "__", cast(model.value, TEXT)),
+            ConceptLookupStem.uid,
+            cast(value_as_number, FLOAT).label("value_as_number"),
+            cast(value_as_string, TEXT).label("value_as_string"),
+            cast(ConceptLookupStem.value_as_concept_id, INT),
+            cast(ConceptLookupStem.unit_concept_id, INT),
+            ConceptLookupStem.unit_source_value,
+            cast(ConceptLookupStem.modifier_concept_id, INT),
+            cast(ConceptLookupStem.operator_concept_id, INT),
+            ConceptLookupStem.range_low,
+            ConceptLookupStem.range_high,
+            ConceptLookupStem.stop_reason,
+            cast(ConceptLookupStem.route_concept_id, INT),
+            ConceptLookupStem.route_source_value,
+            literal(model.__tablename__).label("datasource"),
+        )
+        .select_from(model)
+        .join(
+            VisitOccurrence,
+            VisitOccurrence.visit_source_value
+            == concat("courseid|", model.courseid),
+        )
+        .outerjoin(
+            ConceptLookupStem,
+            or_(
+                and_(
+                    ConceptLookupStem.value_type == "categorical",
+                    func.lower(ConceptLookupStem.source_concept_code)
+                    == func.lower(concat(model.variable, "__", model.value)),
+                    ConceptLookupStem.datasource == model.__tablename__,
+                ),
+                and_(
+                    ConceptLookupStem.value_type == "numerical",
+                    func.lower(ConceptLookupStem.source_variable)
+                    == func.lower(model.variable),
+                    ConceptLookupStem.datasource == model.__tablename__,
+                ),
+            ),
+        )
+    )
+
+    return insert(OmopStem).from_select(
+        names=TARGET_STEM_COLUMNS,
+        select=StemSelect,
+    )
+
+
+def create_complex_stem_insert(
+    model: Any = None, column_names: List[str] = None
+) -> Insert:
+    stacks = []
+    for col_name in column_names:
+        stacks.append(
+            select(
+                literal(col_name).label("date_name"),
+                getattr(model, col_name).label("date_value"),
+                model.courseid,
+                model._id,  # pylint: disable=protected-access
+            ).select_from(model)
+        )
+
+        temp_datetime_cols = Table(
+            "temp_datetime_cols",
+            Column("date_name", TEXT),
+            Column("date_value", TIMESTAMP),
+            Column("courseid", BigInteger),
+            Column("_id", BigInteger),
+            prefixes=["TEMPORARY", "ON COMMIT DROP"],
+        )
+        temp_datetime_cols.create()
+
+
+def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
+    unique_datetime_column_names = flatten_to_set(
+        (
+            session.query(
+                ConceptLookupStem.start_date, ConceptLookupStem.end_date
+            )
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_datetime_column_names:
+        # To keep in the stem table even without concept_lookup_stem matches
+        unique_datetime_column_names = find_datetime_columns(model)
+
+    unique_value_as_number_columns = flatten_to_set(
+        (
+            session.query(ConceptLookupStem.value_as_number)
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_value_as_number_columns:
+        # Need something to pop() below
+        unique_value_as_number_columns = {None}
+
+    unique_value_as_string_columns = flatten_to_set(
+        (
+            session.query(ConceptLookupStem.value_as_string)
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_value_as_string_columns:
+        # Need something to pop() below
+        unique_value_as_string_columns = {None}
+
+    if (
+        len(unique_datetime_column_names) == 1
+        and len(unique_value_as_number_columns) == 1
+        and len(unique_value_as_string_columns) == 1
+    ):
+        return create_simple_stem_insert(
+            model,
+            unique_datetime_column_names.pop(),
+            unique_value_as_number_columns.pop(),
+            unique_value_as_string_columns.pop(),
+        )
+
+    # otherwise, we need a more complex query whose implementation is pending
+    # this then needs to unpivot both value_as_number, value_as_string and datetimes columns
+    # InsertSql = create_complex_stem_insert(...)
+    raise NotImplementedError
