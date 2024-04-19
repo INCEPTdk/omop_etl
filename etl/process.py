@@ -34,6 +34,7 @@ from .transform.person import transform as person_transform
 from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
 from .transform.stem import transform as stem_transform
+from .transform.visit_occurrence import transform as visit_occurrence_transform
 from .util.db import AbstractSession
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
@@ -155,16 +156,22 @@ def run_etl(
             description="Person transform",
         ),
         SessionOperation(
-            key=str(Stem.__table__),
-            session=session,
-            func=stem_transform,
-            description="Stem transform",
-        ),
-        SessionOperation(
             key=str(Death.__table__),
             session=session,
             func=death_transform,
             description="Death transform",
+        ),
+        SessionOperation(
+            key=str(VisitOccurrence.__table__),
+            session=session,
+            func=visit_occurrence_transform,
+            description="Visit occurrence transform",
+        ),
+        SessionOperation(
+            key=str(Stem.__table__),
+            session=session,
+            func=stem_transform,
+            description="Stem transform",
         ),
     ]
 
