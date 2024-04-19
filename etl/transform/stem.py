@@ -28,7 +28,15 @@ def transform(session: AbstractSession) -> None:
             .count(),
             model.__tablename__,
         )
+
+    count_rows = session.query(OmopStem).count()
+    mapped_rows = (
+        session.query(OmopStem).where(OmopStem.concept_id.isnot(None)).count()
+    )
+
     logger.info(
-        "STEM Transformation complete! %s rows included",
-        session.query(OmopStem).count(),
+        "STEM Transformation complete! %s rows included, %s rows where mapped to a concept_id (%s%%).",
+        count_rows,
+        mapped_rows,
+        round(mapped_rows / count_rows * 100, 2),
     )
