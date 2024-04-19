@@ -32,7 +32,8 @@ StemProcedureOccurrence: Final[Select] = select(
 ).where(
     and_(
         OmopStem.domain_id == "Procedure",
-        or_(OmopStem.concept_id.is_not(None), OmopStem.concept_id != 0),
+        OmopStem.concept_id.is_not(None),
+        OmopStem.concept_id != 0,
         OmopStem.start_date == cast(OmopStem.start_datetime, Date),
     )
 )
