@@ -531,7 +531,7 @@ class Stem(ModelBase):
     source_value: Final[Column] = CharField(
         600
     )  # this may be too small for some sources
-    source_concept_id: Final[Column] = CharField(50)
+    source_concept_id: Final[Column] = IntField()
     value_as_number: Final[Column] = NumericField()
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(
