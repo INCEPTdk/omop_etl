@@ -1,4 +1,4 @@
-"""Visit detail transformations"""
+"""Visit occurrence transformations"""
 import logging
 
 from etl.models.omopcdm54.clinical import VisitOccurrence
@@ -15,7 +15,7 @@ logger = logging.getLogger("ETL.VisitOccurrence")
 
 
 def transform(session: AbstractSession) -> None:
-    """Run the visit detail transformation"""
+    """Run the visit occurrence transformation"""
     logger.info("Starting the visit occurrence transformation... ")
 
     session.execute(get_visit_occurrence_insert(DEPARTMENT_SHAK_CODE))

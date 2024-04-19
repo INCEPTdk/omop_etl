@@ -18,7 +18,6 @@ CONCEPT_LOOKUP_DF: Final[pd.DataFrame] = pd.read_csv(
 
 
 def get_concept_lookup_dict(filter_: str) -> Dict:
-
     d = defaultdict(lambda: None)
 
     fdf = CONCEPT_LOOKUP_DF[
