@@ -57,7 +57,6 @@ def create_simple_stem_insert(
     value_as_number_column_name: str = None,
     value_as_string_column_name: str = None,
 ) -> Insert:
-
     if not value_as_number_column_name:
         value_as_number = None
     else:
@@ -146,7 +145,6 @@ def create_simple_stem_insert(
 def create_complex_stem_insert(
     model: Any = None, column_names: List[str] = None
 ) -> Insert:
-
     stacks = []
     for col_name in column_names:
         stacks.append(
