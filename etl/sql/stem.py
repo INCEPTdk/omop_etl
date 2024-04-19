@@ -23,6 +23,7 @@ from sqlalchemy.sql.functions import concat
 
 from ..models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ..models.tempmodels import ConceptLookupStem
+from ..util.stemutils import find_datetime_columns, flatten_to_set
 
 TARGET_STEM_COLUMNS: Final[list] = [
     OmopStem.domain_id,
@@ -166,3 +167,60 @@ def create_complex_stem_insert(
             prefixes=["TEMPORARY", "ON COMMIT DROP"],
         )
         temp_datetime_cols.create()
+
+
+def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
+    unique_datetime_column_names = flatten_to_set(
+        (
+            session.query(
+                ConceptLookupStem.start_date, ConceptLookupStem.end_date
+            )
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_datetime_column_names:
+        # To keep in the stem table even without concept_lookup_stem matches
+        unique_datetime_column_names = find_datetime_columns(model)
+
+    unique_value_as_number_columns = flatten_to_set(
+        (
+            session.query(ConceptLookupStem.value_as_number)
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_value_as_number_columns:
+        # Need something to pop() below
+        unique_value_as_number_columns = {None}
+
+    unique_value_as_string_columns = flatten_to_set(
+        (
+            session.query(ConceptLookupStem.value_as_string)
+            .where(ConceptLookupStem.datasource == model.__tablename__)
+            .distinct()
+            .all()
+        )
+    )
+    if not unique_value_as_string_columns:
+        # Need something to pop() below
+        unique_value_as_string_columns = {None}
+
+    if (
+        len(unique_datetime_column_names) == 1
+        and len(unique_value_as_number_columns) == 1
+        and len(unique_value_as_string_columns) == 1
+    ):
+        return create_simple_stem_insert(
+            model,
+            unique_datetime_column_names.pop(),
+            unique_value_as_number_columns.pop(),
+            unique_value_as_string_columns.pop(),
+        )
+
+    # otherwise, we need a more complex query whose implementation is pending
+    # this then needs to unpivot both value_as_number, value_as_string and datetimes columns
+    # InsertSql = create_complex_stem_insert(...)
+    raise NotImplementedError

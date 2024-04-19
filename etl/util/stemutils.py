@@ -1,4 +1,4 @@
-"""Miscellaneous utility functions"""
+"""Miscellaneous utility functions for stem-table logic"""
 
 from itertools import chain
 from typing import Any
