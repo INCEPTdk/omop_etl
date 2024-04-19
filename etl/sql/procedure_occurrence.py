@@ -2,9 +2,8 @@
 
 from typing import Final
 
-from sqlalchemy import Date, DateTime, and_, cast, func, insert, or_, select
+from sqlalchemy import Date, DateTime, and_, cast, func, insert, select
 from sqlalchemy.sql import Insert, Select
-from sqlalchemy.sql.expression import Case
 
 from ..models.omopcdm54.clinical import (
     ProcedureOccurrence as OmopProcedureOccurrence,
@@ -17,10 +16,10 @@ StemProcedureOccurrence: Final[Select] = select(
     OmopStem.start_date,
     OmopStem.start_datetime,
     func.coalesce(OmopStem.end_date, OmopStem.start_date).label("end_date"),
-    Case(
-        [OmopStem.end_datetime.is_not(None), OmopStem.end_datetime],
-        [OmopStem.end_date.is_not(None), cast(OmopStem.end_date, DateTime)],
-        [OmopStem.start_datetime.is_not(None), OmopStem.start_datetime],
+    func.coalesce(
+        OmopStem.end_datetime,
+        cast(OmopStem.end_date, DateTime),
+        OmopStem.start_datetime,
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.modifier_concept_id,
