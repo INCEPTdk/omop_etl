@@ -33,6 +33,7 @@ from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.location import transform as location_transform
+from .transform.measurement import transform as measurement_transform
 from .transform.person import transform as person_transform
 from .transform.procedure_occurrence import (
     transform as procedure_occurrence_transform,
@@ -190,6 +191,12 @@ def run_etl(
             session=session,
             func=procedure_occurrence_transform,
             description="Procedure occurrence transform",
+        ),
+        SessionOperation(
+            key=str(Measurement.__table__),
+            session=session,
+            func=measurement_transform,
+            description="Measurement transform",
         ),
     ]
 
