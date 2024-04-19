@@ -75,7 +75,7 @@ def transform(session: AbstractSession) -> None:
         else:
             # this then needs to unpivot both value_as_number, value_as_string and datetimes columns
             # InsertSql = create_complex_stem_insert(...)
-            pass
+            raise NotImplementedError
 
         session.execute(InsertSql)
 
