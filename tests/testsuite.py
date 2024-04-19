@@ -15,6 +15,7 @@ if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.transform.location_tests import *
     from tests.transform.person_tests import *
     from tests.transform.visit_occurrence_tests import *
+    from tests.transform.condition_occurrence_tests import *
     from tests.transform.procedure_occurrence_tests import *
     from tests.transform.stem_tests import *
     from tests.util.dbtests import *

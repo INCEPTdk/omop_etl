@@ -26,6 +26,9 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.condition_occurrence import (
+    transform as condition_occurrence_transform,
+)
 from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
@@ -175,6 +178,12 @@ def run_etl(
             session=session,
             func=stem_transform,
             description="Stem transform",
+        ),
+        SessionOperation(
+            key=str(ConditionOccurrence.__table__),
+            session=session,
+            func=condition_occurrence_transform,
+            description="Condition Occurrence transform",
         ),
         SessionOperation(
             key=str(ProcedureOccurrence.__table__),
