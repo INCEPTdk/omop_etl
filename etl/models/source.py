@@ -272,7 +272,7 @@ class LabkaBccLaboratory(SourceModelBase, PKIdMixin):
     dob: Final[Column] = DateField()
     lab_id: Final[Column] = CharField(50)
     date: Final[Column] = DateField()
-    time: Final[Column] = TimeStampField()
+    time: Final[Column] = CharField(10)
     time_offset: Final[Column] = BigIntField()
     database: Final[Column] = CharField(50)
     component_simple_lookup: Final[Column] = CharField(255)
