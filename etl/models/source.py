@@ -20,8 +20,6 @@ from .modelutils import (
     make_model_base,
 )
 
-logger = logging.getLogger("ETL.Core")
-
 SOURCE_SCHEMA: Final[str] = get_schema_name("SOURCE_SCHEMA", "source")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
@@ -238,16 +236,10 @@ class Person(SourceModelBase, PKIdMixin):
     __tablename__: Final[str] = "person"
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
-    cpr_enc: Final[Column] = CharField(
-        50,
-    )
-    c_kon: Final[Column] = CharField(
-        50,
-    )
+    cpr_enc: Final[Column] = CharField(50)
+    c_kon: Final[Column] = CharField(50)
     d_foddato: Final[Column] = DateField()
-    c_status: Final[Column] = CharField(
-        50,
-    )
+    c_status: Final[Column] = CharField(50)
     d_status_hen_start: Final[Column] = DateField()
 
 
@@ -263,6 +255,88 @@ class CourseIdCprMapping(SourceModelBase, PKIdMixin):
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
     courseid: Final[Column] = BigIntField(nullable=False)
+
+
+@register_source_model
+@freeze_instance
+class LabkaBccLaboratory(SourceModelBase, PKIdMixin):
+    """
+    The table for lab data from LABKA and BCC
+    """
+
+    __tablename__: Final[str] = "laboratory"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    sex: Final[Column] = CharField(50)
+    dob: Final[Column] = DateField()
+    lab_id: Final[Column] = CharField(50)
+    date: Final[Column] = DateField()
+    time: Final[Column] = CharField(10)
+    time_offset: Final[Column] = BigIntField()
+    database: Final[Column] = CharField(50)
+    component_simple_lookup: Final[Column] = CharField(255)
+    clean_quantity_id: Final[Column] = CharField(50)
+    unit_clean: Final[Column] = CharField(50)
+    system_clean: Final[Column] = CharField(50)
+    shown_clean: Final[Column] = CharField(50)
+    ref_lower_clean: Final[Column] = CharField(50)
+    ref_upper_clean: Final[Column] = CharField(50)
+    interval_type: Final[Column] = CharField(50)
+    flag: Final[Column] = CharField(50)
+    abo: Final[Column] = CharField(50)
+    rhesus: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprOperations(SourceModelBase, PKIdMixin):
+    """
+    The operations table, adapted version of t_sksopr from NPR
+    """
+
+    __tablename__: Final[str] = "operations"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprProcedures(SourceModelBase, PKIdMixin):
+    """
+    The procedures table, adapted version of t_sksube from NPR
+    """
+
+    __tablename__: Final[str] = "procedures"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprDiagnoses(SourceModelBase, PKIdMixin):
+    """
+    The diagnoses table, adapted version of t_diag from NPR
+    """
+
+    __tablename__: Final[str] = "diagnoses"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
 
 
 SOURCE_VERSION: Final[str] = "0.1"
