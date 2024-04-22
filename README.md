@@ -109,10 +109,13 @@ For example it should look something like:
 Note the host and port will be different to the Docker setup (option 1).
 
 ### Step 3. Run the ETL in a Virtual Environment
-Make sure you are in this directory (same directory as the README.md).
+Make sure you are in this directory (same directory as the README.md). Make sure to export the required environment variables:
 
 ```bash
-export PYTHONPATH=$PWD
+export PYTHONPATH=$PWD \
+  SOURCE_SCHEMA=name_of_schema \
+  TARGET_SCHEMA=name_of_schema \
+  DEPARTMENT_SHAK_CODE=the_code
 python3 etl/tools/main.py
 ```
 
