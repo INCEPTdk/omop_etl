@@ -22,7 +22,8 @@ warn() {
 main() {
   makeJSON
   export PYTHONPATH="$PWD"
-  export DB_SCHEMA="$DB_SCHEMA"
+  export SOURCE_SCHEMA="$SOURCE_SCHEMA"
+  export TARGET_SCHEMA="$TARGET_SCHEMA"
 
   if [ -n "${RUN_TESTS:-}" ]; then
     if [ -z "${DEV_BUILD:-}" ]; then
