@@ -2,11 +2,12 @@
 
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
-import os
+import logging
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
 
+from ..util.db import get_schema_name
 from ..util.freeze import freeze_instance
 from .modelutils import (
     BigIntField,
@@ -19,7 +20,9 @@ from .modelutils import (
     make_model_base,
 )
 
-SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
+logger = logging.getLogger("ETL.Core")
+
+SOURCE_SCHEMA: Final[str] = get_schema_name("SOURCE_SCHEMA", "source")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
 
