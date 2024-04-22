@@ -52,7 +52,7 @@ DB_DBMS=postgresql
 DB_PORT=5432
 DB_SERVER=postgres
 DB_DBNAME=postgres
-DB_SCHEMA=omopcdm
+TARGET_SCHEMA=omopcdm
 DB_USER=postgres
 DB_PASSWORD=admin
 ```
@@ -101,7 +101,6 @@ For example it should look something like:
   "server": "localhost",
   "port": 5565,
   "dbname": "postgres",
-  "schema": "omopcdm",
   "user": "postgres",
   "password": "admin"
 }
