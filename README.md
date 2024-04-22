@@ -34,6 +34,7 @@ services:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
       SOURCE_SCHEMA: "source" # Add the actual source schema
+      TARGET_SCHEMA: "cdm" # Add the actual source schema
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
       RELOAD_VOCAB: "FALSE" # Set to TRUE to reload all of the OMOPCDM vocab tables
     volumes:
@@ -52,7 +53,6 @@ DB_DBMS=postgresql
 DB_PORT=5432
 DB_SERVER=postgres
 DB_DBNAME=postgres
-TARGET_SCHEMA=omopcdm
 DB_USER=postgres
 DB_PASSWORD=admin
 ```

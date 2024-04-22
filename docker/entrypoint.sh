@@ -9,7 +9,6 @@ makeJSON() {
   "server": "${DB_SERVER}",
   "port": "${DB_PORT}",
   "dbname": "${DB_DBNAME}",
-  "schema": "${DB_SCHEMA}",
   "user": "${DB_USER}",
   "password": "${DB_PASSWORD}"
 }
