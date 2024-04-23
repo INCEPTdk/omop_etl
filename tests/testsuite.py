@@ -20,6 +20,7 @@ if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.transform.stem_tests import *
     from tests.transform.measurement_tests import *
     from tests.transform.observation_tests import *
+    from tests.transform.device_exposure_tests import *
     from tests.util.dbtests import *
 
 
