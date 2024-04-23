@@ -33,8 +33,9 @@ services:
   etl:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
-      SOURCE_SCHEMA: "source" # Add the actual source schema
-      TARGET_SCHEMA: "cdm" # Add the actual source schema
+      SOURCE_SCHEMA: "source" # Add the actual source schema, ideally site-specific
+      TARGET_SCHEMA: "omopcdm" # Add the actual target schema, ideally site-specific
+      REGISTRY_SCHEMA: "registries" # Add the actual schema with national registries
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
       RELOAD_VOCAB: "FALSE" # Set to TRUE to reload all of the OMOPCDM vocab tables
     volumes:
@@ -115,6 +116,7 @@ Make sure you are in this directory (same directory as the README.md). Make sure
 export PYTHONPATH=$PWD \
   SOURCE_SCHEMA=name_of_schema \
   TARGET_SCHEMA=name_of_schema \
+  REGISTRY_SCHEMA=name_of_name \
   DEPARTMENT_SHAK_CODE=the_code
 python3 etl/tools/main.py
 ```

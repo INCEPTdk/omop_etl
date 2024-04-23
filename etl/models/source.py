@@ -2,7 +2,6 @@
 
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
-import logging
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
@@ -21,6 +20,7 @@ from .modelutils import (
 )
 
 SOURCE_SCHEMA: Final[str] = get_schema_name("SOURCE_SCHEMA", "source")
+REGISTRY_SCHEMA: Final[str] = get_schema_name("REGISTRY_SCHEMA", "registries")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
 
