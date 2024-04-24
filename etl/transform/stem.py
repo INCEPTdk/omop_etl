@@ -44,7 +44,7 @@ def transform(session: AbstractSession) -> None:
             "Transforming %s source data to the STEM table...",
             model.__tablename__,
         )
-        session.execute(get_registry_stem_insert(model))
+        session.execute(get_registry_stem_insert(session, model))
         logger.info(
             "STEM Transform in Progress, %s Events Included from source %s.",
             session.query(OmopStem)
