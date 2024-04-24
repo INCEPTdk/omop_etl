@@ -23,6 +23,7 @@ SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
 REGISTRY_SCHEMA: Final[str] = os.getenv("REGISTRY_SCHEMA", default="registries")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
+RegistryModelBase: Any = make_model_base(schema=REGISTRY_SCHEMA)
 
 
 class SourceModelRegistry:
@@ -290,7 +291,7 @@ class LabkaBccLaboratory(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class LprOperations(SourceModelBase, PKIdMixin):
+class LprOperations(RegistryModelBase, PKIdMixin):
     """
     The operations table, adapted version of t_sksopr from NPR
     """
@@ -307,7 +308,7 @@ class LprOperations(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class LprProcedures(SourceModelBase, PKIdMixin):
+class LprProcedures(RegistryModelBase, PKIdMixin):
     """
     The procedures table, adapted version of t_sksube from NPR
     """
@@ -324,7 +325,7 @@ class LprProcedures(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class LprDiagnoses(SourceModelBase, PKIdMixin):
+class LprDiagnoses(RegistryModelBase, PKIdMixin):
     """
     The diagnoses table, adapted version of t_diag from NPR
     """
