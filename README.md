@@ -33,7 +33,8 @@ services:
   etl:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
-      SOURCE_SCHEMA: "source" # Add the actual source schema
+      SOURCE_SCHEMA: "source" # Add the actual source schema, ideally site-specific
+      TARGET_SCHEMA: "omopcdm" # Add the actual target schema, ideally site-specific
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
       RELOAD_VOCAB: "FALSE" # Set to TRUE to reload all of the OMOPCDM vocab tables
     volumes:
