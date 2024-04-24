@@ -21,7 +21,11 @@ from sqlalchemy import (
 from sqlalchemy.sql import Insert, case, func
 from sqlalchemy.sql.functions import concat
 
-from ..models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ..models.omopcdm54.clinical import (
+    Person as OmopPerson,
+    Stem as OmopStem,
+    VisitOccurrence,
+)
 from ..models.tempmodels import ConceptLookupStem
 from ..util.stemutils import find_datetime_columns, flatten_to_set
 
@@ -222,3 +226,54 @@ def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
     # this then needs to unpivot both value_as_number, value_as_string and datetimes columns
     # InsertSql = create_complex_stem_insert(...)
     raise NotImplementedError
+
+
+def get_registry_stem_insert(model: Any = None) -> Insert:
+    StemSelect = (
+        select(
+            ConceptLookupStem.std_code_domain,
+            OmopPerson.person_id,
+            cast(ConceptLookupStem.mapped_standard_code, INT).label(
+                "concept_id"
+            ),
+            cast(getattr(model, "start_date"), DATE).label("start_date"),
+            cast(getattr(model, "start_date"), TIMESTAMP).label("start_date"),
+            cast(getattr(model, "end_date"), DATE).label("end_date"),
+            cast(getattr(model, "end_date"), TIMESTAMP).label("end_date"),
+            cast(ConceptLookupStem.type_concept_id, INT),
+            model.sks_code,
+            ConceptLookupStem.uid,
+            literal(model.__tablename__).label("datasource"),
+        )
+        .select_from(model)
+        .join(
+            OmopPerson,
+            OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
+        )
+        .outerjoin(
+            ConceptLookupStem,
+            and_(
+                ConceptLookupStem.value_type == "categorical",
+                func.lower(ConceptLookupStem.source_variable)
+                == func.lower(model.sks_code),
+                ConceptLookupStem.datasource == model.__tablename__,
+            ),
+        )
+    )
+
+    return insert(OmopStem).from_select(
+        names=[
+            OmopStem.domain_id,
+            OmopStem.person_id,
+            OmopStem.concept_id,
+            OmopStem.start_date,
+            OmopStem.start_datetime,
+            OmopStem.end_date,
+            OmopStem.end_datetime,
+            OmopStem.type_concept_id,
+            OmopStem.source_value,
+            OmopStem.source_concept_id,
+            OmopStem.datasource,
+        ],
+        select=StemSelect,
+    )
