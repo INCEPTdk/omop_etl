@@ -77,6 +77,19 @@ class Logger:
             return pd.DataFrame()
 
 
+def set_logger_verbosity(logger: logging.Logger, verbosity_level: str) -> None:
+    log_levels = {
+        "DEBUG": logging.DEBUG,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+    }
+    logger.setLevel(
+        log_levels[verbosity_level]
+        if verbosity_level in log_levels
+        else logging.INFO
+    )
+
+
 def setup_logger(verbosity_level: str) -> logging.Logger:
     logdir = "../log"
     if not os.path.exists(logdir):
@@ -95,17 +108,8 @@ def setup_logger(verbosity_level: str) -> logging.Logger:
     c_handler.setFormatter(l_format)
     f_handler.setFormatter(l_format)
 
-    log_levels = {
-        "DEBUG": logging.DEBUG,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }
-    c_handler.setLevel(
-        log_levels[verbosity_level]
-        if verbosity_level in log_levels
-        else logging.INFO
-    )
-    f_handler.setLevel(logging.DEBUG)
+    set_logger_verbosity(c_handler, verbosity_level)
+    set_logger_verbosity(f_handler, "DEBUG")
 
     logger.addHandler(c_handler)
     logger.addHandler(f_handler)
