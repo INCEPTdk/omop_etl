@@ -1,6 +1,6 @@
 """ SQL query string definition for the stem functions"""
 
-from typing import Any, Final
+from typing import Any
 
 from sqlalchemy import (
     DATE,
@@ -21,33 +21,6 @@ from sqlalchemy.sql.functions import concat
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ...models.tempmodels import ConceptLookupStem
 from .utils import find_unique_column_names, get_case_statement
-
-TARGET_STEM_COLUMNS: Final[list] = [
-    OmopStem.domain_id,
-    OmopStem.person_id,
-    OmopStem.concept_id,
-    OmopStem.start_date,
-    OmopStem.start_datetime,
-    OmopStem.end_date,
-    OmopStem.end_datetime,
-    OmopStem.type_concept_id,
-    OmopStem.visit_occurrence_id,
-    OmopStem.source_value,
-    OmopStem.source_concept_id,
-    OmopStem.value_as_number,
-    OmopStem.value_as_string,
-    OmopStem.value_as_concept_id,
-    OmopStem.unit_concept_id,
-    OmopStem.unit_source_value,
-    OmopStem.modifier_concept_id,
-    OmopStem.operator_concept_id,
-    OmopStem.range_low,
-    OmopStem.range_high,
-    OmopStem.stop_reason,
-    OmopStem.route_concept_id,
-    OmopStem.route_source_value,
-    OmopStem.datasource,
-]
 
 
 def create_simple_stem_insert(
@@ -130,7 +103,32 @@ def create_simple_stem_insert(
     )
 
     return insert(OmopStem).from_select(
-        names=TARGET_STEM_COLUMNS,
+        names=[
+            OmopStem.domain_id,
+            OmopStem.person_id,
+            OmopStem.concept_id,
+            OmopStem.start_date,
+            OmopStem.start_datetime,
+            OmopStem.end_date,
+            OmopStem.end_datetime,
+            OmopStem.type_concept_id,
+            OmopStem.visit_occurrence_id,
+            OmopStem.source_value,
+            OmopStem.source_concept_id,
+            OmopStem.value_as_number,
+            OmopStem.value_as_string,
+            OmopStem.value_as_concept_id,
+            OmopStem.unit_concept_id,
+            OmopStem.unit_source_value,
+            OmopStem.modifier_concept_id,
+            OmopStem.operator_concept_id,
+            OmopStem.range_low,
+            OmopStem.range_high,
+            OmopStem.stop_reason,
+            OmopStem.route_concept_id,
+            OmopStem.route_source_value,
+            OmopStem.datasource,
+        ],
         select=StemSelect,
     )
 

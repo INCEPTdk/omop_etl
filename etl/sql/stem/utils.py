@@ -23,20 +23,19 @@ def get_case_statement(
 
     if column_name is None:
         exp = expression.null()
-    else:
-        if value_type:
-            exp = case(
-                (
-                    lookup.value_type == value_type,
-                    cast(
-                        getattr(model, column_name),
-                        cast_as,
-                    ),
+    elif value_type:
+        exp = case(
+            (
+                lookup.value_type == value_type,
+                cast(
+                    getattr(model, column_name),
+                    cast_as,
                 ),
-                else_=expression.null(),
-            )
-        else:
-            exp = cast(getattr(model, column_name), cast_as)
+            ),
+            else_=expression.null(),
+        )
+    else:
+        exp = cast(getattr(model, column_name), cast_as)
     return exp
 
 
@@ -59,12 +58,12 @@ def find_unique_column_names(
         .all()
     )
 
-    s = set(x for x in chain(*lst) if x is not None)
+    col_set = set(x for x in chain(*lst) if x is not None)
 
-    if len(s) == 0:
+    if len(col_set) == 0:
         col_name = None
-    elif len(s) == 1:
-        col_name = s.pop()
+    elif len(col_set) == 1:
+        col_name = col_set.pop()
     else:
         raise NotImplementedError(
             f"""More than one unique value found.
