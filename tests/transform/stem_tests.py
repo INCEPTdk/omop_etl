@@ -15,6 +15,12 @@ from etl.models.source import (
     DiagnosesProcedures as SourceDiagnosesProcedures,
     Observations as SourceObservations,
 )
+from etl.models.source import (
+    LprDiagnoses as SourceLprDiagnoses,
+    LprOperations as SourceLprOperations,
+    LprProcedures as SourceLprProcedures,
+)
+
 from etl.models.tempmodels import ConceptLookup, ConceptLookupStem
 from etl.transform.stem import transform as stem_transformation
 from etl.util.db import make_db_session, session_context
@@ -28,6 +34,7 @@ from tests.testutils import (
 
 class StemTransformationTest(PostgresBaseTest):
     SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata, SourceObservations, SourceAdministrations, SourceDiagnosesProcedures]
+    REGISTRY_MODELS = [SourceLprDiagnoses, SourceLprProcedures, SourceLprOperations]
     TARGET_MODEL = [OmopVisitOccurrence, OmopPerson, OmopStem]
     LOOKUPS = [ConceptLookup, ConceptLookupStem]
 
@@ -40,18 +47,23 @@ class StemTransformationTest(PostgresBaseTest):
     INPUT_SOURCE_ADMINISTRATIONS = f"{base_path()}/test_data/stem/in_source_administrations.csv"
     INPUT_SOURCE_DIAGNOSESPROCEDURES = f"{base_path()}/test_data/stem/in_source_diagnoses_procedures.csv"
 
+    INPUT_REGISTRIES_DIAGNOSES = f"{base_path()}/test_data/stem/in_registries_diagnoses.csv"
+    INPUT_REGISTRIES_PROCEDURES = f"{base_path()}/test_data/stem/in_registries_procedures.csv"
+    INPUT_REGISTRIES_OPERATIONS = f"{base_path()}/test_data/stem/in_registries_operations.csv"
+
     INPUT_OMOP_PERSON = f"{base_path()}/test_data/stem/in_omop_person.csv"
     INPUT_OMOP_VISIT_OCCURRENCE = f"{base_path()}/test_data/stem/in_omop_visit_occurrence.csv"
 
     OUTPUT_FILE = f"{base_path()}/test_data/stem/out_omop_stem.csv"
 
-    DATETIME_COLS_TO_PARSE = ['start_date', 'start_datetime'] # 'visit_start_datetime', 'visit_end_date', 'visit_end_datetime'])
+    DATETIME_COLS_TO_PARSE = ['start_date', 'start_datetime', 'end_date', 'end_datetime'] # 'visit_start_datetime', 'visit_end_date', 'visit_end_datetime'])
 
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.LOOKUPS, schema='lookups')
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._create_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
 
         self.concept_lookup = pd.read_csv(self.CONCEPT_LOOKUP_DF, index_col=False, sep=';')
         self.concept_lookup_stem = pd.read_csv(self.CONCEPT_LOOKUP_STEM_DF, index_col=False, sep=';', dtype=str)
@@ -61,6 +73,10 @@ class StemTransformationTest(PostgresBaseTest):
         self.source_observations = pd.read_csv(self.INPUT_SOURCE_OBSERVATIONS, index_col=False, sep=';', dtype={'value': str}, parse_dates=['timestamp'])
         self.source_administrations = pd.read_csv(self.INPUT_SOURCE_ADMINISTRATIONS, index_col=False, sep=';')
         self.source_diagnoses_procedures = pd.read_csv(self.INPUT_SOURCE_DIAGNOSESPROCEDURES, index_col=False, sep=';')
+
+        self.source_lpr_diagnoses = pd.read_csv(self.INPUT_REGISTRIES_DIAGNOSES, index_col=False, sep=';')
+        self.source_lpr_procedures = pd.read_csv(self.INPUT_REGISTRIES_PROCEDURES, index_col=False, sep=';')
+        self.source_lpr_operations = pd.read_csv(self.INPUT_REGISTRIES_OPERATIONS, index_col=False, sep=';')
 
         self.omop_person = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
         self.omop_visit_occurrence = pd.read_csv(self.INPUT_OMOP_VISIT_OCCURRENCE, index_col=False, sep=';')
@@ -73,6 +89,7 @@ class StemTransformationTest(PostgresBaseTest):
         self._drop_tables_and_schema(self.LOOKUPS, schema='lookups')
         self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._drop_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
@@ -84,6 +101,9 @@ class StemTransformationTest(PostgresBaseTest):
         write_to_db(engine, self.source_diagnoses_procedures, SourceDiagnosesProcedures.__tablename__, schema=SourceDiagnosesProcedures.metadata.schema)
         write_to_db(engine, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
         write_to_db(engine, self.omop_visit_occurrence, OmopVisitOccurrence.__tablename__, schema=OmopVisitOccurrence.metadata.schema)
+        write_to_db(engine, self.source_lpr_diagnoses, SourceLprDiagnoses.__tablename__, schema=SourceLprDiagnoses.metadata.schema)
+        write_to_db(engine, self.source_lpr_procedures, SourceLprProcedures.__tablename__, schema=SourceLprProcedures.metadata.schema)
+        write_to_db(engine, self.source_lpr_operations, SourceLprOperations.__tablename__, schema=SourceLprOperations.metadata.schema)
 
     def test_transform(self):
         self._insert_test_data(self.engine)
