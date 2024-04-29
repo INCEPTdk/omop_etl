@@ -18,7 +18,7 @@ from etl.util.logger import setup_logger
 from .connection import ConnectionDetails
 from .exceptions import DependencyNotFoundException
 
-logger = setup_logger("info")
+logger = setup_logger("ENVIRONMENT")
 
 
 class AbstractSession(ABC):

@@ -1,4 +1,5 @@
 """Main program to run the ETL"""
+import logging
 import os
 import traceback
 from argparse import ArgumentParser
@@ -17,7 +18,7 @@ from etl.util.db import (
 )
 from etl.util.exceptions import DBConnectionException
 from etl.util.files import load_config_from_file
-from etl.util.logger import setup_logger
+from etl.util.logger import set_logger_verbosity
 
 DESCRIPTION: Final[str] = "Execute the Rigshospitalet ETL."
 
@@ -66,7 +67,9 @@ def main() -> None:
 
     cnxn = get_connection_details(load_config_from_file(conn_file))
 
-    logger = setup_logger(verbosity)
+    logger = logging.getLogger("ETL")
+    set_logger_verbosity(logger, verbosity)
+
     logger.info("Connecting to database...")
     engine = None
     if cnxn.dbms == "postgresql":
