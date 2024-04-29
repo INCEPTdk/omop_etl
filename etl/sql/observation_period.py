@@ -26,7 +26,7 @@ DEFAULT_OBSERVATION_DATE: Final[str] = DEFAULT_DATE.isoformat()
 
 
 @clean_sql
-def _obs_period_sql() -> str:
+def _obs_period_sql(type_concept_id) -> str:
     return f"""
     INSERT INTO
         {TARGET_TABLENAME} (
@@ -60,7 +60,7 @@ def _obs_period_sql() -> str:
             ),
             '{DEFAULT_OBSERVATION_DATE}'
         ) AS {ObservationPeriod.observation_period_end_date.key},
-        {CONCEPT_ID_EHR} AS {ObservationPeriod.period_type_concept_id.key}
+        {type_concept_id} AS {ObservationPeriod.period_type_concept_id.key}
     FROM
     (
         SELECT
@@ -76,6 +76,8 @@ def _obs_period_sql() -> str:
                     {str(Measurement.__table__)}
                 WHERE
                     {Measurement.measurement_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
+                    AND
+                    {Measurement.measurement_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) measurement_date_range
@@ -89,18 +91,22 @@ def _obs_period_sql() -> str:
                     (
                         SELECT
                             {ConditionOccurrence.person_id.key},
-                            {ConditionOccurrence.condition_start_date.key} AS condition_date
+                            {ConditionOccurrence.condition_start_date.key} AS condition_date,
+                            {ConditionOccurrence.condition_type_concept_id.key}
                         FROM
                             {str(ConditionOccurrence.__table__)}
                         UNION
                         SELECT
                             {ConditionOccurrence.person_id.key},
-                            {ConditionOccurrence.condition_end_date.key} AS condition_date
+                            {ConditionOccurrence.condition_end_date.key} AS condition_date,
+                            {ConditionOccurrence.condition_type_concept_id.key}
                         FROM
                             {str(ConditionOccurrence.__table__)}
                     ) condition_dates
                 WHERE
                     condition_date <> '{DEFAULT_OBSERVATION_DATE}'
+                    AND
+                    {ConditionOccurrence.condition_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) condition_date_range USING ({ConditionOccurrence.person_id.key})
@@ -114,18 +120,22 @@ def _obs_period_sql() -> str:
                     (
                         SELECT
                             {VisitOccurrence.person_id.key},
-                            {VisitOccurrence.visit_start_date.key} AS visit_date
+                            {VisitOccurrence.visit_start_date.key} AS visit_date,
+                            {VisitOccurrence.visit_type_concept_id.key}
                         FROM
                             {str(VisitOccurrence.__table__)}
                         UNION
                         SELECT
                             {VisitOccurrence.person_id.key},
-                            {VisitOccurrence.visit_end_date.key} AS visit_date
+                            {VisitOccurrence.visit_end_date.key} AS visit_date,
+                            {VisitOccurrence.visit_type_concept_id.key}
                         FROM
                             {str(VisitOccurrence.__table__)}
                     ) visit_dates
                 WHERE
                     visit_date <> '{DEFAULT_OBSERVATION_DATE}'
+                    AND
+                    {VisitOccurrence.visit_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) visit_date_range USING ({VisitOccurrence.person_id.key})
@@ -139,6 +149,8 @@ def _obs_period_sql() -> str:
                     {str(ProcedureOccurrence.__table__)}
                 WHERE
                     {ProcedureOccurrence.procedure_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
+                    AND
+                    {ProcedureOccurrence.procedure_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) procedure_date_range USING ({ProcedureOccurrence.person_id.key})
@@ -150,6 +162,7 @@ def _obs_period_sql() -> str:
                     MAX({Observation.observation_date.key}) AS maximum_observation_date
                 FROM
                     {str(Observation.__table__)}
+                WHERE {Observation.observation_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) observation_date_range USING ({Observation.person_id.key})
@@ -163,18 +176,22 @@ def _obs_period_sql() -> str:
                     (
                         SELECT
                             {DrugExposure.person_id.key},
-                            {DrugExposure.drug_exposure_start_date.key} AS drug_exposure_date
+                            {DrugExposure.drug_exposure_start_date.key} AS drug_exposure_date,
+                            {DrugExposure.drug_type_concept_id.key}
                         from
                             {str(DrugExposure.__table__)}
                         UNION
                         SELECT
                             {DrugExposure.person_id.key},
-                            {DrugExposure.drug_exposure_end_date.key} AS drug_exposure_date
+                            {DrugExposure.drug_exposure_end_date.key} AS drug_exposure_date,
+                            {DrugExposure.drug_type_concept_id.key}
                         FROM
                             {str(DrugExposure.__table__)}
                     ) drug_exposure_dates
                 WHERE
                     drug_exposure_date <> '{DEFAULT_OBSERVATION_DATE}'
+                    AND
+                    {DrugExposure.drug_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) drug_date_range USING ({DrugExposure.person_id.key})
@@ -201,4 +218,5 @@ def _obs_period_sql() -> str:
 """
 
 
-SQL: Final[str] = _obs_period_sql()
+def get_observation_period_sql(type_concept_id: int) -> str:
+    return _obs_period_sql(type_concept_id)
