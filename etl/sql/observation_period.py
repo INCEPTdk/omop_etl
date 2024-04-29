@@ -67,7 +67,6 @@ def _obs_period_sql() -> str:
             *
         FROM
 
-            -- measurement
             (
                 SELECT
                     {Measurement.person_id.key},
@@ -81,7 +80,6 @@ def _obs_period_sql() -> str:
                     1
             ) measurement_date_range
 
-            -- condition occurrence
             FULL OUTER JOIN (
                 SELECT
                     {ConditionOccurrence.person_id.key},
@@ -107,7 +105,6 @@ def _obs_period_sql() -> str:
                     1
             ) condition_date_range USING ({ConditionOccurrence.person_id.key})
 
-            -- visit occurrence
             FULL OUTER JOIN (
                 SELECT
                     {VisitOccurrence.person_id.key},
@@ -133,7 +130,6 @@ def _obs_period_sql() -> str:
                     1
             ) visit_date_range USING ({VisitOccurrence.person_id.key})
 
-            -- procedure occurrence
             FULL OUTER JOIN (
                 SELECT
                     {ProcedureOccurrence.person_id.key},
@@ -147,7 +143,6 @@ def _obs_period_sql() -> str:
                     1
             ) procedure_date_range USING ({ProcedureOccurrence.person_id.key})
 
-            -- Observation
             FULL OUTER JOIN (
                 SELECT
                     {Observation.person_id.key},
@@ -159,7 +154,6 @@ def _obs_period_sql() -> str:
                     1
             ) observation_date_range USING ({Observation.person_id.key})
 
-            -- Drug exposure
             FULL OUTER JOIN (
                 SELECT
                     {DrugExposure.person_id.key},
@@ -185,7 +179,6 @@ def _obs_period_sql() -> str:
                     1
             ) drug_date_range USING ({DrugExposure.person_id.key})
 
-            -- death
             FULL OUTER JOIN (
                 SELECT
                     {Death.person_id.key},
