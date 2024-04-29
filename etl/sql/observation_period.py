@@ -120,22 +120,18 @@ def _obs_period_sql(type_concept_id) -> str:
                     (
                         SELECT
                             {VisitOccurrence.person_id.key},
-                            {VisitOccurrence.visit_start_date.key} AS visit_date,
-                            {VisitOccurrence.visit_type_concept_id.key}
+                            {VisitOccurrence.visit_start_date.key} AS visit_date
                         FROM
                             {str(VisitOccurrence.__table__)}
                         UNION
                         SELECT
                             {VisitOccurrence.person_id.key},
-                            {VisitOccurrence.visit_end_date.key} AS visit_date,
-                            {VisitOccurrence.visit_type_concept_id.key}
+                            {VisitOccurrence.visit_end_date.key} AS visit_date
                         FROM
                             {str(VisitOccurrence.__table__)}
                     ) visit_dates
                 WHERE
                     visit_date <> '{DEFAULT_OBSERVATION_DATE}'
-                    AND
-                    {VisitOccurrence.visit_type_concept_id.key} = {type_concept_id}
                 GROUP BY
                     1
             ) visit_date_range USING ({VisitOccurrence.person_id.key})
