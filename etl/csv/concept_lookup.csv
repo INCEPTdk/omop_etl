@@ -9,3 +9,16 @@ Non-ICU dept. - this hospital;9201;visit_occurrence
 Non-ICU dept. - other hospital;9201;visit_occurrence
 Other ICU dept. - this hospital;32037;visit_occurrence
 Other ICU dept. - other hospital;32037;visit_occurrence
+ikke påvist;9189;laboratory_category
+neg;9189;laboratory_category
+negativ;9189;laboratory_category
+negativ.;9189;laboratory_category
+negative;9189;laboratory_category
+positiv;9191;laboratory_category
+positive;9191;laboratory_category
+pos;9191;laboratory_category
+påvist;9191;laboratory_category
+normal;4069590;laboratory_category
+P;4000626;laboratory_system
+B;4001225;laboratory_system
+U;4046280;laboratory_system
