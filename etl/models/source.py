@@ -260,7 +260,7 @@ class CourseIdCprMapping(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class LabkaBccLaboratory(SourceModelBase, PKIdMixin):
+class LabkaBccLaboratory(RegistryModelBase, PKIdMixin):
     """
     The table for lab data from LABKA and BCC
     """
@@ -269,13 +269,8 @@ class LabkaBccLaboratory(SourceModelBase, PKIdMixin):
     __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
-    sex: Final[Column] = CharField(50)
-    dob: Final[Column] = DateField()
-    lab_id: Final[Column] = CharField(50)
-    date: Final[Column] = DateField()
-    time: Final[Column] = CharField(10)
-    time_offset: Final[Column] = BigIntField()
-    database: Final[Column] = CharField(50)
+    lab_id: Final[Column] = CharField(75)
+    timestamp: Final[Column] = TimeStampField()
     component_simple_lookup: Final[Column] = CharField(255)
     clean_quantity_id: Final[Column] = CharField(50)
     unit_clean: Final[Column] = CharField(50)
