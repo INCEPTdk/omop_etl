@@ -1,5 +1,4 @@
 specimen_id;person_id;specimen_concept_id;specimen_type_concept_id;specimen_date;specimen_datetime;quantity;unit_concept_id;anatomic_site_concept_id;disease_status_concept_id;specimen_source_id;specimen_source_value;unit_source_value;anatomic_site_source_value;disease_status_source_value
 1;3;4000626;32879;1844-07-11;1844-07-11 08:23:27;;;;;2000000026;GLUCOSE|P|mmol/L|NPU19673;;;;
 2;3;4000626;32879;1851-08-13;1851-08-13 16:06:15;;;;;2000000026;GLUCOSE|P|mmol/L|NPU19673;;;;
-3;4;4046280;;1844-07-11;1844-07-11 08:23:27;;;;;;NITRITEUNMAPPED|U|NA|NPU21578;;;;
-4;4;4046280;32879;1844-07-11;1844-07-11 08:23:27;;;;;2000000026;NITRITE|U|NA|NPU21578;;;;
+3;4;4046280;32879;1844-07-11;1844-07-11 08:23:27;;;;;2000000026;NITRITE|U|NA|NPU21578;;;;
