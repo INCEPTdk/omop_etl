@@ -9,8 +9,8 @@ from sqlalchemy.sql import expression
 
 def get_case_statement(
     column_name: str,
-    model: Any = None,
-    cast_as: Any = None,
+    model: Any,
+    cast_as: Any,
     value_type: str = None,
     lookup: Any = None,
 ) -> Any:
@@ -22,8 +22,11 @@ def get_case_statement(
     """
 
     if column_name is None:
-        exp = expression.null()
+        exp = cast(expression.null(), cast_as)
     elif value_type:
+        assert (
+            lookup is not None
+        ), "Lookup must be provided if value_type is specified."
         exp = case(
             (
                 lookup.value_type == value_type,
