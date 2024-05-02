@@ -4,11 +4,12 @@ import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
-    Stem as OmopStem,
     DeviceExposure as OmopDeviceExposure,
+    Stem as OmopStem,
 )
-
-from etl.transform.device_exposure import transform as device_exposure_transformation
+from etl.transform.device_exposure import (
+    transform as device_exposure_transformation,
+)
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     PostgresBaseTest,
