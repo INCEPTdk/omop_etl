@@ -2,11 +2,11 @@
 
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
-import os
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
 
+from ..util.db import get_schema_name
 from ..util.freeze import freeze_instance
 from .modelutils import (
     BigIntField,
@@ -19,9 +19,11 @@ from .modelutils import (
     make_model_base,
 )
 
-SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
+SOURCE_SCHEMA: Final[str] = get_schema_name("SOURCE_SCHEMA", "source")
+REGISTRY_SCHEMA: Final[str] = get_schema_name("REGISTRY_SCHEMA", "registries")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
+RegistryModelBase: Any = make_model_base(schema=REGISTRY_SCHEMA)
 
 
 class SourceModelRegistry:
@@ -235,16 +237,10 @@ class Person(SourceModelBase, PKIdMixin):
     __tablename__: Final[str] = "person"
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
-    cpr_enc: Final[Column] = CharField(
-        50,
-    )
-    c_kon: Final[Column] = CharField(
-        50,
-    )
+    cpr_enc: Final[Column] = CharField(50)
+    c_kon: Final[Column] = CharField(50)
     d_foddato: Final[Column] = DateField()
-    c_status: Final[Column] = CharField(
-        50,
-    )
+    c_status: Final[Column] = CharField(50)
     d_status_hen_start: Final[Column] = DateField()
 
 
@@ -260,6 +256,83 @@ class CourseIdCprMapping(SourceModelBase, PKIdMixin):
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
     courseid: Final[Column] = BigIntField(nullable=False)
+
+
+@register_source_model
+@freeze_instance
+class LabkaBccLaboratory(RegistryModelBase, PKIdMixin):
+    """
+    The table for lab data from LABKA and BCC
+    """
+
+    __tablename__: Final[str] = "laboratory"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    lab_id: Final[Column] = CharField(75)
+    timestamp: Final[Column] = TimeStampField()
+    component_simple_lookup: Final[Column] = CharField(255)
+    clean_quantity_id: Final[Column] = CharField(50)
+    unit_clean: Final[Column] = CharField(50)
+    system_clean: Final[Column] = CharField(50)
+    shown_clean: Final[Column] = CharField(50)
+    ref_lower_clean: Final[Column] = CharField(50)
+    ref_upper_clean: Final[Column] = CharField(50)
+    interval_type: Final[Column] = CharField(50)
+    flag: Final[Column] = CharField(50)
+    abo: Final[Column] = CharField(50)
+    rhesus: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprOperations(RegistryModelBase, PKIdMixin):
+    """
+    The operations table, adapted version of t_sksopr from NPR
+    """
+
+    __tablename__: Final[str] = "operations"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprProcedures(RegistryModelBase, PKIdMixin):
+    """
+    The procedures table, adapted version of t_sksube from NPR
+    """
+
+    __tablename__: Final[str] = "procedures"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
+
+
+@register_source_model
+@freeze_instance
+class LprDiagnoses(RegistryModelBase, PKIdMixin):
+    """
+    The diagnoses table, adapted version of t_diag from NPR
+    """
+
+    __tablename__: Final[str] = "diagnoses"
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
+
+    cpr_enc: Final[Column] = CharField(50, nullable=False)
+    start_date: Final[Column] = DateField()
+    end_date: Final[Column] = DateField()
+    sks_code: Final[Column] = CharField(50)
+    sks_source: Final[Column] = CharField(50)
 
 
 SOURCE_VERSION: Final[str] = "0.1"

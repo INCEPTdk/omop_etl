@@ -1,5 +1,8 @@
 """Transformation logging"""
+import logging
+import os
 import types
+from datetime import datetime
 from functools import partial
 from logging import ERROR, Handler, Logger as Log, getLogger
 from typing import Optional
@@ -72,3 +75,42 @@ class Logger:
         except Exception as exception:  # pylint: disable=broad-except
             self.logger.critical(exception)
             return pd.DataFrame()
+
+
+def set_logger_verbosity(logger: logging.Logger, verbosity_level: str) -> None:
+    log_levels = {
+        "DEBUG": logging.DEBUG,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+    }
+    logger.setLevel(
+        log_levels[verbosity_level]
+        if verbosity_level in log_levels
+        else logging.INFO
+    )
+
+
+def setup_logger(verbosity_level: str) -> logging.Logger:
+    logdir = "../log"
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+
+    logger = logging.getLogger("ETL")
+    logger.setLevel(logging.DEBUG)
+
+    c_handler = logging.StreamHandler()
+    logfilename = f"etl_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    f_handler = logging.FileHandler(os.path.join(logdir, logfilename))
+    l_format = logging.Formatter(
+        "[%(asctime)s] [%(levelname)8s] - %(name)-25s %(message)s (%(filename)s:%(lineno)s)",
+        "%Y-%m-%d %H:%M:%S",
+    )
+    c_handler.setFormatter(l_format)
+    f_handler.setFormatter(l_format)
+
+    set_logger_verbosity(c_handler, verbosity_level)
+    set_logger_verbosity(f_handler, "DEBUG")
+
+    logger.addHandler(c_handler)
+    logger.addHandler(f_handler)
+    return logger

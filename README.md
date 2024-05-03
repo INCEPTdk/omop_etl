@@ -33,7 +33,9 @@ services:
   etl:
     environment:
       VERBOSITY_LEVEL: "DEBUG"
-      SOURCE_SCHEMA: "source" # Add the actual source schema
+      SOURCE_SCHEMA: "source" # Add the actual source schema, ideally site-specific
+      TARGET_SCHEMA: "omopcdm" # Add the actual target schema, ideally site-specific
+      REGISTRY_SCHEMA: "registries" # Add the actual schema with national registries
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
       RELOAD_VOCAB: "FALSE" # Set to TRUE to reload all of the OMOPCDM vocab tables
     volumes:
@@ -52,7 +54,6 @@ DB_DBMS=postgresql
 DB_PORT=5432
 DB_SERVER=postgres
 DB_DBNAME=postgres
-DB_SCHEMA=omopcdm
 DB_USER=postgres
 DB_PASSWORD=admin
 ```
@@ -101,7 +102,6 @@ For example it should look something like:
   "server": "localhost",
   "port": 5565,
   "dbname": "postgres",
-  "schema": "omopcdm",
   "user": "postgres",
   "password": "admin"
 }
@@ -110,10 +110,14 @@ For example it should look something like:
 Note the host and port will be different to the Docker setup (option 1).
 
 ### Step 3. Run the ETL in a Virtual Environment
-Make sure you are in this directory (same directory as the README.md).
+Make sure you are in this directory (same directory as the README.md). Make sure to export the required environment variables:
 
 ```bash
-export PYTHONPATH=$PWD
+export PYTHONPATH=$PWD \
+  SOURCE_SCHEMA=name_of_schema \
+  TARGET_SCHEMA=name_of_schema \
+  REGISTRY_SCHEMA=name_of_name \
+  DEPARTMENT_SHAK_CODE=the_code
 python3 etl/tools/main.py
 ```
 

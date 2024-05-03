@@ -4,31 +4,39 @@ import logging
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
-    Administrations,
     CourseMetadata,
     DiagnosesProcedures,
+    LabkaBccLaboratory,
+    LprDiagnoses,
+    LprOperations,
+    LprProcedures,
     Observations,
 )
-from ..sql.stem import SQL_FUNCTIONS
+from ..sql.stem import (
+    get_laboratory_stem_insert,
+    get_nondrug_stem_insert,
+    get_registry_stem_insert,
+)
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Stem")
 
-MODELS = [Administrations, CourseMetadata, DiagnosesProcedures, Observations]
+NONDRUG_MODELS = [CourseMetadata, DiagnosesProcedures, Observations]
+REGISTRY_MODELS = [LprDiagnoses, LprProcedures, LprOperations]
+LABORATORY_MODELS = [LabkaBccLaboratory]
 
 
 def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
-    session.execute(SQL_FUNCTIONS)
-    for model in MODELS:
+
+    for model in NONDRUG_MODELS:
         logger.info(
-            "Transforming %s source data to the STEM table...",
-            model.__tablename__,
+            "%s source data to the STEM table...",
+            model.__tablename__.upper(),
         )
-        session.execute(
-            f"SELECT * FROM omopcdm.pivot_categorical('{model.__tablename__}');"
-        )
+
+        session.execute(get_nondrug_stem_insert(session, model))
         logger.info(
             "STEM Transform in Progress, %s Events Included from source %s.",
             session.query(OmopStem)
@@ -36,7 +44,43 @@ def transform(session: AbstractSession) -> None:
             .count(),
             model.__tablename__,
         )
+
+    for model in REGISTRY_MODELS:
+        logger.info(
+            "%s source data to the STEM table...",
+            model.__tablename__.upper(),
+        )
+        session.execute(get_registry_stem_insert(session, model))
+        logger.info(
+            "STEM Transform in Progress, %s Events Included from source %s.",
+            session.query(OmopStem)
+            .where(OmopStem.datasource == model.__tablename__)
+            .count(),
+            model.__tablename__,
+        )
+
+    count_rows = session.query(OmopStem).count()
+    mapped_rows = (
+        session.query(OmopStem).where(OmopStem.concept_id.isnot(None)).count()
+    )
+
+    for model in LABORATORY_MODELS:
+        logger.info(
+            "%s source data to the STEM table...",
+            model.__tablename__.upper(),
+        )
+        session.execute(get_laboratory_stem_insert(session, model))
+        logger.info(
+            "STEM Transform in Progress, %s Events Included from source %s.",
+            session.query(OmopStem)
+            .where(OmopStem.datasource == model.__tablename__)
+            .count(),
+            model.__tablename__,
+        )
+
     logger.info(
-        "STEM Transformation complete! %s rows included",
-        session.query(OmopStem).count(),
+        "STEM Transformation complete! %s rows included, %s rows where mapped to a concept_id (%s%%).",
+        count_rows,
+        mapped_rows,
+        round(mapped_rows / count_rows * 100, 2),
     )
