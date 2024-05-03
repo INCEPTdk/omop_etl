@@ -338,14 +338,14 @@ class LprDiagnoses(RegistryModelBase, PKIdMixin):
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
-SOURCE_REGISTRY: Final[
-    Dict[str, SourceModelBase]  # type: ignore
-] = SourceModelRegistry().registered
+SOURCE_REGISTRY: Final[Dict[str, SourceModelBase]] = (  # type: ignore
+    SourceModelRegistry().registered
+)
 
 # pylint: disable=no-member
-SOURCE_MODELS: Final[
-    List[SourceModelBase]  # type: ignore
-] = SourceModelRegistry().registered.values()
+SOURCE_MODELS: Final[List[SourceModelBase]] = (  # type: ignore
+    SourceModelRegistry().registered.values()
+)
 
 # pylint: disable=no-member
 SOURCE_MODEL_NAMES: Final[List[str]] = [

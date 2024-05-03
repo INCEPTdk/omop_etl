@@ -1,4 +1,5 @@
 """ A module for generating random values, dates, etc"""
+
 # pylint: disable=invalid-name
 import datetime
 from random import randint, random

@@ -1,4 +1,5 @@
 """The base transformation operation"""
+
 from typing import Any, Optional
 
 from ..util.logger import Logger

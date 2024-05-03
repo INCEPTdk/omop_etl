@@ -1,4 +1,5 @@
 """Location transformations"""
+
 import logging
 
 from ..models.omopcdm54.health_systems import Location

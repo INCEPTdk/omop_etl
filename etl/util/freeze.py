@@ -1,4 +1,5 @@
 """Freezing classes - making them immutable"""
+
 from functools import wraps
 from typing import Any, Callable, NoReturn, Union
 
