@@ -1,4 +1,5 @@
 """helpers and utilites for connection details"""
+
 from typing import Dict, Final, List, NamedTuple, Optional
 
 POSTGRES_DB: Final[str] = "postgresql"

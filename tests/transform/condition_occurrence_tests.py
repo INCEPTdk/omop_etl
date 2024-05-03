@@ -4,11 +4,13 @@ import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
-    Stem as OmopStem,
     ConditionOccurrence as OmopConditionOccurrence,
+    Stem as OmopStem,
 )
 from etl.models.tempmodels import ConceptLookup, ConceptLookupStem
-from etl.transform.condition_occurrence import transform as condition_occurence_transformation
+from etl.transform.condition_occurrence import (
+    transform as condition_occurence_transformation,
+)
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     PostgresBaseTest,

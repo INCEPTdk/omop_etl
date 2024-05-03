@@ -1,4 +1,5 @@
 """The base transformation operation with a session"""
+
 from typing import Any, Callable, Optional
 
 from ..util.db import AbstractSession
