@@ -1,4 +1,4 @@
-SQLAlchemy~=2.0.29
+SQLAlchemy~=1.4.52
 numpy~=1.26.4
 pandas~=2.2.2
 psutil~=5.9.8
