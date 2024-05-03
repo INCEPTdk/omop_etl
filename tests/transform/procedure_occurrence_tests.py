@@ -1,15 +1,16 @@
 """Procedure occurence transformation tests"""
 
-from etl.transform import procedure_occurrence
 import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
-    Stem as OmopStem,
     ProcedureOccurrence as OmopProcedureOccurrence,
+    Stem as OmopStem,
 )
-
-from etl.transform.procedure_occurrence import transform as procedure_occurrence_transformation
+from etl.transform import procedure_occurrence
+from etl.transform.procedure_occurrence import (
+    transform as procedure_occurrence_transformation,
+)
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     PostgresBaseTest,

@@ -4,10 +4,9 @@ import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
-    Stem as OmopStem,
     Measurement as OmopMeasurement,
+    Stem as OmopStem,
 )
-
 from etl.transform.measurement import transform as measurement_transformation
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
