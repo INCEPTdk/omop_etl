@@ -9,3 +9,8 @@ Non-ICU dept. - this hospital;9201;visit_occurrence;
 Non-ICU dept. - other hospital;9201;visit_occurrence;
 Other ICU dept. - this hospital;32037;visit_occurrence;
 Other ICU dept. - other hospital;32037;visit_occurrence;
+GA;4132161;administration_route;
+GI;4132161;administration_route;
+IV;4171047;administration_route;
+OR;4132161;administration_route;
+SC;4142048;administration_route;
