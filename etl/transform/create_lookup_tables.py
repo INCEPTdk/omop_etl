@@ -1,4 +1,5 @@
 """Create the lookup tables needed for the ETL"""
+
 import logging
 from typing import Dict
 

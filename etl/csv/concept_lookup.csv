@@ -1,16 +1,29 @@
-concept_string;concept_id;filter;details
-K;8532;person;
-M;8507;person;
-ER;9203;care_site;
-ICU;32037;care_site;
-Home;0;visit_occurrence;
-Emergency room;8870;visit_occurrence;
-Non-ICU dept. - this hospital;9201;visit_occurrence;
-Non-ICU dept. - other hospital;9201;visit_occurrence;
-Other ICU dept. - this hospital;32037;visit_occurrence;
-Other ICU dept. - other hospital;32037;visit_occurrence;
-GA;4132161;administration_route;
-GI;4132161;administration_route;
-IV;4171047;administration_route;
-OR;4132161;administration_route;
-SC;4142048;administration_route;
+concept_string;concept_id;filter
+K;8532;person
+M;8507;person
+ER;9203;care_site
+ICU;32037;care_site
+Home;0;visit_occurrence
+Emergency room;8870;visit_occurrence
+Non-ICU dept. - this hospital;9201;visit_occurrence
+Non-ICU dept. - other hospital;9201;visit_occurrence
+Other ICU dept. - this hospital;32037;visit_occurrence
+Other ICU dept. - other hospital;32037;visit_occurrence
+ikke påvist;9189;laboratory_category
+neg;9189;laboratory_category
+negativ;9189;laboratory_category
+negativ.;9189;laboratory_category
+negative;9189;laboratory_category
+positiv;9191;laboratory_category
+positive;9191;laboratory_category
+pos;9191;laboratory_category
+påvist;9191;laboratory_category
+normal;4069590;laboratory_category
+P;4000626;laboratory_system
+B;4001225;laboratory_system
+U;4046280;laboratory_system
+GA;4132161;administration_route
+GI;4132161;administration_route
+IV;4171047;administration_route
+OR;4132161;administration_route
+SC;4142048;administration_route

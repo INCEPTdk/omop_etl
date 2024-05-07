@@ -1,4 +1,5 @@
 """Module for UUID helpers"""
+
 import uuid
 
 

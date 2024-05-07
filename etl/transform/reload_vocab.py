@@ -1,4 +1,5 @@
 """The vocabulary reload transform"""
+
 import logging
 
 from sqlalchemy.orm import Session

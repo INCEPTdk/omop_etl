@@ -1,4 +1,5 @@
 """ObservationPeriod transformations"""
+
 import logging
 
 from ..sql.observation_period import SQL

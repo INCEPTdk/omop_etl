@@ -1,4 +1,5 @@
 """Death transformations"""
+
 import logging
 
 from ..sql.death import DEATH_EXCLUDED, DEATH_INSERT, DEATH_UPLOADED

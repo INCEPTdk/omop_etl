@@ -1,12 +1,11 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 LABEL maintainer="edenceHealth NV <info@edence.health>"
 
 ARG AG="env DEBIAN_FRONTEND=noninteractive apt-get -yq --no-install-recommends"
 RUN set -eux; \
   $AG update; \
-  $AG install --no-install-recommends \
-    gcc \
-    python3-dev \
+  $AG install \
+    build-essential \
   ; \
   $AG autoremove; \
   $AG clean; \
@@ -27,12 +26,9 @@ RUN set -eux; \
   pip cache purge;
 
 # these 2 variables are expected by the app code
-ARG COMMIT_SHA
-ARG GITHUB_TAG
+ARG COMMIT_SHA="dev"
+ARG GITHUB_TAG="dev"
 ENV COMMIT_SHA="${COMMIT_SHA}" GITHUB_TAG="${GITHUB_TAG}"
-RUN set -eu; \
-  : "${COMMIT_SHA:?the COMMIT_SHA build-arg cannot be empty: read docs}"; \
-  : "${GITHUB_TAG:?the GITHUB_TAG build-arg cannot be empty: read docs}";
 
 WORKDIR /etl
 COPY . .
