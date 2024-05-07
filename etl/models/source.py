@@ -72,8 +72,11 @@ class Administrations(SourceModelBase, PKIdMixin):
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
     epaspresbaseid: Final[Column] = BigIntField()
-    variable: Final[Column] = CharField(70)
+    drugname: Final[Column] = CharField(70)
+    administration_type: Final[Column] = CharField(70)
     value: Final[Column] = FloatField()
+    value0: Final[Column] = FloatField()
+    value1: Final[Column] = FloatField()
     from_file: Final[Column] = CharField(50)
 
 
