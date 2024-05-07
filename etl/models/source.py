@@ -229,13 +229,13 @@ class Observations(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class Person(SourceModelBase, PKIdMixin):
+class Person(RegistryModelBase, PKIdMixin):
     """
     The person source table
     """
 
     __tablename__: Final[str] = "person"
-    __table_args__ = {"schema": SOURCE_SCHEMA}
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50)
     c_kon: Final[Column] = CharField(50)
