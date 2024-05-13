@@ -453,7 +453,7 @@ class NoteNlp(ModelBase):
 
 @register_omop_model
 @freeze_instance
-class Specimen(ModelBase):
+class Specimen(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#SPECIMEN"""
 
     __tablename__: Final[str] = "specimen"
