@@ -12,6 +12,7 @@ from ..modelutils import (
     Column,
     DateField,
     DateTimeField,
+    FloatField,
     IntField,
     NumericField,
     PKIdMixin,
@@ -452,7 +453,7 @@ class NoteNlp(ModelBase):
 
 @register_omop_model
 @freeze_instance
-class Specimen(ModelBase):
+class Specimen(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#SPECIMEN"""
 
     __tablename__: Final[str] = "specimen"
@@ -555,8 +556,8 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     quantity: Final[Column] = NumericField()
-    range_low: Final[Column] = IntField()
-    range_high: Final[Column] = IntField()
+    range_low: Final[Column] = FloatField()
+    range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(50)
     refills: Final[Column] = IntField()
     sig: Final[Column] = CharField(None)

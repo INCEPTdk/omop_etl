@@ -1,4 +1,5 @@
 """get memory usage"""
+
 import os
 
 import psutil

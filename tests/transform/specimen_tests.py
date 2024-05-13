@@ -1,16 +1,13 @@
-"""Procedure occurence transformation tests"""
+"""Specimen transformation tests"""
 
 import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
-    ProcedureOccurrence as OmopProcedureOccurrence,
+    Specimen as OmopSpecimen,
     Stem as OmopStem,
 )
-from etl.transform import procedure_occurrence
-from etl.transform.procedure_occurrence import (
-    transform as procedure_occurrence_transformation,
-)
+from etl.transform.specimen import transform as specimen_transformation
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     PostgresBaseTest,
@@ -20,12 +17,12 @@ from tests.testutils import (
 )
 
 
-class ProcedureOccurrenceTest(PostgresBaseTest):
+class SpecimenTest(PostgresBaseTest):
 
-    TARGET_MODEL = [OmopStem, OmopProcedureOccurrence]
+    TARGET_MODEL = [OmopStem, OmopSpecimen]
 
-    INPUT_OMOP_STEM = f"{base_path()}/test_data/procedure_occurrence/in_omop_stem.csv"
-    OUTPUT_FILE = f"{base_path()}/test_data/procedure_occurrence/out_omop_procedure_occurrence.csv"
+    INPUT_OMOP_STEM = f"{base_path()}/test_data/specimen/in_omop_stem.csv"
+    OUTPUT_FILE = f"{base_path()}/test_data/specimen/out_omop_specimen.csv"
 
     def setUp(self):
         super().setUp()
@@ -34,7 +31,7 @@ class ProcedureOccurrenceTest(PostgresBaseTest):
 
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
 
-        self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates = ['procedure_date','procedure_datetime','procedure_end_date','procedure_end_datetime'])
+        self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates = ['specimen_date','specimen_datetime'])
         self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list()]
 
     def tearDown(self) -> None:
@@ -48,11 +45,12 @@ class ProcedureOccurrenceTest(PostgresBaseTest):
         self._insert_test_data(self.engine)
 
         with session_context(make_db_session(self.engine)) as session:
-            procedure_occurrence_transformation(session)
+            specimen_transformation(session)
 
         result = select(self.expected_cols)
         result_df = pd.read_sql(result, self.engine)
         result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df, self.expected_df)
+        pd.testing.assert_frame_equal(result_df,
+                                      self.expected_df)
 
-__all__ = ['ProcedureOccurrenceTest']
+__all__ = ['SpecimenTest']

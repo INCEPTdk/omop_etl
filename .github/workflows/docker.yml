@@ -1,0 +1,20 @@
+name: Docker
+
+"on":
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - '*.*.*'
+
+jobs:
+  image:
+    uses: "edencehealth/workflows/.github/workflows/dockerimage.yml@v1"
+    with:
+      container_name: rigshospitalet_etl
+      dockerhub_org: ""
+      push: true
+    secrets: inherit

@@ -1,4 +1,5 @@
 """Care site transformations"""
+
 import logging
 
 from ..sql import DEPARTMENT_SHAK_CODE

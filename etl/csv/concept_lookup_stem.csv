@@ -24,3 +24,5 @@ uid;datasource;source_file;source_concept_code;source_variable;value;value_type;
 2000000023;diagnoses_procedures;;hypovolaemiaudn__t;hypovolaemiaudn;t;categorical;;;timestamp;;;;32817;37311319;hypovolemia without shock;SNOMED;;Condition;;;4135944;;;;;;;;;;;;;;;;
 2000000024;diagnoses_procedures;;trkstmtbudn__t;trkstmtbudn;t;categorical;;;timestamp;;;;32817;4143728;tracheostomy without cuffs;SNOMED;;Procedure;;;;;;;;;;;;;;;;;;;
 2000000025;diagnoses_procedures;;endotrakealtb__t;endrotrakealtb;t;categorical;;;timestamp;;;;32817;36674387;endotrakeal tube;SNOMED;;Device;;;;;;;;;;;;;;;;;;;
+2000000026;laboratory;laboratory;GLUCOSE|P|mmol/L|NPU19673;GLUCOSE|P|mmol/L|NPU19673;;numerical;;;timestamp;;;;32879;40757478;Albumin [Moles/volume] in Serum or Plasma;LOINC;54347-0;Measurement;;shown_clean;;;;mmol/L;8753;;;;;;;0.1;0.9;;;;
+2000000027;laboratory;laboratory;NITRITE|U|NA|NPU21578;NITRITE|U|NA|NPU21578;;categorical;;;timestamp;;;;32879;0;;LOINC;;Measurement;;shown_clean;;;;;;;;;;;;;;;;;

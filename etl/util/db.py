@@ -1,6 +1,7 @@
 """Module for database utilities and helpers"""
+
 import json
-import logging
+import os
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
@@ -13,10 +14,12 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
 
+from etl.util.logger import setup_logger
+
 from .connection import ConnectionDetails
 from .exceptions import DependencyNotFoundException
 
-logger = logging.getLogger("ETL.Core")
+logger = setup_logger("ENVIRONMENT")
 
 
 class AbstractSession(ABC):
@@ -212,6 +215,20 @@ def make_engine_postgres(connection: ConnectionDetails, **kwargs) -> Engine:
         ) from excep
 
 
+def get_schema_name(
+    environment_variable_name: str = None, default: str = None
+) -> str:
+    schema_name: str = os.getenv(environment_variable_name, default=None)
+    if not schema_name:
+        logger.warning(
+            "Environment variable %s not set, defaults to '%s'",
+            environment_variable_name,
+            default,
+        )
+        schema_name = default
+    return schema_name
+
+
 class WriteMode(Enum):
     """Enum for write modes"""
 
@@ -231,9 +248,9 @@ class DataBaseWriter:
         self.header: bool = False
         self.delimiter: str = ";"
         self.null_field: str = None
-        self.write_mode: Literal[
-            WriteMode.APPEND, WriteMode.OVERWRITE
-        ] = WriteMode.OVERWRITE
+        self.write_mode: Literal[WriteMode.APPEND, WriteMode.OVERWRITE] = (
+            WriteMode.OVERWRITE
+        )
         self.read_buffer_size: int = 8192
         self.write_buffer_size: int = 268435500
 

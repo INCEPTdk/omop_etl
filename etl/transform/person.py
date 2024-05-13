@@ -1,4 +1,5 @@
 """Person transformations"""
+
 import logging
 
 from ..models.omopcdm54.clinical import Person as OmopPerson

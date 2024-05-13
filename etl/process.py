@@ -45,6 +45,7 @@ from .transform.procedure_occurrence import (
 )
 from .transform.reload_vocab import transform as reload_vocab_files
 from .transform.session_operation import SessionOperation
+from .transform.specimen import transform as specimen_transform
 from .transform.stem import transform as stem_transform
 from .transform.visit_occurrence import transform as visit_occurrence_transform
 from .util.db import AbstractSession
@@ -214,6 +215,12 @@ def run_etl(
             session=session,
             func=device_exposure_transform,
             description="Device Exposure transform",
+        ),
+        SessionOperation(
+            key=str(Specimen.__table__),
+            session=session,
+            func=specimen_transform,
+            description="Specimen transform",
         ),
         SessionOperation(
             key=str(ObservationPeriod.__table__),

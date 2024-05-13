@@ -1,4 +1,5 @@
 """ SQL query string definition """
+
 # pylint: disable=no-member
 from datetime import date
 from typing import Final, List

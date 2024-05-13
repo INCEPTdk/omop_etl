@@ -1,4 +1,5 @@
 """Utilities specific for the data models"""
+
 # pylint: disable=invalid-name
 from typing import Any, Callable, Final, List, Optional
 

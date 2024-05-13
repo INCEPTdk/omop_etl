@@ -9,7 +9,6 @@ makeJSON() {
   "server": "${DB_SERVER}",
   "port": "${DB_PORT}",
   "dbname": "${DB_DBNAME}",
-  "schema": "${DB_SCHEMA}",
   "user": "${DB_USER}",
   "password": "${DB_PASSWORD}"
 }
@@ -23,7 +22,8 @@ warn() {
 main() {
   makeJSON
   export PYTHONPATH="$PWD"
-  export DB_SCHEMA="$DB_SCHEMA"
+  export SOURCE_SCHEMA="$SOURCE_SCHEMA"
+  export TARGET_SCHEMA="$TARGET_SCHEMA"
 
   if [ -n "${RUN_TESTS:-}" ]; then
     if [ -z "${DEV_BUILD:-}" ]; then

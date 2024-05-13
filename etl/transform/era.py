@@ -1,4 +1,5 @@
 """DrugEra and ConditionEra transformations"""
+
 import logging
 
 from ..util.db import AbstractSession

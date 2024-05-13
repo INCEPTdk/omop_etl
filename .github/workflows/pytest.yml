@@ -1,39 +1,47 @@
-name: Python test
+name: Pytest
 
-on:
-  push:
-    branches: [main, master]
+"on":
   pull_request:
-    branches: [main, master]
+    branches:
+      - main
+  push:
+    branches:
+      - main
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+
+      # https://github.com/actions/setup-python
+      - name: set up python
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          cache: 'pip'  # caching pip dependencies
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
+          set -eux
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements.dev.txt
+          pip install -r requirements.txt -r requirements.dev.txt
+
       - name: Test with pytest
         run: |
           export PYTHONPATH=$PWD
           pytest tests/testsuite.py -v
+
       - name: Coverage with pytest
         run: |
           export PYTHONPATH=$PWD
           coverage run --omit=tests -m unittest
           coverage html
+
       - uses: actions/upload-artifact@v3
         with:
           name: codecov-report

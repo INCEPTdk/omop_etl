@@ -1,4 +1,4 @@
-""" SQL query string definition for the stem functions"""
+""" SQL logic for inserting registry data into the stem table"""
 
 from typing import Any
 

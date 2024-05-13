@@ -1,4 +1,5 @@
 """ObservationPeriod transformations"""
+
 import logging
 from typing import Final
 
