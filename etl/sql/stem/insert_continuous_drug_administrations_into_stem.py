@@ -152,7 +152,7 @@ def get_continuous_drug_stem_insert(session: Any = None) -> Insert:
 
     UnmappedSelectSql = (
         select(
-            literal(None).label("domain_id"),
+            literal("Drug").label("domain_id"),
             VisitOccurrence.person_id,
             literal(None).label("concept_id"),
             literal(None).label("start_date"),
