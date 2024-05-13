@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.6.0
     hooks:
     -   id: check-yaml
     -   id: end-of-file-fixer
@@ -11,23 +11,23 @@ repos:
     hooks:
     -   id: isort
         files: "\\.(py)$"
-        args: ['--check', 'etl']
+        args: ["--profile", "black", "--filter-files", "--check", "etl"]
 
 -   repo: https://github.com/psf/black
-    rev: 22.3.0
+    rev: 24.4.2
     hooks:
     -    id: black
          files: ^etl/
          args: ['--config=pyproject.toml', '--check', 'etl']
 
 -   repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
+    rev: 7.0.0
     hooks:
     -   id: flake8
         files: ^etl/
 
 -   repo: https://github.com/PyCQA/pylint
-    rev: v3.0.1
+    rev: v3.1.0
 
     hooks:
     -   id: pylint

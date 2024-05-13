@@ -2,11 +2,11 @@
 
 # pylint: disable=too-many-lines
 # pylint: disable=invalid-name
-import os
 from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column
 
+from ..util.db import get_schema_name
 from ..util.freeze import freeze_instance
 from .modelutils import (
     BigIntField,
@@ -19,8 +19,8 @@ from .modelutils import (
     make_model_base,
 )
 
-SOURCE_SCHEMA: Final[str] = os.getenv("SOURCE_SCHEMA", default="source")
-REGISTRY_SCHEMA: Final[str] = os.getenv("REGISTRY_SCHEMA", default="registries")
+SOURCE_SCHEMA: Final[str] = get_schema_name("SOURCE_SCHEMA", "source")
+REGISTRY_SCHEMA: Final[str] = get_schema_name("REGISTRY_SCHEMA", "registries")
 
 SourceModelBase: Any = make_model_base(schema=SOURCE_SCHEMA)
 RegistryModelBase: Any = make_model_base(schema=REGISTRY_SCHEMA)
@@ -229,13 +229,13 @@ class Observations(SourceModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class Person(SourceModelBase, PKIdMixin):
+class Person(RegistryModelBase, PKIdMixin):
     """
     The person source table
     """
 
     __tablename__: Final[str] = "person"
-    __table_args__ = {"schema": SOURCE_SCHEMA}
+    __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50)
     c_kon: Final[Column] = CharField(50)
@@ -338,14 +338,14 @@ class LprDiagnoses(RegistryModelBase, PKIdMixin):
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
-SOURCE_REGISTRY: Final[
-    Dict[str, SourceModelBase]  # type: ignore
-] = SourceModelRegistry().registered
+SOURCE_REGISTRY: Final[Dict[str, SourceModelBase]] = (  # type: ignore
+    SourceModelRegistry().registered
+)
 
 # pylint: disable=no-member
-SOURCE_MODELS: Final[
-    List[SourceModelBase]  # type: ignore
-] = SourceModelRegistry().registered.values()
+SOURCE_MODELS: Final[List[SourceModelBase]] = (  # type: ignore
+    SourceModelRegistry().registered.values()
+)
 
 # pylint: disable=no-member
 SOURCE_MODEL_NAMES: Final[List[str]] = [

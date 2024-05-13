@@ -1,4 +1,5 @@
 """Visit occurrence transformations"""
+
 import logging
 
 from etl.models.omopcdm54.clinical import VisitOccurrence

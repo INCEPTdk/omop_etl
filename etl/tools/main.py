@@ -1,9 +1,9 @@
 """Main program to run the ETL"""
+
 import logging
 import os
 import traceback
 from argparse import ArgumentParser
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Final
 
@@ -19,6 +19,7 @@ from etl.util.db import (
 )
 from etl.util.exceptions import DBConnectionException
 from etl.util.files import load_config_from_file
+from etl.util.logger import set_logger_verbosity
 
 DESCRIPTION: Final[str] = "Execute the Rigshospitalet ETL."
 
@@ -54,41 +55,6 @@ def process_args() -> Any:
     return args
 
 
-def setup_logger(verbosity_level: str) -> logging.Logger:
-    logdir = "../log"
-    if not os.path.exists(logdir):
-        os.makedirs(logdir)
-
-    logger = logging.getLogger("ETL")
-    logger.setLevel(logging.DEBUG)
-
-    c_handler = logging.StreamHandler()
-    logfilename = f"etl_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-    f_handler = logging.FileHandler(os.path.join(logdir, logfilename))
-    l_format = logging.Formatter(
-        "[%(asctime)s] [%(levelname)8s] - %(name)-25s %(message)s (%(filename)s:%(lineno)s)",
-        "%Y-%m-%d %H:%M:%S",
-    )
-    c_handler.setFormatter(l_format)
-    f_handler.setFormatter(l_format)
-
-    log_levels = {
-        "DEBUG": logging.DEBUG,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }
-    c_handler.setLevel(
-        log_levels[verbosity_level]
-        if verbosity_level in log_levels
-        else logging.INFO
-    )
-    f_handler.setLevel(logging.DEBUG)
-
-    logger.addHandler(c_handler)
-    logger.addHandler(f_handler)
-    return logger
-
-
 def main() -> None:
     """
     Main entrypoint for running the ETL
@@ -102,7 +68,9 @@ def main() -> None:
 
     cnxn = get_connection_details(load_config_from_file(conn_file))
 
-    logger = setup_logger(verbosity)
+    logger = logging.getLogger("ETL")
+    set_logger_verbosity(logger, verbosity)
+
     logger.info("Connecting to database...")
     engine = None
     if cnxn.dbms == "postgresql":

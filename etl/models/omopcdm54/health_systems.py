@@ -1,4 +1,5 @@
 """health system models for OMOPCDM"""
+
 # pylint: disable=invalid-name
 from typing import Final
 

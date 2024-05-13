@@ -1,4 +1,5 @@
 """Create the tables needed for the ETL"""
+
 import logging
 
 from ..sql.create_omopcdm_tables import SQL

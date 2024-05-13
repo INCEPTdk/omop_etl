@@ -2,9 +2,11 @@
 
 from typing import Any, Final
 
+from etl.util.db import get_schema_name
+
 from ..modelutils import make_model_base
 
-TARGET_SCHEMA: Final[str] = "omopcdm"
+TARGET_SCHEMA: Final[str] = get_schema_name("TARGET_SCHEMA", "omopcdm")
 
 OmopCdmModelBase: Any = make_model_base(schema=TARGET_SCHEMA)
 

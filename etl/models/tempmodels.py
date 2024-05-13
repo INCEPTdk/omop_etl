@@ -99,14 +99,14 @@ class ConceptLookupStem(TempModelBase):
 TEMP_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
-SOURCE_REGISTRY: Final[
-    Dict[str, TempModelBase]  # type: ignore
-] = TempModelRegistry().registered
+SOURCE_REGISTRY: Final[Dict[str, TempModelBase]] = (  # type: ignore
+    TempModelRegistry().registered
+)
 
 # pylint: disable=no-member
-TEMP_MODELS: Final[
-    List[TempModelBase]  # type: ignore
-] = TempModelRegistry().registered.values()
+TEMP_MODELS: Final[List[TempModelBase]] = (  # type: ignore
+    TempModelRegistry().registered.values()
+)
 
 # pylint: disable=no-member
 TEMP_MODEL_NAMES: Final[List[str]] = [
