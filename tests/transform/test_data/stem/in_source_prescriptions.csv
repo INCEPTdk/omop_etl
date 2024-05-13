@@ -1,14 +1,14 @@
-courseid;epaspresbaseid;epaspresid;epaspresdrugatc;epaspresdmroute;epaspresdose;epaspresconc;epaspresdrugunit;epaspresdrugunitact;epaspresmixammount;epaspresweight;epaspresdrugname
+courseid;epaspresbaseid;epaspresid;epaspresdrugatc;epaspresadmroute;epaspresdose;epaspresconc;epaspresdrugunit;epaspresdrugunitact;epaspresmixammount;epaspresweight;epaspresdrugname
 1;7057;7057;J01XA01;IV;0.0;0.0;g;g;200.0;;Vancomycin  1 g Serie
 1;7057;7150;J01XA01;IV;0.0;0.0;g;g;200.0;;Vancomycin  1 g Serie
 1;177626;177626;J01XA01;IV;500.0;0.0;mg;mg;0.0;;Vancomycin  1 g Serie
-3;16419;16419;A12BA01;GA;0.25;1.0;mmol;mmol/kg;0.0;;Kaliumklorid PS
-1;16484;16484;C01CA03;IV;0.01;48.0;ug;ug/kg/min;0.0;80000;Noradrenalin SAD
-3;81008;81008;C01CA03;IV;4.8;0.0;mg;mg;100.0;65000;Noradrenalin SAD
-3;35730;35730;C01CA03;IV;0.04;0.0;mg;mg/hour;0.0;55000;Noradrenalin SAD
-3;48005;48005;A10AB05;SC;2.0;0.0;iu;iu;0.0;;Novorapid FlexPen
-3;17743;17743;N02AA05;IV;0.0;0.0;mg;mg;0.0;;Oxynorm
-3;84222;84222;N02AA05;GA;0.0;0.0;mg;mg;0.0;;Oxynorm
-3;84222;84252;N02AA05;GA;0.0;0.0;mg;mg;0.0;;Oxynorm
-2;84624;84624;A10AB05;IV;0.5;1.0;iu;iu/hour;0.0;;Novorapid
-1;118057;118057;C01CA03;IV;4.2;0.0;mg;mg;0.0;84000;Noradrenaline Skanderborg
+2;16419;16419;A12BA01;GA;0.25;1.0;mmol;mmol/kg;0.0;;Kaliumklorid PS
+4;16484;16484;C01CA03;IV;0.01;48.0;ug;ug/kg/min;0.0;80000;Noradrenalin SAD
+2;81008;81008;C01CA03;IV;4.8;0.0;mg;mg;100.0;65000;Noradrenalin SAD
+1;35730;35730;C01CA03;IV;0.04;0.0;mg;mg/hour;0.0;55000;Noradrenalin SAD
+2;48005;48005;A10AB05;SC;2.0;0.0;iu;iu;0.0;;Novorapid FlexPen
+4;17743;17743;N02AA05;IV;0.0;0.0;mg;mg;0.0;;Oxynorm
+4;84222;84222;N02AA05;GA;0.0;0.0;mg;mg;0.0;;Oxynorm
+4;84222;84252;N02AA05;GA;0.0;0.0;mg;mg;0.0;;Oxynorm
+1;84624;84624;A10AB05;IV;0.5;1.0;iu;iu/hour;0.0;;Novorapid
+5;118057;118057;C01CA03;IV;4.2;0.0;mg;mg;0.0;84000;Noradrenaline Skanderborg

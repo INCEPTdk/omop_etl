@@ -7,14 +7,14 @@ courseid;timestamp;epaspresbaseid;drugname;administration_type;value;value0;valu
 4;1934-04-05 20:00:00;16484;noradrenalinsad;discrete;4800.0;;;3-8.csv
 2;1834-02-04 13:33:00;81008;noradrenalinsad;continuous;0.2;;;8-8.csv
 2;1834-02-04 13:34:00;81008;noradrenalinsad;continuous;0.2375;;;8-8.csv
-2;1899-01-19 09:51:00;48005;novorapidflx;discrete;5.0;;;3-1419.csv
-2;1899-01-19 11:56:00;48005;novorapidflx;discrete;8.0;;;3-1419.csv
-2;1899-01-19 13:38:00;48005;novorapidflx;discrete;10.0;;;3-1419.csv
+2;1899-01-19 09:51:00;48005;novorapidiu;discrete;5.0;;;3-1419.csv
+2;1899-01-19 11:56:00;48005;novorapidiu;discrete;8.0;;;3-1419.csv
+2;1899-01-19 13:38:00;48005;novorapidiu;discrete;10.0;;;3-1419.csv
 1;1867-07-04 10:44:00;84624;novorapidiv;continuous;0.095;0.95;0.0013;8-16.csv
 1;1867-07-04 10:45:00;84624;novorapidiv;continuous;0.095;0.95;0.0013;8-16.csv
 1;1867-07-04 10:46:00;84624;novorapidiv;continuous;0.105;0.105;0.0014;8-16.csv
 1;1867-07-04 10:47:00;84624;novorapidiv;continuous;0.105;0.105;0.0014;8-16.csv
-4;1899-01-18 08:06:00;84222;oxynormmg;discrete;10.0;;;3-136.csv
+4;1899-01-18 08:06:00;17743;oxynormmg;discrete;10.0;;;3-136.csv
 4;1899-01-19 18:56:00;84222;oxynormmg;discrete;20.0;;;3-272.csv
 4;1899-01-20 07:03:00;84222;oxynormmg;discrete;15.0;;;3-272.csv
 2;1899-01-19 20:00:00;16419;kaliumkloridps;discrete;15.0;;;3-606.csv
@@ -26,3 +26,5 @@ courseid;timestamp;epaspresbaseid;drugname;administration_type;value;value0;valu
 1;1811-11-13 05:04:00;7057;vancomycin1g;continuous;1.75;;;8-167.csv
 1;1811-11-13 13:10:00;177626;vancomycin1g;continuous;1.91;;;8-415.csv
 1;1811-11-13 13:11:00;177626;vancomycin1g;continuous;1.76;;;8-415.csv
+1;1811-11-13 13:11:00;999999999;vancomycin1000mg;discrete;1000;;;8-99999.csv
+4;1811-11-13 13:11:00;999999999;solumdrl;bolus;999999999;;;0-99999.csv

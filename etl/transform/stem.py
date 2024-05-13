@@ -3,6 +3,7 @@
 import logging
 
 from sqlalchemy import and_
+
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
     CourseMetadata,
