@@ -4,7 +4,7 @@
 # pylint: disable=invalid-name
 from typing import Any, Dict, Final, List
 
-from sqlalchemy import Column
+from sqlalchemy import Column, Integer, Sequence
 
 from ..util.freeze import freeze_instance
 from .modelutils import FK, CharField, IntField, NumericField, make_model_base
@@ -42,7 +42,10 @@ class ConceptLookup(TempModelBase):
     __tablename__: Final = "concept_lookup"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    lookup_id: Final[Column] = IntField(primary_key=True)
+    lookup_id: Final[Column] = Column(
+        "lookup_id", Integer, Sequence("lookup_id", start=1), primary_key=True
+    )
+
     concept_string: Final[Column] = CharField(200)
     concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     filter: Final[Column] = CharField(50)
@@ -56,7 +59,12 @@ class ConceptLookupStem(TempModelBase):
     __tablename__: Final = "concept_lookup_stem"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    uid: Final[Column] = IntField(primary_key=True)
+    uid: Final[Column] = Column(
+        "uid",
+        Integer,
+        Sequence("uid", start=1),
+        primary_key=True,
+    )
     datasource: Final[Column] = CharField(200)
     source_file: Final[Column] = CharField(50)
     source_concept_code: Final[Column] = CharField(50)
@@ -99,14 +107,14 @@ class ConceptLookupStem(TempModelBase):
 TEMP_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
-SOURCE_REGISTRY: Final[Dict[str, TempModelBase]] = (  # type: ignore
-    TempModelRegistry().registered
-)
+SOURCE_REGISTRY: Final[
+    Dict[str, TempModelBase]
+] = TempModelRegistry().registered  # type: ignore
 
 # pylint: disable=no-member
-TEMP_MODELS: Final[List[TempModelBase]] = (  # type: ignore
-    TempModelRegistry().registered.values()
-)
+TEMP_MODELS: Final[
+    List[TempModelBase]
+] = TempModelRegistry().registered.values()  # type: ignore
 
 # pylint: disable=no-member
 TEMP_MODEL_NAMES: Final[List[str]] = [

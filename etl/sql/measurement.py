@@ -41,9 +41,7 @@ StemMeasurement: Final[Select] = select(
     )
 )
 
-MeasurementInsert: Final[Insert] = insert(
-    OmopMeasurement,
-).from_select(
+MeasurementInsert: Final[Insert] = insert(OmopMeasurement,).from_select(
     names=[
         OmopMeasurement.person_id,
         OmopMeasurement.measurement_concept_id,

@@ -16,6 +16,7 @@ from ..modelutils import (
     IntField,
     NumericField,
     PKIdMixin,
+    PKIntField,
 )
 from .health_systems import CareSite, Location, Provider
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
@@ -31,7 +32,8 @@ class Person(ModelBase):
 
     __tablename__: Final[str] = "person"
 
-    person_id: Final[Column] = IntField(primary_key=True)
+    person_id: Final[Column] = PKIntField("person_id_seq")
+
     gender_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -78,7 +80,9 @@ class ObservationPeriod(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "observation_period"
 
-    observation_period_id: Final[Column] = IntField(primary_key=True)
+    observation_period_id: Final[Column] = PKIntField(
+        "observation_period_id_seq"
+    )
     observation_period_start_date: Final[Column] = DateField(nullable=False)
     observation_period_end_date: Final[Column] = DateField(nullable=False)
     period_type_concept_id: Final[Column] = IntField(
@@ -115,7 +119,7 @@ class VisitOccurrence(
 
     __tablename__: Final[str] = "visit_occurrence"
 
-    visit_occurrence_id: Final[Column] = IntField(primary_key=True)
+    visit_occurrence_id: Final[Column] = PKIntField("visit_occurrence_id_seq")
     visit_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -159,7 +163,7 @@ class VisitDetail(
 
     __tablename__: Final[str] = "visit_detail"
 
-    visit_detail_id: Final[Column] = IntField(primary_key=True)
+    visit_detail_id: Final[Column] = PKIntField("visit_detail_id_seq")
     visit_detail_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -203,7 +207,9 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "condition_occurrence"
 
-    condition_occurrence_id: Final[Column] = IntField(primary_key=True)
+    condition_occurrence_id: Final[Column] = PKIntField(
+        "condition_occurrence_id_seq"
+    )
     condition_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -232,7 +238,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "drug_exposure"
 
-    drug_exposure_id: Final[Column] = IntField(primary_key=True)
+    drug_exposure_id: Final[Column] = PKIntField("drug_exposure_id_seq")
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -264,7 +270,9 @@ class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "procedure_occurrence"
 
-    procedure_occurrence_id: Final[Column] = IntField(primary_key=True)
+    procedure_occurrence_id: Final[Column] = PKIntField(
+        "procedure_occurrence_id_seq"
+    )
     procedure_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -291,7 +299,7 @@ class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "device_exposure"
 
-    device_exposure_id: Final[Column] = IntField(primary_key=True)
+    device_exposure_id: Final[Column] = PKIntField("device_exposure_id_seq")
     device_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -319,7 +327,7 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "measurement"
 
-    measurement_id: Final[Column] = IntField(primary_key=True)
+    measurement_id: Final[Column] = PKIntField("measurement_id_seq")
     measurement_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -357,7 +365,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "observation"
 
-    observation_id: Final[Column] = IntField(primary_key=True)
+    observation_id: Final[Column] = PKIntField("observation_id_seq")
     observation_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -384,11 +392,12 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
-class Death(ModelBase, PersonIdMixin, PKIdMixin):
+class Death(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DEATH"""
 
     __tablename__: Final[str] = "death"
 
+    death_id: Final[Column] = PKIntField("death_id_seq")
     death_date: Final[Column] = DateField(nullable=False)
     death_datetime: Final[Column] = DateTimeField()
     death_type_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -404,7 +413,7 @@ class Note(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "note"
 
-    note_id: Final[Column] = IntField(primary_key=True)
+    note_id: Final[Column] = PKIntField("note_id_seq")
     note_date: Final[Column] = DateField(nullable=False)
     note_datetime: Final[Column] = DateTimeField()
     note_type_concept_id: Final[Column] = IntField(
@@ -435,7 +444,7 @@ class NoteNlp(ModelBase):
 
     __tablename__: Final[str] = "note_nlp"
 
-    note_nlp_id: Final[Column] = IntField(primary_key=True)
+    note_nlp_id: Final[Column] = PKIntField("note_nlp_id_seq")
     note_id: Final[Column] = IntField(nullable=False)
     section_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     snippet: Final[Column] = CharField(250)
@@ -458,7 +467,7 @@ class Specimen(ModelBase):
 
     __tablename__: Final[str] = "specimen"
 
-    specimen_id: Final[Column] = IntField(primary_key=True)
+    specimen_id: Final[Column] = PKIntField("specimen_id_seq")
     specimen_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -509,7 +518,7 @@ class Stem(ModelBase):
 
     domain_id: Final[Column] = CharField(50)
     datasource: Final[Column] = CharField(50)
-    stem_id: Final[Column] = IntField(primary_key=True)
+    stem_id: Final[Column] = PKIntField("stem_id_seq")
     person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True

@@ -11,7 +11,9 @@ from ..modelutils import (
     DateField,
     IntField,
     NumericField,
+    PKCharField,
     PKIdMixin,
+    PKIntField,
 )
 from .registry import OmopCdmModelBase as ModelBase
 
@@ -46,7 +48,7 @@ class Concept(ModelBase):
     __tablename__: Final[str] = "concept"
 
     # A unique identifier for each Concept across all domains.
-    concept_id: Final[Column] = IntField(primary_key=True)
+    concept_id: Final[Column] = PKIntField("concept_id_seq")
 
     # An unambiguous, meaningful and descriptive name for the Concept.
     concept_name: Final[Column] = CharField(255, nullable=False)
@@ -117,7 +119,7 @@ class Vocabulary(ModelBase):
     __tablename__: Final[str] = "vocabulary"
 
     # A unique identifier for each Vocabulary, such as ICD9CM, SNOMED, Visit.
-    vocabulary_id: Final[Column] = CharField(20, primary_key=True)
+    vocabulary_id: Final[Column] = PKCharField(20, "vocabulary_id_seq")
 
     # The name describing the vocabulary, for example International Classification
     # of Diseases, Ninth Revision, Clinical Modification, Volume 1 and 2 (NCHS) etc.
@@ -154,7 +156,7 @@ class Domain(ModelBase):
     __tablename__: Final[str] = "domain"
 
     # A unique key for each domain.
-    domain_id: Final[Column] = CharField(20, primary_key=True)
+    domain_id: Final[Column] = PKCharField(20, "domain_id_seq")
 
     # The name describing the Domain, e.g. Condition, Procedure, Measurement etc.
     domain_name: Final[Column] = CharField(255, nullable=False)
@@ -180,7 +182,7 @@ class ConceptClass(ModelBase):
     __tablename__: Final[str] = "concept_class"
 
     # A unique key for each class.
-    concept_class_id: Final[Column] = CharField(20, primary_key=True)
+    concept_class_id: Final[Column] = PKCharField(20, "concept_class_id_seq")
 
     # The name describing the Concept Class, e.g. Clinical Finding, Ingredient, etc.
     concept_class_name: Final[Column] = CharField(255, nullable=False)
@@ -205,17 +207,20 @@ class ConceptRelationship(ModelBase):
 
     __tablename__: Final[str] = "concept_relationship"
 
-    concept_id_1: Final[Column] = IntField(
-        FK(Concept.concept_id), primary_key=True, nullable=False
+    concept_id_1: Final[Column] = PKIntField(
+        "concept_id_1", FK(Concept.concept_id), nullable=False
     )
-    concept_id_2: Final[Column] = IntField(
-        FK(Concept.concept_id), primary_key=True, nullable=False
+    concept_id_2: Final[Column] = PKIntField(
+        "concept_id_2", FK(Concept.concept_id), nullable=False
     )
 
     # The relationship between CONCEPT_ID_1 and CONCEPT_ID_2.
     # Please see the Vocabulary Conventions. for more information.
-    relationship_id: Final[Column] = CharField(
-        20, FK("relationship.relationship_id"), primary_key=True, nullable=False
+    relationship_id: Final[Column] = PKCharField(
+        20,
+        "relationship_id_seq",
+        FK("relationship.relationship_id"),
+        nullable=False,
     )
 
     # The date when the relationship is first recorded.
@@ -243,7 +248,7 @@ class Relationship(ModelBase):
 
     __tablename__: Final[str] = "relationship"
 
-    relationship_id: Final[Column] = CharField(20, primary_key=True)
+    relationship_id: Final[Column] = PKCharField(20, "relationship_id_seq")
 
     relationship_name: Final[Column] = CharField(255, nullable=False)
 

@@ -4,7 +4,14 @@
 from typing import Final
 
 from ...util.freeze import freeze_instance
-from ..modelutils import FK, CharField, Column, IntField, NumericField
+from ..modelutils import (
+    FK,
+    CharField,
+    Column,
+    IntField,
+    NumericField,
+    PKIntField,
+)
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
 
@@ -18,7 +25,7 @@ class Location(ModelBase):
 
     __tablename__: Final[str] = "location"
 
-    location_id: Final[Column] = IntField(primary_key=True)
+    location_id: Final[Column] = PKIntField("location_id_seq")
     address_1: Final[Column] = CharField(50)
     address_2: Final[Column] = CharField(50)
     city: Final[Column] = CharField(50)
@@ -41,7 +48,7 @@ class CareSite(ModelBase):
 
     __tablename__: Final[str] = "care_site"
 
-    care_site_id: Final[Column] = IntField(primary_key=True)
+    care_site_id: Final[Column] = PKIntField("care_site_id_seq")
     care_site_name: Final[Column] = CharField(255)
     place_of_service_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id)
@@ -60,7 +67,7 @@ class Provider(ModelBase):
 
     __tablename__: Final[str] = "provider"
 
-    provider_id: Final[Column] = IntField(primary_key=True)
+    provider_id: Final[Column] = PKIntField("provider_id_seq")
     provider_name: Final[Column] = CharField(255)
     npi: Final[Column] = CharField(20)
     dea: Final[Column] = CharField(20)

@@ -18,6 +18,7 @@ from sqlalchemy import (
     MetaData,
     Numeric,
     PrimaryKeyConstraint,
+    Sequence,
     String,
     Text,
 )
@@ -27,6 +28,7 @@ from sqlalchemy.orm import declarative_base, declarative_mixin
 from sqlalchemy.schema import (
     AddConstraint,
     CreateIndex,
+    CreateSequence,
     CreateTable,
     DropConstraint,
     DropIndex,
@@ -36,6 +38,23 @@ from ..util.exceptions import FrozenClassException
 from ..util.sql import clean_sql
 
 DIALECT_POSTGRES: Final = postgresql.dialect()
+
+
+def create_int_pk_column(sequence_id: str) -> Column:
+    return Column(
+        Integer,
+        Sequence(sequence_id),
+        primary_key=True,
+        server_default=Sequence(sequence_id).next_value(),
+    )
+
+
+def create_char_pk_column(x: int, sequence_id: str) -> Column:
+    seq = Sequence(sequence_id)
+    return Column(
+        String(x), seq, primary_key=True, server_default=seq.next_value()
+    )
+
 
 ConstraintPK: Final = PrimaryKeyConstraint
 # A simple alias for sqlalchemy's ForiegnKey
@@ -55,6 +74,15 @@ EnumField: Final[Callable[[Any], Column]] = lambda x, *args, **kwargs: Column(
 IntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Integer, *args, **kwargs
 )
+PKIntField: Final[
+    Callable[[Any], Column]
+] = lambda sequence_id, *args, **kwargs: create_int_pk_column(sequence_id)
+PKCharField: Final[
+    Callable[[Any], Column]
+] = lambda x, sequence_id, *args, **kwargs: create_char_pk_column(
+    x, sequence_id
+)
+
 BigIntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     BigInteger, *args, **kwargs
 )
@@ -138,6 +166,14 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
     for model in models:
         sql.append(
             str(
+                CreateSequence(
+                    Sequence(model.__table__.name + "_id_seq"),
+                    if_not_exists=True,
+                ).compile(dialect=dialect)
+            )
+        )
+        sql.append(
+            str(
                 CreateTable(
                     model.__table__,
                     include_foreign_key_constraints=[],
@@ -217,7 +253,12 @@ def drop_constraints_sql(
 class PKIdMixin:
     """A mixin"""
 
-    _id = BigIntField(primary_key=True)
+    _id = Column(
+        "_id",
+        Integer,
+        Sequence("_id", start=1),
+        primary_key=True,
+    )
 
 
 ModelBase: Final[Any] = make_model_base()

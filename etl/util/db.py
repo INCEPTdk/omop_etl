@@ -215,6 +215,28 @@ def make_engine_postgres(connection: ConnectionDetails, **kwargs) -> Engine:
         ) from excep
 
 
+def _create_engine_duckdb(
+    dbname: Optional[str] = ":memory:",
+    **kwargs,
+) -> Engine:
+    """Create a Duckdb database engine based on connection details"""
+    url = f"duckdb:///{dbname}"
+    return create_engine(url, **kwargs)
+
+
+def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
+    """Check if can create an engine with duckdb-engine"""
+    try:
+        return _create_engine_duckdb(
+            dbname=connection.dbname,
+            **kwargs,
+        )
+    except ModuleNotFoundError as excep:
+        raise DependencyNotFoundException(
+            "duckdb is needed for a DuckDB DBMS! Please install it!"
+        ) from excep
+
+
 def get_schema_name(
     environment_variable_name: str = None, default: str = None
 ) -> str:
@@ -248,9 +270,9 @@ class DataBaseWriter:
         self.header: bool = False
         self.delimiter: str = ";"
         self.null_field: str = None
-        self.write_mode: Literal[WriteMode.APPEND, WriteMode.OVERWRITE] = (
-            WriteMode.OVERWRITE
-        )
+        self.write_mode: Literal[
+            WriteMode.APPEND, WriteMode.OVERWRITE
+        ] = WriteMode.OVERWRITE
         self.read_buffer_size: int = 8192
         self.write_buffer_size: int = 268435500
 
@@ -408,59 +430,21 @@ def check_table_exists(
 # pylint: disable=too-many-arguments
 def df_to_sql(
     session: AbstractSession,
-    dataframe: pd.DataFrame,
     table: str,
-    columns: Optional[Iterable[str]] = None,
-    encoding: Optional[str] = "utf-8",
-    delimiter: Optional[str] = ";",
-    null_field: Optional[str] = None,
-    write_mode: Optional[
-        Literal[WriteMode.APPEND, WriteMode.OVERWRITE]
-    ] = WriteMode.OVERWRITE,
+    dataframe: pd.DataFrame,
+    columns: Optional[List[str]] = None,
 ):
     """
     Helper function to quickly copy a Pandas DataFrame to an
     existing table in the database. All rows in the table are
     deleted before the copy.
     """
-    read_buffer_size: int = 8192
-    write_buffer_size: int = 268435500
-
-    if not dataframe.empty:
-        with SpooledTemporaryFile(
-            max_size=write_buffer_size,
-            mode="w+t",
-            encoding=encoding,
-        ) as csv_buffer:
-            # take all columns by default
-            if columns is None:
-                columns = dataframe.columns
-
-            dataframe[columns].to_csv(
-                csv_buffer,
-                delimiter,
-                header=False,
-                index=False,
-                encoding=encoding,
-            )
-
-            quote = '"'
-            options = [
-                "FORMAT CSV",
-                f"DELIMITER E'{delimiter}'",
-                "HEADER FALSE",
-                f"QUOTE E'{quote}'",
-            ]
-            if null_field is not None:
-                options.append(f"NULL '{null_field}'")
-            options_str = ", ".join(options)
-
-            cols = ",".join([f'"{c}"' for c in columns])
-            copy_query = (
-                f"COPY {table} ({cols}) FROM STDIN WITH ({options_str})".strip()
-            )
-            csv_buffer.seek(0)
-            with session.cursor() as cursor:
-                if write_mode == WriteMode.OVERWRITE:
-                    cursor.execute(f"DELETE FROM {table};")
-                cursor.copy_expert(copy_query, csv_buffer, read_buffer_size)
+    session.execute(f"drop table {table};")
+    if table == "lookups.concept_lookup":
+        dataframe = dataframe.reset_index()
+        session.execute(
+            f"create table {table} as select index as lookup_id, * from dataframe;"
+        )
+    else:
+        session.execute(f"create table {table} as select * from dataframe;")
+    return None

@@ -14,6 +14,7 @@ from etl.util.connection import get_connection_details
 from etl.util.db import (
     is_db_connected,
     make_db_session,
+    make_engine_duckdb,
     make_engine_postgres,
     session_context,
 )
@@ -75,6 +76,8 @@ def main() -> None:
     engine = None
     if cnxn.dbms == "postgresql":
         engine = make_engine_postgres(cnxn, implicit_returning=False)
+    elif cnxn.dbms == "duckdb":
+        engine = make_engine_duckdb(cnxn)
 
     if not is_db_connected(engine):
         raise DBConnectionException(

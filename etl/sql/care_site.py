@@ -25,9 +25,9 @@ def get_department_info(
         return None
 
 
-PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP: Final[Dict[str, int]] = (
-    get_concept_lookup_dict(CareSite.__tablename__)
-)
+PLACE_OF_SERVICE_CONCEPT_ID_LOOKUP: Final[
+    Dict[str, int]
+] = get_concept_lookup_dict(CareSite.__tablename__)
 
 CARE_SITE_COUNT: Final[count] = count(CareSite.care_site_id)
 

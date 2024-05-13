@@ -10,8 +10,7 @@ logger = logging.getLogger("ETL.Core")
 
 def execute_sql_transform(session: AbstractSession, sql: str) -> None:
     """Execute sql for a given session"""
-    with session.cursor() as cursor:
-        cursor.execute(sql)
+    session.execute(sql)
 
 
 def execute_sql_file(

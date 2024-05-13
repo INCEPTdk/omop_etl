@@ -1,0 +1,9 @@
+{
+  "dbms": "postgresql",
+  "server": "localhost",
+  "port": 6543,
+  "dbname": "postgres",
+  "schema": "omopcdm",
+  "user": "postgres",
+  "password": "postgres"
+}

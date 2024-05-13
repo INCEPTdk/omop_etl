@@ -3,6 +3,7 @@
 from typing import Final
 
 from sqlalchemy import TIMESTAMP, and_, cast, insert, literal, select
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Insert
 from sqlalchemy.sql.functions import concat, count
 
@@ -14,21 +15,23 @@ from etl.models.source import Person as SourcePerson
 
 REGISTRY_DEATH_TYPE_CONCEPT_ID: Final[int] = 32879
 
+SourcePersonAlias = aliased(SourcePerson, name="SourcePerson")
+
 MergedOmopSourcePerson = (
     select(
         OmopPerson.person_id,
-        SourcePerson.d_foddato,
-        SourcePerson.c_status,
-        SourcePerson.d_status_hen_start,
-        cast(SourcePerson.d_status_hen_start, TIMESTAMP).label(
+        SourcePersonAlias.d_foddato,
+        SourcePersonAlias.c_status,
+        SourcePersonAlias.d_status_hen_start,
+        cast(SourcePersonAlias.d_status_hen_start, TIMESTAMP).label(
             "death_datetime"
         ),
         literal(REGISTRY_DEATH_TYPE_CONCEPT_ID).label("death_type_concept_id"),
     )
     .select_from(OmopPerson)
     .join(
-        SourcePerson,
-        concat(SourcePerson.cpr_enc.key, "|", SourcePerson.cpr_enc)
+        SourcePersonAlias,
+        concat(SourcePersonAlias.cpr_enc.key, "|", SourcePersonAlias.cpr_enc)
         == OmopPerson.person_source_value,
     )
 )

@@ -29,6 +29,8 @@ from ..models.tempmodels import ConceptLookup
 from ..sql.care_site import get_department_info
 
 CONCEPT_ID_EHR: Final[int] = 32817
+cl1 = aliased(ConceptLookup)
+cl2 = aliased(ConceptLookup)
 
 CourseMetadataSelection = (
     select(
@@ -95,26 +97,27 @@ metadata_subquery_alias = CourseMetadataSelection.subquery().alias(
 )
 
 CourseIdMapped = (
-    (
-        select(
-            [CourseIdCprMapping, metadata_subquery_alias, OmopPerson.person_id]
-        )
-        .join(
-            metadata_subquery_alias,
-            metadata_subquery_alias.c.courseid == CourseIdCprMapping.courseid,
-        )
-        .join(
-            OmopPerson,
-            concat("cpr_enc|", CourseIdCprMapping.cpr_enc)
-            == OmopPerson.person_source_value,
-        )
+    select(
+        CourseIdCprMapping.courseid,
+        CourseIdCprMapping.cpr_enc,
+        metadata_subquery_alias.c.admdate,
+        metadata_subquery_alias.c.admdatetime,
+        metadata_subquery_alias.c.dischdate,
+        metadata_subquery_alias.c.dischdt,
+        metadata_subquery_alias.c.transfromid,
+        metadata_subquery_alias.c.chkouttoid,
+        OmopPerson.person_id,
     )
-    .subquery()
-    .alias("CourseIdMapped")
+    .join(
+        metadata_subquery_alias,
+        metadata_subquery_alias.c.courseid == CourseIdCprMapping.courseid,
+    )
+    .join(
+        OmopPerson,
+        concat("cpr_enc|", CourseIdCprMapping.cpr_enc)
+        == OmopPerson.person_source_value,
+    )
 )
-
-cl1 = aliased(ConceptLookup)
-cl2 = aliased(ConceptLookup)
 
 
 def get_visit_occurrence_select(shak_code: str) -> Select:

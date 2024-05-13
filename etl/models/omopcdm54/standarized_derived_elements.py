@@ -13,6 +13,7 @@ from ..modelutils import (
     IntField,
     NumericField,
     PKIdMixin,
+    PKIntField,
 )
 from .clinical import PersonIdMixin
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
@@ -28,7 +29,7 @@ class DrugEra(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "drug_era"
 
-    drug_era_id: Final[Column] = IntField(primary_key=True)
+    drug_era_id: Final[Column] = PKIntField("drug_era_id_seq")
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -47,7 +48,7 @@ class DoseEra(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "dose_era"
 
-    dose_era_id: Final[Column] = IntField(primary_key=True)
+    dose_era_id: Final[Column] = PKIntField("dose_era_id_seq")
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -68,7 +69,7 @@ class ConditionEra(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "condition_era"
 
-    condition_era_id: Final[Column] = IntField(primary_key=True)
+    condition_era_id: Final[Column] = PKIntField("condition_era_id_seq")
     condition_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -86,7 +87,7 @@ class Episode(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "episode"
 
-    episode_id: Final[Column] = IntField(primary_key=True)
+    episode_id: Final[Column] = PKIntField("episode_id_seq")
     episode_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )

@@ -27,14 +27,14 @@ from .vocabulary import *
 OMOPCDM_VERSION: Final[str] = "5.4"
 
 # pylint: disable=no-member
-OMOPCDM_REGISTRY: Final[Dict[str, OmopCdmModelBase]] = (
-    OmopCdmModelRegistry().registered
-)
+OMOPCDM_REGISTRY: Final[
+    Dict[str, OmopCdmModelBase]
+] = OmopCdmModelRegistry().registered
 
 # pylint: disable=no-member
-OMOPCDM_MODELS: Final[List[OmopCdmModelBase]] = (
-    OmopCdmModelRegistry().registered.values()
-)
+OMOPCDM_MODELS: Final[
+    List[OmopCdmModelBase]
+] = OmopCdmModelRegistry().registered.values()
 
 # pylint: disable=no-member
 OMOPCDM_MODEL_NAMES: Final[List[str]] = [
