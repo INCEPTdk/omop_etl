@@ -1,10 +1,13 @@
 """Miscellaneous utility functions for stem-table logic"""
 
 from itertools import chain
-from typing import Any
+from typing import Any, Dict, Final
 
-from sqlalchemy import case, cast
+from sqlalchemy import and_, case, cast, func
 from sqlalchemy.sql import expression
+from sqlalchemy.sql.expression import CTE
+
+from ...models.source import Prescriptions
 
 
 def get_case_statement(
@@ -20,6 +23,9 @@ def get_case_statement(
         The columns with the specific casts.
         If value type is specified, allows to case on the value_type in the lookup.
     """
+
+    if isinstance(model, CTE):
+        model = model.c  # make getattr() to look in the right place for CTEs
 
     if column_name is None:
         exp = cast(expression.null(), cast_as)
@@ -73,3 +79,115 @@ def find_unique_column_names(
             Within one single datasource there shouln't be more than one {column}."""
         )
     return col_name
+
+
+CONVERSIONS: Final[Dict[str, Any]] = {
+    "noradrenalinsad": case(
+        (Prescriptions.epaspresdrugunit == "ug", 0.001),
+        else_=1,
+    ),
+    "g_to_mg": case(
+        (Prescriptions.epaspresdrugunit == "g", 1000),
+        else_=1,
+    ),
+    "vancomycin1g": case(
+        (
+            and_(
+                Prescriptions.epaspresdrugunit == "g",
+                Prescriptions.epaspresdose == 0.0,
+            ),
+            1000,
+        ),
+        else_=1,
+    ),
+    "metaoxedrinsad": case(
+        (Prescriptions.epaspresdrugunit == "ug", 0.001),
+        (Prescriptions.epaspresdrugunit == "ml", Prescriptions.epaspresconc),
+        else_=1,
+    ),
+    "corotropsnf": 0.001,
+    "kaliumkloridps": 75,
+    "kaliumkloridsad": 75,
+    "minirinfrr": 1000,
+    "novorapidiu": 1,
+    "desmopressintv": 1,
+}
+
+
+def get_bolus_quantity_recipe(
+    CteAdministrations: Any = None, drug_name: str = None
+) -> Any:
+    """
+    Takes a CTE of administrations and a drug name and returns the quantity recipe for bolus administrations. The CTE will usually just be a subset of the full Administrations table.
+    """
+    RECIPES: Final[Dict[str, Any]] = {
+        "noradrenalinsad": func.coalesce(
+            CteAdministrations.c.value0,
+            CteAdministrations.c.value
+            * case(
+                (
+                    Prescriptions.epaspresdose == 0.0,
+                    0.6 * Prescriptions.epaspresweight / 1000,
+                ),
+                (
+                    Prescriptions.epaspresmixammount == 0.0,
+                    Prescriptions.epaspresdose / 100,
+                ),
+                else_=Prescriptions.epaspresdose
+                / Prescriptions.epaspresmixammount,
+            ),
+        ),
+        "solumdr": func.coalesce(
+            CteAdministrations.c.value0, CteAdministrations.c.value
+        ),
+    }
+
+    return RECIPES.get(drug_name, None)
+
+
+def get_continuous_quantity_recipe(
+    CteAdministrations: Any = None, drug_name: str = None
+) -> Any:
+    """
+    Takes a CTE of administrations and a drug name and returns the quantity recipe for continuous administrations. The CTE will usually just be a subset of the full Administrations table.
+    """
+    RECIPES: Final[Dict[str, Any]] = {
+        "metaoxedrinsad": CteAdministrations.c.value
+        * func.coalesce(
+            CteAdministrations.c.value / CteAdministrations.c.value1,
+            Prescriptions.epaspresconc,
+        ),
+        "noradrenalinsad": func.coalesce(
+            CteAdministrations.c.value0,
+            CteAdministrations.c.value
+            * case(
+                (
+                    Prescriptions.epaspresdose == 0.0,
+                    0.6 * Prescriptions.epaspresweight / 1000,
+                ),
+                (
+                    Prescriptions.epaspresmixammount == 0.0,
+                    Prescriptions.epaspresdose / 100,
+                ),
+                else_=Prescriptions.epaspresdose
+                / Prescriptions.epaspresmixammount,
+            ),
+        ),
+        "solumdr": func.coalesce(
+            CteAdministrations.c.value0, CteAdministrations.c.value
+        ),
+        "vancomycin1g": (
+            CteAdministrations.c.value
+            * case(
+                (Prescriptions.epaspresdose == 0, 1000),
+                else_=Prescriptions.epaspresdose,
+            )
+            / case(
+                (Prescriptions.epaspresmixammount == 0, 100),
+                else_=Prescriptions.epaspresmixammount,
+            )
+        ),
+        "privigeniv": CteAdministrations.c.value * 100,
+    }
+
+    return RECIPES.get(drug_name, None)
