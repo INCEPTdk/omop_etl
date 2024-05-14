@@ -177,4 +177,5 @@ def get_laboratory_stem_insert(
             OmopStem.range_high,
         ],
         select=union(StemSelectMeasurement, StemSelectSpecimen),
+        include_defaults=False,
     )
