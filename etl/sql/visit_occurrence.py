@@ -77,18 +77,6 @@ CourseMetadataSelection = (
             )
         ).label("chkouttoid"),
     )
-    .where(
-        CourseMetadata.variable.in_(
-            [
-                "admdate",
-                "admdatetime",
-                "dischdate",
-                "dischdt",
-                "transfromid",
-                "chkouttoid",
-            ]
-        )
-    )
     .group_by(CourseMetadata.courseid)
 )
 
