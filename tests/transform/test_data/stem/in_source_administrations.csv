@@ -14,6 +14,7 @@ courseid;timestamp;epaspresbaseid;drugname;administration_type;value;value0;valu
 1;1867-07-04 10:45:00;84624;novorapidiv;continuous;0.095;0.95;0.0013;8-16.csv
 1;1867-07-04 10:46:00;84624;novorapidiv;continuous;0.105;0.105;0.0014;8-16.csv
 1;1867-07-04 10:47:00;84624;novorapidiv;continuous;0.105;0.105;0.0014;8-16.csv
+1;1867-07-04 14:45:00;84624;novorapidiv;discrete;100;100;0.0014;9-999999.csv
 4;1899-01-18 08:06:00;17743;oxynormmg;discrete;10.0;;;3-136.csv
 4;1899-01-19 18:56:00;84222;oxynormmg;discrete;20.0;;;3-272.csv
 4;1899-01-20 07:03:00;84222;oxynormmg;discrete;15.0;;;3-272.csv
