@@ -5,6 +5,9 @@ venv
 .python-version
 
 **/__pycache__/**
+**.duckdb
+**.db
+**.sqlite3
 
 docker-compose.override.yml
 
@@ -19,6 +22,8 @@ log/
 dummy_data/
 scripts/
 connection.json
+connection_duckdb.json
+connection_postgres.json
 
 .coverage
 htmlcov

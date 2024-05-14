@@ -1,8 +1,0 @@
-{
-  "dbms": "duckdb",
-  "server": "../dummy-data/data/rigs-etl.duckdb",
-  "dbname": "../dummy-data/data/rigs-etl.duckdb",
-  "user": "",
-  "password": "",
-  "schema": "omopcdm"
-}
