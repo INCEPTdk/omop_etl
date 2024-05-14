@@ -10,7 +10,6 @@ from etl.models.omopcdm54.clinical import (
 )
 from etl.models.source import (
     Administrations as SourceAdministrations,
-    Prescriptions as SourcePrescriptions,
     CourseIdCprMapping as SourceCourseIdCprMapping,
     CourseMetadata as SourceCourseMetadata,
     DiagnosesProcedures as SourceDiagnosesProcedures,
@@ -19,6 +18,7 @@ from etl.models.source import (
     LprOperations as SourceLprOperations,
     LprProcedures as SourceLprProcedures,
     Observations as SourceObservations,
+    Prescriptions as SourcePrescriptions,
 )
 from etl.models.tempmodels import ConceptLookup, ConceptLookupStem
 from etl.transform.stem import transform as stem_transformation
