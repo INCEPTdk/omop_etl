@@ -15,9 +15,7 @@ from ..models.source import (
     Observations,
 )
 from ..sql.stem import (
-    get_bolus_drug_stem_insert,
-    get_continuous_drug_stem_insert,
-    get_discrete_drug_stem_insert,
+    get_drug_stem_insert,
     get_laboratory_stem_insert,
     get_nondrug_stem_insert,
     get_registry_stem_insert,
@@ -78,31 +76,13 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__,
         )
 
-    logger.info("DRUG data to the STEM table...")
-    logger.info("   working on DISCRETE administrations")
-    session.execute(get_discrete_drug_stem_insert(session))
-    logger.info(
-        "   %s events included",
-        session.query(OmopStem)
-        .where(OmopStem.datasource == "discrete_administrations")
-        .count(),
-    )
+    logger.info("DRUG source data to the STEM table...")
+    session.execute(get_drug_stem_insert(session))
 
-    logger.info("   working on BOLUS administrations")
-    session.execute(get_bolus_drug_stem_insert(session))
     logger.info(
-        "   %s events included",
+        "STEM Transform in Progress, %s Events Included from source administrations.",
         session.query(OmopStem)
-        .where(OmopStem.datasource == "bolus_administrations")
-        .count(),
-    )
-
-    logger.info("   working on CONTINUOUS administrations")
-    session.execute(get_continuous_drug_stem_insert(session))
-    logger.info(
-        "   %s events included",
-        session.query(OmopStem)
-        .where(OmopStem.datasource == "continuous_administrations")
+        .where(OmopStem.datasource.like("%_administrations"))
         .count(),
     )
 

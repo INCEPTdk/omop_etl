@@ -81,55 +81,66 @@ def find_unique_column_names(
     return col_name
 
 
-CONVERSIONS: Final[Dict[str, Any]] = {
-    "noradrenalinsad": case(
-        (Prescriptions.epaspresdrugunit == "ug", 0.001),
-        else_=1,
-    ),
-    "g_to_mg": case(
-        (Prescriptions.epaspresdrugunit == "g", 1000),
-        else_=1,
-    ),
-    "vancomycin1g": case(
-        (
-            and_(
-                Prescriptions.epaspresdrugunit == "g",
-                Prescriptions.epaspresdose == 0.0,
-            ),
-            1000,
+def get_conversion_factor(
+    CteAdministrations: Any = None, drug_name: str = None
+) -> Any:
+    CONVERSIONS: Final[Dict[str, Any]] = {
+        "noradrenalinsad": case(
+            (Prescriptions.epaspresdrugunit == "ug", 0.001),
+            else_=1,
         ),
-        else_=1,
-    ),
-    "metaoxedrinsad": case(
-        (Prescriptions.epaspresdrugunit == "ug", 0.001),
-        (Prescriptions.epaspresdrugunit == "ml", Prescriptions.epaspresconc),
-        else_=1,
-    ),
-    "corotropsnf": 0.001,
-    "kaliumkloridps": 75,
-    "kaliumkloridsad": 75,
-    "minirinfrr": 1000,
-    "novorapidiu": 1,
-    "desmopressintv": 1,
-}
+        "g_to_mg": case(
+            (Prescriptions.epaspresdrugunit == "g", 1000),
+            else_=1,
+        ),
+        "vancomycin1g": case(
+            (
+                and_(
+                    Prescriptions.epaspresdrugunit == "g",
+                    Prescriptions.epaspresdose == 0.0,
+                    CteAdministrations.c.administration_type == "discrete",
+                ),
+                1000,
+            ),
+            else_=1,
+        ),
+        "metaoxedrinsad": case(
+            (Prescriptions.epaspresdrugunit == "ug", 0.001),
+            (
+                Prescriptions.epaspresdrugunit == "ml",
+                Prescriptions.epaspresconc,
+            ),
+            else_=1,
+        ),
+        "corotropsnf": 0.001,
+        "kaliumkloridps": 75,
+        "kaliumkloridsad": 75,
+        "minirinfrr": 1000,
+        "novorapidiu": 1,
+        "desmopressintv": 1,
+    }
+
+    return CONVERSIONS.get(drug_name, 1.0)
 
 
 def get_bolus_quantity_recipe(
     CteAdministrations: Any = None, drug_name: str = None
 ) -> Any:
     """
-    Takes a CTE of administrations and a drug name and returns the quantity recipe for bolus administrations. The CTE will usually just be a subset of the full Administrations table.
+    Takes a CTE of administrations and a drug name and returns the quantity
+    recipe for bolus administrations.
+    The CTE will usually just be a subset of the full Administrations table.
     """
     RECIPES: Final[Dict[str, Any]] = {
         "noradrenalinsad": func.coalesce(
             CteAdministrations.c.value0,
             CteAdministrations.c.value
             * case(
-                (
+                (  # weight-based dose
                     Prescriptions.epaspresdose == 0.0,
                     0.6 * Prescriptions.epaspresweight / 1000,
                 ),
-                (
+                (  # assume disolved in 100 mL
                     Prescriptions.epaspresmixammount == 0.0,
                     Prescriptions.epaspresdose / 100,
                 ),
@@ -149,7 +160,9 @@ def get_continuous_quantity_recipe(
     CteAdministrations: Any = None, drug_name: str = None
 ) -> Any:
     """
-    Takes a CTE of administrations and a drug name and returns the quantity recipe for continuous administrations. The CTE will usually just be a subset of the full Administrations table.
+    Takes a CTE of administrations and a drug name and returns the quantity
+    recipe for continuous administrations.
+    The CTE will usually just be a subset of the full Administrations table.
     """
     RECIPES: Final[Dict[str, Any]] = {
         "metaoxedrinsad": CteAdministrations.c.value
@@ -191,3 +204,23 @@ def get_continuous_quantity_recipe(
     }
 
     return RECIPES.get(drug_name, None)
+
+
+def get_quantity_recipe(
+    CteAdministrations: Any = None,
+    administration_type: str = None,
+    drug_name: str = None,
+) -> Any:
+    """
+    Takes a CTE of administrations, an administration type and a drug name and
+    returns the quantity recipe for administrations.
+    The CTE will usually just be a subset of the full Administrations table.
+    """
+    RECIPES: Final[Dict[str, Any]] = {
+        "bolus": get_bolus_quantity_recipe(CteAdministrations, drug_name),
+        "continuous": get_continuous_quantity_recipe(
+            CteAdministrations, drug_name
+        ),
+    }
+
+    return RECIPES.get(administration_type, None)

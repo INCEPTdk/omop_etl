@@ -1,6 +1,6 @@
-""" SQL query string definition for the stem functions"""
+""" SQL query string definition for the drug-related stem functions"""
 
-from typing import Any
+from typing import Any, Dict
 
 from sqlalchemy import (
     DATE,
@@ -10,31 +10,36 @@ from sqlalchemy import (
     TIMESTAMP,
     and_,
     cast,
-    func,
     insert,
     literal,
     select,
     union_all,
 )
-from sqlalchemy.sql import Insert
+from sqlalchemy.sql import Insert, Select, text
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
-from .utils import CONVERSIONS, get_bolus_quantity_recipe, get_case_statement
+from .utils import (
+    get_case_statement,
+    get_conversion_factor,
+    get_quantity_recipe,
+)
 
 
 def create_simple_stem_select(
     CteAdministrations: Any = None,
+    administration_type: str = None,
     drug_name: str = None,
+    start_date_offset: str = "0 seconds",
     end_date: str = None,
     quantity: str = None,
     route_source_value: str = None,
-) -> Insert:
+) -> Select:
     if quantity == "recipe":
-        quantity_column = get_bolus_quantity_recipe(
-            CteAdministrations, drug_name
+        quantity_column = get_quantity_recipe(
+            CteAdministrations, administration_type, drug_name
         )
     else:
         quantity_column = get_case_statement(
@@ -43,6 +48,12 @@ def create_simple_stem_select(
             FLOAT,
         )
 
+    start_datetime = get_case_statement(
+        end_date, CteAdministrations, TIMESTAMP
+    ) - text(f"INTERVAL '{start_date_offset}'")
+
+    conversion = get_conversion_factor(CteAdministrations, drug_name)
+
     StemSelect = (
         select(
             ConceptLookupStem.std_code_domain,
@@ -50,12 +61,8 @@ def create_simple_stem_select(
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
             ),
-            get_case_statement(end_date, CteAdministrations, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(end_date, CteAdministrations, TIMESTAMP).label(
-                "start_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            cast(start_datetime, TIMESTAMP).label("start_datetime"),
             get_case_statement(end_date, CteAdministrations, DATE).label(
                 "end_date"
             ),
@@ -70,14 +77,14 @@ def create_simple_stem_select(
                 cast(CteAdministrations.c.value, TEXT),
             ).label("source_value"),
             ConceptLookupStem.uid.label("source_concept_id"),
-            (
-                func.coalesce(CONVERSIONS.get(drug_name), 1.0) * quantity_column
-            ).label("quantity"),
+            (conversion * quantity_column).label("quantity"),
             ConceptLookup.concept_id.label("route_concept_id"),
             getattr(Prescriptions, route_source_value).label(
                 "route_source_value"
             ),
-            literal("bolus_administrations").label("datasource"),
+            literal(f"{administration_type}_administrations").label(
+                "datasource"
+            ),
         )
         .select_from(CteAdministrations)
         .join(
@@ -85,7 +92,7 @@ def create_simple_stem_select(
             and_(
                 Prescriptions.epaspresbaseid
                 == CteAdministrations.c.epaspresbaseid,
-                CteAdministrations.c.drugname == drug_name,
+                CteAdministrations.c.administration_type == administration_type,
                 Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
             ),
         )
@@ -115,36 +122,49 @@ def create_simple_stem_select(
     return StemSelect
 
 
-def get_bolus_drug_stem_insert(session: Any = None) -> Insert:
-    mapped_drugs = (
-        session.query(ConceptLookupStem)
-        .where(
-            and_(
-                ConceptLookupStem.datasource == "administrations",
-                ConceptLookupStem.quantity_bolus.isnot(None),
+def get_drug_stem_select(drug_mapping: Dict[str, Any] = None) -> Select:
+    drug_name: str = drug_mapping["source_variable"]
+
+    CteAdministrationsThisDrug = (
+        select(Administrations)
+        .where(Administrations.drugname == drug_name)
+        .cte(f"cte_administrations_{drug_name}")
+    )
+
+    start_datetime_offsets: Dict[str, str] = {
+        "discrete": "0 seconds",
+        "bolus": "0 seconds",
+        "continuous": "59 seconds",
+    }
+
+    administration_types: tuple = ("discrete", "bolus", "continuous")
+    select_stack = []
+    for administration_type in administration_types:
+        select_stack.append(
+            create_simple_stem_select(
+                CteAdministrationsThisDrug,
+                administration_type,
+                drug_name,
+                start_datetime_offsets.get(administration_type, "0 seconds"),
+                drug_mapping["end_date"],
+                drug_mapping[f"quantity_{administration_type}"],
+                drug_mapping["route_source_value"],
             )
         )
+
+    return union_all(*select_stack)
+
+
+def get_drug_stem_insert(session: Any = None) -> Insert:
+    mapped_drugs = (
+        session.query(ConceptLookupStem)
+        .where(ConceptLookupStem.datasource == "administrations")
         .all()
     )
     mapped_drugs = [row.__dict__ for row in mapped_drugs]
-
-    CteBolusAdministrations = (
-        select(Administrations)
-        .where(Administrations.administration_type == "bolus")
-        .cte("cte_bolus_administrations")
+    MappedSelectSql = union_all(
+        *[get_drug_stem_select(mp) for mp in mapped_drugs]
     )
-
-    mapped_stack = []
-    for drug_mapping in mapped_drugs:
-        SelectSql = create_simple_stem_select(
-            CteBolusAdministrations,
-            drug_mapping["source_variable"],
-            drug_mapping["end_date"],
-            drug_mapping["quantity_bolus"],
-            drug_mapping["route_source_value"],
-        )
-        mapped_stack.append(SelectSql)
-    MappedSelectSql = union_all(*mapped_stack)
 
     UnmappedSelectSql = (
         select(
@@ -158,31 +178,27 @@ def get_bolus_drug_stem_insert(session: Any = None) -> Insert:
             literal(None).label("type_concept_id"),
             VisitOccurrence.visit_occurrence_id,
             concat(
-                CteBolusAdministrations.c.drugname,
+                Administrations.drugname,
                 "__",
-                cast(CteBolusAdministrations.c.value, TEXT),
+                cast(Administrations.value, TEXT),
             ).label("source_value"),
             literal(None).label("source_concept_id"),
             literal(None).label("quantity"),
             literal(None).label("route_concept_id"),
             literal(None).label("route_source_value"),
-            literal("bolus_administrations").label("datasource"),
+            literal("unmapped_administrations").label("datasource"),
         )
-        .select_from(CteBolusAdministrations)
+        .select_from(Administrations)
         .join(
             VisitOccurrence,
             VisitOccurrence.visit_source_value
-            == concat("courseid|", CteBolusAdministrations.c.courseid),
+            == concat("courseid|", Administrations.courseid),
         )
         .outerjoin(
             ConceptLookupStem,
-            ConceptLookupStem.source_variable
-            == CteBolusAdministrations.c.drugname,
+            ConceptLookupStem.source_variable == Administrations.drugname,
         )
-        .where(
-            and_(ConceptLookupStem.std_code_domain.is_(None)),
-            CteBolusAdministrations.c.administration_type == "bolus",
-        )
+        .where(ConceptLookupStem.std_code_domain.is_(None))
     )
 
     return insert(OmopStem).from_select(
