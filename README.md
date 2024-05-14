@@ -123,7 +123,7 @@ python3 etl/tools/main.py
 
 ## Tests
 
-A small test suite exists. This contains both unit tests and integration tests. The latter will require an instance of postgres setup that can be connected to.
+A small test suite exists. This contains both unit tests and integration tests. The latter will require an instance of postgres setup that can be connected to, and it must contain a schema named `omopcdm` to run.
 
 It is recommended to use `pytest` when running tests, but it not necessary.
 
