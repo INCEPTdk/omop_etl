@@ -16,6 +16,7 @@ from sqlalchemy import (
     union_all,
 )
 from sqlalchemy.sql import Insert, Select, text
+from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
@@ -170,22 +171,22 @@ def get_drug_stem_insert(session: Any = None) -> Insert:
         select(
             literal("Drug").label("domain_id"),
             VisitOccurrence.person_id,
-            literal(None).label("concept_id"),
-            literal(None).label("start_date"),
-            literal(None).label("start_datetime"),
-            literal(None).label("end_date"),
-            literal(None).label("end_datetime"),
-            literal(None).label("type_concept_id"),
+            null().label("concept_id"),
+            null().label("start_date"),
+            null().label("start_datetime"),
+            null().label("end_date"),
+            null().label("end_datetime"),
+            null().label("type_concept_id"),
             VisitOccurrence.visit_occurrence_id,
             concat(
                 Administrations.drugname,
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            literal(None).label("source_concept_id"),
-            literal(None).label("quantity"),
-            literal(None).label("route_concept_id"),
-            literal(None).label("route_source_value"),
+            null().label("source_concept_id"),
+            null().label("quantity"),
+            null().label("route_concept_id"),
+            null().label("route_source_value"),
             literal("unmapped_administrations").label("datasource"),
         )
         .select_from(Administrations)
