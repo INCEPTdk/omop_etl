@@ -30,7 +30,7 @@ class Metadata(ModelBase):
 
     __tablename__: Final[str] = "metadata"
 
-    metadata_id: Final[Column] = PKIntField("metadata_id_seq")
+    metadata_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
     metadata_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )

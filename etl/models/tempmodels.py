@@ -42,7 +42,7 @@ class ConceptLookup(TempModelBase):
     __tablename__: Final = "concept_lookup"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    lookup_id: Final[Column] = PKIntField("concept_lookup_id_seq")
+    lookup_id: Final[Column] = PKIntField(f"{LOOKUPS_SCHEMA}_{__tablename__}_id_seq")
     concept_string: Final[Column] = CharField(200)
     concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     filter: Final[Column] = CharField(50)
@@ -56,7 +56,7 @@ class ConceptLookupStem(TempModelBase):
     __tablename__: Final = "concept_lookup_stem"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    uid: Final[Column] = PKIntField("concept_lookup_stem_id_seq")
+    uid: Final[Column] = PKIntField(f"{LOOKUPS_SCHEMA}_{__tablename__}_id_seq")
     datasource: Final[Column] = CharField(200)
     source_file: Final[Column] = CharField(50)
     source_concept_code: Final[Column] = CharField(50)

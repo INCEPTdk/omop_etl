@@ -25,7 +25,7 @@ from ..models.omopcdm54 import (
     FactRelationship,
     Location,
     Measurement,
-    Metadata,
+   Metadata,
     Note,
     NoteNlp,
     Observation,

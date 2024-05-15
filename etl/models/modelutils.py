@@ -74,9 +74,11 @@ EnumField: Final[Callable[[Any], Column]] = lambda x, *args, **kwargs: Column(
 IntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Integer, *args, **kwargs
 )
+
 PKIntField: Final[
     Callable[[Any], Column]
 ] = lambda sequence_id, *args, **kwargs: create_int_pk_column(sequence_id)
+
 PKCharField: Final[
     Callable[[Any], Column]
 ] = lambda x, sequence_id, *args, **kwargs: create_char_pk_column(
@@ -151,7 +153,7 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
     drop_sql = (
         "; ".join(
             [
-                f"DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str}; DROP SEQUENCE IF EXISTS {str(m.__table__.name + '_id_seq')}"
+                f"DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str}; DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"
                 for m in models
             ]
         )
@@ -167,7 +169,7 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
         sql.append(
             str(
                 CreateSequence(
-                    Sequence(model.__table__.name + "_id_seq"),
+                    Sequence(model.metadata.schema + "_" + model.__table__.name + "_id_seq"),
                     if_not_exists=True,
                 ).compile(dialect=dialect)
             )
@@ -256,7 +258,7 @@ class PKIdMixin:
     @classmethod
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        seq_name = cls.__tablename__ + "_id_seq"
+        seq_name = cls.metadata.schema + "_" + cls.__tablename__ + "_id_seq"
         _id = Column(
             "_id",
             Integer,

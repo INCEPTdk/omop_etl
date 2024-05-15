@@ -15,7 +15,7 @@ from .modelutils import (
     DateField,
     FloatField,
     PKIdMixin,
-    PKIntField,
+   PKIntField,
     TimeStampField,
     make_model_base,
 )
