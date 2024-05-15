@@ -252,14 +252,20 @@ def drop_constraints_sql(
 @declarative_mixin
 class PKIdMixin:
     """A mixin"""
-
-    _id = Column(
-        "_id",
-        Integer,
-        Sequence("_id", start=1),
-        primary_key=True,
-        server_default=Sequence("_id").next_value(),
-    )
+    
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        import pdb;pdb.set_trace()
+        seq_name = cls.__tablename__ + "_id_seq"
+        _id = Column(
+            "_id",
+            Integer,
+            Sequence(seq_name, start=1),
+            primary_key=True,
+            server_default=Sequence(seq_name).next_value(),
+        )
+        setattr(cls, "_id", _id)
 
 
 ModelBase: Final[Any] = make_model_base()
