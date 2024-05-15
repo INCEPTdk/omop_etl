@@ -70,7 +70,6 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
             result_df = pd.read_sql(result, con=session.connection().connection)
 
         result_df = enforce_dtypes(self.expected_df, result_df).sort_values(by='visit_occurrence_id')
-        import pdb;pdb.set_trace()
         pd.testing.assert_frame_equal(result_df,
                                       self.expected_df,
                                       check_like=True, check_dtype=False)
