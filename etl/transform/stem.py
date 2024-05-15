@@ -110,7 +110,9 @@ def transform(session: AbstractSession) -> None:
         "STEM Transform in Progress, %s Drug Events Included, of which %s (%s%%) have a quantity.",
         drug_records_in_stem,
         drug_records_with_quantity,
-        round(drug_records_with_quantity / drug_records_in_stem * 100, 2),
+        round(
+            drug_records_with_quantity / max(1, drug_records_in_stem) * 100, 2
+        ),
     )
 
     count_rows = session.query(OmopStem).count()
@@ -122,5 +124,11 @@ def transform(session: AbstractSession) -> None:
         "STEM Transformation complete! %s rows included, of which %s were mapped to a concept_id (%s%%).",
         count_rows,
         mapped_rows,
-        round(mapped_rows / count_rows * 100, 2),
+        round(mapped_rows / max(1, count_rows) * 100, 2),
     )
+
+
+x = "fa;jfkl;ajfla;f"
+x.split(
+    ";",
+)
