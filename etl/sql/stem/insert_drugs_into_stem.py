@@ -73,7 +73,7 @@ def create_simple_stem_select(
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(
-                CteAdministrations.c.drugname,
+                CteAdministrations.c.drug_name,
                 "__",
                 cast(CteAdministrations.c.value, TEXT),
             ).label("source_value"),
@@ -106,7 +106,7 @@ def create_simple_stem_select(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.source_variable
-                == CteAdministrations.c.drugname,
+                == CteAdministrations.c.drug_name,
                 ConceptLookupStem.datasource == "administrations",
             ),
         )
@@ -128,7 +128,7 @@ def get_drug_stem_select(drug_mapping: Dict[str, Any] = None) -> Select:
 
     CteAdministrationsThisDrug = (
         select(Administrations)
-        .where(Administrations.drugname == drug_name)
+        .where(Administrations.drug_name == drug_name)
         .cte(f"cte_administrations_{drug_name}")
     )
 
@@ -179,7 +179,7 @@ def get_drug_stem_insert(session: Any = None) -> Insert:
             null().label("type_concept_id"),
             VisitOccurrence.visit_occurrence_id,
             concat(
-                Administrations.drugname,
+                Administrations.drug_name,
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
@@ -197,7 +197,7 @@ def get_drug_stem_insert(session: Any = None) -> Insert:
         )
         .outerjoin(
             ConceptLookupStem,
-            ConceptLookupStem.source_variable == Administrations.drugname,
+            ConceptLookupStem.source_variable == Administrations.drug_name,
         )
         .where(ConceptLookupStem.std_code_domain.is_(None))
     )

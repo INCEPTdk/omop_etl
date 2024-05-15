@@ -141,11 +141,11 @@ def get_bolus_quantity_recipe(
                     0.6 * Prescriptions.epaspresweight / 1000,
                 ),
                 (  # assume disolved in 100 mL
-                    Prescriptions.epaspresmixammount == 0.0,
+                    Prescriptions.epaspresmixamount == 0.0,
                     Prescriptions.epaspresdose / 100,
                 ),
                 else_=Prescriptions.epaspresdose
-                / Prescriptions.epaspresmixammount,
+                / Prescriptions.epaspresmixamount,
             ),
         ),
         "solumdr": func.coalesce(
@@ -179,11 +179,11 @@ def get_continuous_quantity_recipe(
                     0.6 * Prescriptions.epaspresweight / 1000,
                 ),
                 (
-                    Prescriptions.epaspresmixammount == 0.0,
+                    Prescriptions.epaspresmixamount == 0.0,
                     Prescriptions.epaspresdose / 100,
                 ),
                 else_=Prescriptions.epaspresdose
-                / Prescriptions.epaspresmixammount,
+                / Prescriptions.epaspresmixamount,
             ),
         ),
         "solumdr": func.coalesce(
@@ -196,8 +196,8 @@ def get_continuous_quantity_recipe(
                 else_=Prescriptions.epaspresdose,
             )
             / case(
-                (Prescriptions.epaspresmixammount == 0, 100),
-                else_=Prescriptions.epaspresmixammount,
+                (Prescriptions.epaspresmixamount == 0, 100),
+                else_=Prescriptions.epaspresmixamount,
             )
         ),
         "privigeniv": CteAdministrations.c.value * 100,

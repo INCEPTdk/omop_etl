@@ -1,4 +1,4 @@
-courseid;epaspresbaseid;epaspresid;epaspresdrugatc;epaspresadmroute;epaspresdose;epaspresconc;epaspresdrugunit;epaspresdrugunitact;epaspresmixammount;epaspresweight;epaspresdrugname
+courseid;epaspresbaseid;epaspresid;epaspresdrugatc;epaspresadmroute;epaspresdose;epaspresconc;epaspresdrugunit;epaspresdrugunitact;epaspresmixamount;epaspresweight;epaspresdrugname
 1;7057;7057;J01XA01;IV;0.0;0.0;g;g;200.0;;Vancomycin  1 g Serie
 1;7057;7150;J01XA01;IV;0.0;0.0;g;g;200.0;;Vancomycin  1 g Serie
 1;177626;177626;J01XA01;IV;500.0;0.0;mg;mg;0.0;;Vancomycin  1 g Serie

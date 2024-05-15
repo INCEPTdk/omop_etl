@@ -1,4 +1,4 @@
-courseid;timestamp;epaspresbaseid;drugname;administration_type;value;value0;value1;from_file
+courseid;timestamp;epaspresbaseid;drug_name;administration_type;value;value0;value1;from_file
 1;1867-07-04 12:30:00;35730;noradrenalinsad;bolus;0.2;0.2;0.0036;9-116.csv
 4;1834-04-04 08:32:00;16484;noradrenalinsad;continuous;0.0806;3.867;0.0483;8-8.csv
 4;1834-04-04 08:33:00;16484;noradrenalinsad;continuous;0.0458;2.2;0.0275;8-8.csv
