@@ -258,6 +258,7 @@ class PKIdMixin:
         Integer,
         Sequence("_id", start=1),
         primary_key=True,
+        server_default=Sequence("_id").next_value(),
     )
 
 

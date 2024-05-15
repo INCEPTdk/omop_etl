@@ -15,10 +15,10 @@ from etl.models.source import (
 from etl.models.tempmodels import ConceptLookup
 from etl.sql.visit_occurrence import get_visit_occurrence_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import PostgresBaseTest, base_path, write_to_db
+from tests.testutils import DuckDBBaseTest, base_path, write_to_duckdb, enforce_dtypes
 
 
-class VisitOccurrenceTransformationTest(PostgresBaseTest):
+class VisitOccurrenceTransformationTest(DuckDBBaseTest):
     SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata]
     TARGET_MODEL = [OmopCareSite, OmopVisitOccurrence, OmopPerson]
     LOOKUPS = [ConceptLookup]
@@ -52,23 +52,25 @@ class VisitOccurrenceTransformationTest(PostgresBaseTest):
         self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
         self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
 
-    def _insert_test_data(self, engine):
-        write_to_db(engine, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
+    def _insert_test_data(self, session):
 
-        write_to_db(engine, self.source_courseid_cpr_mapping, SourceCourseIdCprMapping.__tablename__, schema=SourceCourseIdCprMapping.metadata.schema)
-        write_to_db(engine, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
-        write_to_db(engine, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
-        write_to_db(engine, self.omop_caresite, OmopCareSite.__tablename__, schema=OmopCareSite.metadata.schema)\
+        write_to_duckdb(session, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
 
+        write_to_duckdb(session, self.source_courseid_cpr_mapping, SourceCourseIdCprMapping.__tablename__, schema=SourceCourseIdCprMapping.metadata.schema)
+        write_to_duckdb(session, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
+        write_to_duckdb(session, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
+        write_to_duckdb(session, self.omop_caresite, OmopCareSite.__tablename__, schema=OmopCareSite.metadata.schema)
 
     def test_transform(self):
-        self._insert_test_data(self.engine)
         shak_code = "1301011"
         with session_context(make_db_session(self.engine)) as session:
+            self._insert_test_data(session)
             session.execute(get_visit_occurrence_insert(shak_code))
+            result = str(select(self.expected_cols).compile(self.engine, compile_kwargs={"literal_binds": True}))
+            result_df = pd.read_sql(result, con=session.connection().connection)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
+        result_df = enforce_dtypes(self.expected_df, result_df).sort_values(by='visit_occurrence_id')
+        import pdb;pdb.set_trace()
         pd.testing.assert_frame_equal(result_df,
                                       self.expected_df,
                                       check_like=True, check_dtype=False)

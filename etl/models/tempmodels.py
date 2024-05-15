@@ -7,7 +7,7 @@ from typing import Any, Dict, Final, List
 from sqlalchemy import Column, Integer, Sequence
 
 from ..util.freeze import freeze_instance
-from .modelutils import FK, CharField, IntField, NumericField, make_model_base
+from .modelutils import FK, PKIntField, CharField, IntField, NumericField, make_model_base
 from .omopcdm54 import Concept
 
 LOOKUPS_SCHEMA: Final[str] = "lookups"
@@ -42,10 +42,7 @@ class ConceptLookup(TempModelBase):
     __tablename__: Final = "concept_lookup"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    lookup_id: Final[Column] = Column(
-        "lookup_id", Integer, Sequence("lookup_id", start=1), primary_key=True
-    )
-
+    lookup_id: Final[Column] = PKIntField("concept_lookup_id_seq")
     concept_string: Final[Column] = CharField(200)
     concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     filter: Final[Column] = CharField(50)
@@ -59,12 +56,7 @@ class ConceptLookupStem(TempModelBase):
     __tablename__: Final = "concept_lookup_stem"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    uid: Final[Column] = Column(
-        "uid",
-        Integer,
-        Sequence("uid", start=1),
-        primary_key=True,
-    )
+    uid: Final[Column] = PKIntField("concept_lookup_stem_id_seq")
     datasource: Final[Column] = CharField(200)
     source_file: Final[Column] = CharField(50)
     source_concept_code: Final[Column] = CharField(50)
