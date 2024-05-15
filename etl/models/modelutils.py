@@ -256,7 +256,6 @@ class PKIdMixin:
     @classmethod
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        import pdb;pdb.set_trace()
         seq_name = cls.__tablename__ + "_id_seq"
         _id = Column(
             "_id",

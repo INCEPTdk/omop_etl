@@ -46,7 +46,7 @@ def register_source_model(cls: Any) -> Any:
 
 @register_source_model
 @freeze_instance
-class CourseMetadata(SourceModelBase):
+class CourseMetadata(SourceModelBase, PKIdMixin):
     """
     The course_metadata source table
     """
@@ -54,7 +54,6 @@ class CourseMetadata(SourceModelBase):
     __tablename__: Final[str] = "course_metadata"
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
-    _id: Final[Column] = PKIntField('course_metadata_id_seq')
     courseid: Final[Column] = BigIntField()
     timestamp: Final[Column] = TimeStampField()
     variable: Final[Column] = CharField(50)
@@ -248,7 +247,7 @@ class Person(RegistryModelBase, PKIdMixin):
 
 @register_source_model
 @freeze_instance
-class CourseIdCprMapping(SourceModelBase):
+class CourseIdCprMapping(SourceModelBase, PKIdMixin):
     """
     The courseid_cpr_mapping table
     """
@@ -256,7 +255,6 @@ class CourseIdCprMapping(SourceModelBase):
     __tablename__: Final[str] = "courseid_cpr_mapping"
     __table_args__ = {"schema": SOURCE_SCHEMA}
 
-    _id: Final[Column] = PKIntField('courseid_cpr_mapping_id_seq')
     cpr_enc: Final[Column] = CharField(50, nullable=False)
     courseid: Final[Column] = BigIntField(nullable=False)
 
