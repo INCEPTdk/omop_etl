@@ -15,7 +15,7 @@ from etl.models.source import (
 from etl.models.tempmodels import ConceptLookup
 from etl.sql.visit_occurrence import get_visit_occurrence_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, base_path, write_to_duckdb, enforce_dtypes
+from tests.testutils import DuckDBBaseTest, base_path, write_to_db, enforce_dtypes
 
 
 class VisitOccurrenceTransformationTest(DuckDBBaseTest):
@@ -54,12 +54,12 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
 
     def _insert_test_data(self, session):
 
-        write_to_duckdb(session, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
+        write_to_db(session, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
 
-        write_to_duckdb(session, self.source_courseid_cpr_mapping, SourceCourseIdCprMapping.__tablename__, schema=SourceCourseIdCprMapping.metadata.schema)
-        write_to_duckdb(session, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
-        write_to_duckdb(session, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
-        write_to_duckdb(session, self.omop_caresite, OmopCareSite.__tablename__, schema=OmopCareSite.metadata.schema)
+        write_to_db(session, self.source_courseid_cpr_mapping, SourceCourseIdCprMapping.__tablename__, schema=SourceCourseIdCprMapping.metadata.schema)
+        write_to_db(session, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
+        write_to_db(session, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
+        write_to_db(session, self.omop_caresite, OmopCareSite.__tablename__, schema=OmopCareSite.metadata.schema)
 
     def test_transform(self):
         shak_code = "1301011"

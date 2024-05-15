@@ -87,10 +87,7 @@ class DuckDBBaseTest(unittest.TestCase):
                 sql = create_tables_sql(models)
                 session.execute(sql)
 
-def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None, if_exists: str="append"):
-    table_frame.to_sql(table_name, db_engine, if_exists=if_exists, index=False, schema=schema)
-
-def write_to_duckdb(session, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None, if_exists: str="append"):
+def write_to_db(session, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):
     table_name = "{}.{}".format(schema, table_name) if schema else table_name
     cols = "(" + ", ".join(table_frame.columns) + ")"
     session.execute(f"INSERT INTO {table_name} {cols} select * from table_frame")

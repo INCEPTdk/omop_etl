@@ -5,10 +5,10 @@ import pandas as pd
 from etl.models.omopcdm54.health_systems import CareSite, Location
 from etl.sql.care_site import get_care_site_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import PostgresBaseTest, base_path, write_to_db
+from tests.testutils import DuckDBBaseTest, base_path, write_to_db
 
 
-class CareSiteTransformationTest(PostgresBaseTest):
+class CareSiteTransformationTest(DuckDBBaseTest):
     MODELS = [Location, CareSite]
 
     def setUp(self):
@@ -33,14 +33,13 @@ class CareSiteTransformationTest(PostgresBaseTest):
 
     def test_transform(self):
 
-        write_to_db(
-            self.engine,
-            self.in_location,
-            Location.__tablename__,
-            schema="omopcdm",
-            if_exists="replace",
-        )
         with session_context(make_db_session(self.engine)) as session:
+            write_to_db(
+                session,
+                self.in_location,
+                Location.__tablename__,
+                schema="omopcdm"
+            )
             shak_code = "1301011"
             test_care_site_name = "RH 4131 Intensiv Terapiklinik"
             test_place_of_service_concept_id = 32037
@@ -66,15 +65,14 @@ class CareSiteTransformationTest(PostgresBaseTest):
 
     def test_transform_empty_shak_code(self):
 
-        write_to_db(
-            self.engine,
-            self.in_empty_location,
-            Location.__tablename__,
-            schema="omopcdm",
-            if_exists="replace",
-        )
-
         with session_context(make_db_session(self.engine)) as session:
+            write_to_db(
+                self.engine,
+                self.in_empty_location,
+                Location.__tablename__,
+                schema="omopcdm",
+            )
+
             shak_code = None
 
             test_care_site_name = None
