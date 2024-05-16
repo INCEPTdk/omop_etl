@@ -153,7 +153,8 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
     drop_sql = (
         "; ".join(
             [
-                f"DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str}; DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"
+                f"""DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str};
+                DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
                 for m in models
             ]
         )
@@ -230,7 +231,7 @@ def set_constraints_sql(
         for constraint in model.__table__.constraints:
             sql.append(
                 str(
-                    AddConstraint(constraint, if_not_exists=True).compile(
+                    AddConstraint(constraint).compile(
                         dialect=dialect
                     )
                 )

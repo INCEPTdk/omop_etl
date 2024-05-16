@@ -438,13 +438,19 @@ def df_to_sql(
     Helper function to quickly copy a Pandas DataFrame to an
     existing table in the database. All rows in the table are
     deleted before the copy.
+    NOTE: This function should just to an insert but for some reason with duckdb
+    it does not work. So we drop and recreate. The proper solution would be:
+        session.execute(f"INSERT INTO {table} ({columns}) select {columns} from dataframe;")
     """
-    session.execute(f"drop table {table};")
+
+    columns = ", ".join(columns) if columns else "*"
+    session.execute(f"drop table if exists {table}")
     if table == "lookups.concept_lookup":
         dataframe = dataframe.reset_index()
         session.execute(
-            f"create table {table} as select index as lookup_id, * from dataframe;"
+            f"create table {table} as select index as lookup_id, {columns} from dataframe;"
         )
     else:
-        session.execute(f"create table {table} as select * from dataframe;")
-    return None
+        session.execute(
+            f"create table {table} as select {columns} from dataframe;"
+        )
