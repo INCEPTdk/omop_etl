@@ -4,7 +4,7 @@
 # pylint: disable=invalid-name
 from typing import Any, Dict, Final, List
 
-from sqlalchemy import Column
+from sqlalchemy import Column, Index
 
 from ..util.db import get_schema_name
 from ..util.freeze import freeze_instance
@@ -68,7 +68,15 @@ class Administrations(SourceModelBase, PKIdMixin):
     """
 
     __tablename__: Final[str] = "administrations"
-    __table_args__ = {"schema": SOURCE_SCHEMA}
+    __table_args__ = (
+        Index(
+            "idx__drug_name__administration_type__epaspresbaseid",
+            "drug_name",
+            "administration_type",
+            "epaspresbaseid",
+        ),
+        {"schema": SOURCE_SCHEMA}
+    )
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
@@ -89,7 +97,10 @@ class Prescriptions(SourceModelBase, PKIdMixin):
     """
 
     __tablename__: Final[str] = "prescriptions"
-    __table_args__ = {"schema": SOURCE_SCHEMA}
+    __table_args__ = (
+        Index("idx__epaspresbaseid", "epaspresbaseid"),
+        {"schema": SOURCE_SCHEMA,}
+    )
 
     courseid: Final[Column] = BigIntField(nullable=False)
     timestamp: Final[Column] = TimeStampField()
