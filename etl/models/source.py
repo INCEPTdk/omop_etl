@@ -99,7 +99,7 @@ class Prescriptions(SourceModelBase, PKIdMixin):
     __tablename__: Final[str] = "prescriptions"
     __table_args__ = (
         Index("idx__epaspresbaseid", "epaspresbaseid"),
-        {"schema": SOURCE_SCHEMA,}
+        {"schema": SOURCE_SCHEMA}
     )
 
     courseid: Final[Column] = BigIntField(nullable=False)
