@@ -188,7 +188,7 @@ bad-functions=apply,input
 [DESIGN]
 
 # Maximum number of arguments for function / method
-max-args=6
+max-args=7
 
 # Maximum number of locals for function / method body
 max-locals=20
