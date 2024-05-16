@@ -29,6 +29,7 @@ from .utils import (
 )
 
 
+# pylint: disable=too-many-arguments
 def create_simple_stem_select(
     CteAdministrations: Any = None,
     CtePrescriptions: Any = None,
