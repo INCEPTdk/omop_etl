@@ -53,7 +53,7 @@ def find_unique_column_names(
     model: Any = None,
     lookup_model: Any = None,
     column: str = None,
-) -> list:
+) -> Any:
     """
     For a given column ad datasource, ie start_date and
     procedures, find all the names of that column in the source.
@@ -82,22 +82,24 @@ def find_unique_column_names(
 
 
 def get_conversion_factor(
-    CteAdministrations: Any = None, drug_name: str = None
+    CteAdministrations: Any = None,
+    CtePrescriptions: Any = None,
+    drug_name: str = None,
 ) -> Any:
     CONVERSIONS: Final[Dict[str, Any]] = {
         "noradrenalinsad": case(
-            (Prescriptions.epaspresdrugunit == "ug", 0.001),
+            (CtePrescriptions.c.epaspresdrugunit == "ug", 0.001),
             else_=1,
         ),
         "g_to_mg": case(
-            (Prescriptions.epaspresdrugunit == "g", 1000),
+            (CtePrescriptions.c.epaspresdrugunit == "g", 1000),
             else_=1,
         ),
         "vancomycin1g": case(
             (
                 and_(
-                    Prescriptions.epaspresdrugunit == "g",
-                    Prescriptions.epaspresdose == 0.0,
+                    CtePrescriptions.c.epaspresdrugunit == "g",
+                    CtePrescriptions.c.epaspresdose == 0.0,
                     CteAdministrations.c.administration_type == "discrete",
                 ),
                 1000,
@@ -105,10 +107,10 @@ def get_conversion_factor(
             else_=1,
         ),
         "metaoxedrinsad": case(
-            (Prescriptions.epaspresdrugunit == "ug", 0.001),
+            (CtePrescriptions.c.epaspresdrugunit == "ug", 0.001),
             (
-                Prescriptions.epaspresdrugunit == "ml",
-                Prescriptions.epaspresconc,
+                CtePrescriptions.c.epaspresdrugunit == "ml",
+                CtePrescriptions.c.epaspresconc,
             ),
             else_=1,
         ),
@@ -124,28 +126,32 @@ def get_conversion_factor(
 
 
 def get_bolus_quantity_recipe(
-    CteAdministrations: Any = None, drug_name: str = None
+    CteAdministrations: Any = None,
+    CtePrescriptions: Any = None,
+    drug_name: str = None,
 ) -> Any:
     """
-    Takes a CTE of administrations and a drug name and returns the quantity
-    recipe for bolus administrations.
-    The CTE will usually just be a subset of the full Administrations table.
+    Takes CTEs of administrations and prescriptions plus an administration type
+    and a drug name and returns the quantity recipe for administrations.
+    The CTEs are usually subsets of the full administrations and prescriptions
+    tables.
     """
+
     RECIPES: Final[Dict[str, Any]] = {
         "noradrenalinsad": func.coalesce(
             CteAdministrations.c.value0,
             CteAdministrations.c.value
             * case(
                 (  # weight-based dose
-                    Prescriptions.epaspresdose == 0.0,
-                    0.6 * Prescriptions.epaspresweight / 1000,
+                    CtePrescriptions.c.epaspresdose == 0.0,
+                    0.6 * CtePrescriptions.c.epaspresweight / 1000,
                 ),
                 (  # assume disolved in 100 mL
-                    Prescriptions.epaspresmixamount == 0.0,
-                    Prescriptions.epaspresdose / 100,
+                    CtePrescriptions.c.epaspresmixamount == 0.0,
+                    CtePrescriptions.c.epaspresdose / 100,
                 ),
-                else_=Prescriptions.epaspresdose
-                / Prescriptions.epaspresmixamount,
+                else_=CtePrescriptions.c.epaspresdose
+                / CtePrescriptions.c.epaspresmixamount,
             ),
         ),
         "solumdr": func.coalesce(
@@ -157,33 +163,37 @@ def get_bolus_quantity_recipe(
 
 
 def get_continuous_quantity_recipe(
-    CteAdministrations: Any = None, drug_name: str = None
+    CteAdministrations: Any = None,
+    CtePrescriptions: Any = None,
+    drug_name: str = None,
 ) -> Any:
     """
-    Takes a CTE of administrations and a drug name and returns the quantity
-    recipe for continuous administrations.
-    The CTE will usually just be a subset of the full Administrations table.
+    Takes CTEs of administrations and prescriptions plus an administration type
+    and a drug name and returns the quantity recipe for administrations.
+    The CTEs are usually subsets of the full administrations and prescriptions
+    tables.
     """
+
     RECIPES: Final[Dict[str, Any]] = {
         "metaoxedrinsad": CteAdministrations.c.value
         * func.coalesce(
             CteAdministrations.c.value / CteAdministrations.c.value1,
-            Prescriptions.epaspresconc,
+            CtePrescriptions.c.epaspresconc,
         ),
         "noradrenalinsad": func.coalesce(
             CteAdministrations.c.value0,
             CteAdministrations.c.value
             * case(
                 (
-                    Prescriptions.epaspresdose == 0.0,
-                    0.6 * Prescriptions.epaspresweight / 1000,
+                    CtePrescriptions.c.epaspresdose == 0.0,
+                    0.6 * CtePrescriptions.c.epaspresweight / 1000,
                 ),
                 (
-                    Prescriptions.epaspresmixamount == 0.0,
-                    Prescriptions.epaspresdose / 100,
+                    CtePrescriptions.c.epaspresmixamount == 0.0,
+                    CtePrescriptions.c.epaspresdose / 100,
                 ),
-                else_=Prescriptions.epaspresdose
-                / Prescriptions.epaspresmixamount,
+                else_=CtePrescriptions.c.epaspresdose
+                / CtePrescriptions.c.epaspresmixamount,
             ),
         ),
         "solumdr": func.coalesce(
@@ -192,12 +202,12 @@ def get_continuous_quantity_recipe(
         "vancomycin1g": (
             CteAdministrations.c.value
             * case(
-                (Prescriptions.epaspresdose == 0, 1000),
-                else_=Prescriptions.epaspresdose,
+                (CtePrescriptions.c.epaspresdose == 0, 1000),
+                else_=CtePrescriptions.c.epaspresdose,
             )
             / case(
-                (Prescriptions.epaspresmixamount == 0, 100),
-                else_=Prescriptions.epaspresmixamount,
+                (CtePrescriptions.c.epaspresmixamount == 0, 100),
+                else_=CtePrescriptions.c.epaspresmixamount,
             )
         ),
         "privigeniv": CteAdministrations.c.value * 100,
@@ -208,18 +218,23 @@ def get_continuous_quantity_recipe(
 
 def get_quantity_recipe(
     CteAdministrations: Any = None,
+    CtePrescriptions: Any = None,
     administration_type: str = None,
     drug_name: str = None,
 ) -> Any:
     """
-    Takes a CTE of administrations, an administration type and a drug name and
-    returns the quantity recipe for administrations.
-    The CTE will usually just be a subset of the full Administrations table.
+    Takes CTEs of administrations and prescriptions plus an administration type
+    and a drug name and returns the quantity recipe for administrations.
+    The CTEs are usually subsets of the full administrations and prescriptions
+    tables.
     """
+
     RECIPES: Final[Dict[str, Any]] = {
-        "bolus": get_bolus_quantity_recipe(CteAdministrations, drug_name),
+        "bolus": get_bolus_quantity_recipe(
+            CteAdministrations, CtePrescriptions, drug_name
+        ),
         "continuous": get_continuous_quantity_recipe(
-            CteAdministrations, drug_name
+            CteAdministrations, CtePrescriptions, drug_name
         ),
     }
 

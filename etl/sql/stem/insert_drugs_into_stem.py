@@ -31,6 +31,7 @@ from .utils import (
 
 def create_simple_stem_select(
     CteAdministrations: Any = None,
+    CtePrescriptions: Any = None,
     administration_type: str = None,
     drug_name: str = None,
     start_date_offset: str = "0 seconds",
@@ -40,7 +41,7 @@ def create_simple_stem_select(
 ) -> Select:
     if quantity == "recipe":
         quantity_column = get_quantity_recipe(
-            CteAdministrations, administration_type, drug_name
+            CteAdministrations, CtePrescriptions, administration_type, drug_name
         )
     else:
         quantity_column = get_case_statement(
@@ -53,7 +54,9 @@ def create_simple_stem_select(
         end_date, CteAdministrations, TIMESTAMP
     ) - text(f"INTERVAL '{start_date_offset}'")
 
-    conversion = get_conversion_factor(CteAdministrations, drug_name)
+    conversion = get_conversion_factor(
+        CteAdministrations, CtePrescriptions, drug_name
+    )
 
     StemSelect = (
         select(
@@ -80,7 +83,7 @@ def create_simple_stem_select(
             ConceptLookupStem.uid.label("source_concept_id"),
             (conversion * quantity_column).label("quantity"),
             ConceptLookup.concept_id.label("route_concept_id"),
-            getattr(Prescriptions, route_source_value).label(
+            getattr(CtePrescriptions.c, route_source_value).label(
                 "route_source_value"
             ),
             literal(f"{administration_type}_administrations").label(
@@ -89,12 +92,11 @@ def create_simple_stem_select(
         )
         .select_from(CteAdministrations)
         .join(
-            Prescriptions,
+            CtePrescriptions,
             and_(
-                Prescriptions.epaspresbaseid
+                CtePrescriptions.c.epaspresbaseid
                 == CteAdministrations.c.epaspresbaseid,
                 CteAdministrations.c.administration_type == administration_type,
-                Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
             ),
         )
         .join(
@@ -114,7 +116,7 @@ def create_simple_stem_select(
             ConceptLookup,
             and_(
                 ConceptLookup.concept_string
-                == getattr(Prescriptions, route_source_value),
+                == getattr(CtePrescriptions.c, route_source_value),
                 ConceptLookup.filter == "administration_route",
             ),
         )
@@ -123,7 +125,9 @@ def create_simple_stem_select(
     return StemSelect
 
 
-def get_drug_stem_select(drug_mapping: Dict[str, Any] = None) -> Select:
+def get_drug_stem_select(
+    drug_mapping: Dict[str, Any] = None, CtePrescriptions: Any = None
+) -> Select:
     drug_name: str = drug_mapping["source_variable"]
 
     CteAdministrationsThisDrug = (
@@ -144,6 +148,7 @@ def get_drug_stem_select(drug_mapping: Dict[str, Any] = None) -> Select:
         select_stack.append(
             create_simple_stem_select(
                 CteAdministrationsThisDrug,
+                CtePrescriptions,
                 administration_type,
                 drug_name,
                 start_datetime_offsets.get(administration_type, "0 seconds"),
@@ -157,15 +162,23 @@ def get_drug_stem_select(drug_mapping: Dict[str, Any] = None) -> Select:
 
 
 def get_drug_stem_insert(session: Any = None) -> Insert:
+    CtePrescriptions = (
+        select(Prescriptions)
+        .where(Prescriptions.epaspresbaseid == Prescriptions.epaspresid)
+        .cte("cte_prescriptions")
+    )
+
     mapped_drugs = (
         session.query(ConceptLookupStem)
         .where(ConceptLookupStem.datasource == "administrations")
         .all()
     )
     mapped_drugs = [row.__dict__ for row in mapped_drugs]
-    MappedSelectSql = union_all(
-        *[get_drug_stem_select(mp) for mp in mapped_drugs]
-    )
+    select_stack = []
+    for mp in mapped_drugs:
+        select_stack.append(get_drug_stem_select(mp, CtePrescriptions))
+
+    MappedSelectSql = union_all(*select_stack)
 
     UnmappedSelectSql = (
         select(
