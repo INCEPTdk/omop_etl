@@ -77,7 +77,7 @@ def transform(session: AbstractSession) -> None:
         )
 
     logger.info("DRUG source data to the STEM table...")
-    session.execute(get_drug_stem_insert(session))
+    session.execute(get_drug_stem_insert(session, logger))
 
     logger.info(
         "STEM Transform in Progress, %s Events Included from source administrations.",
@@ -126,9 +126,3 @@ def transform(session: AbstractSession) -> None:
         mapped_rows,
         round(mapped_rows / max(1, count_rows) * 100, 2),
     )
-
-
-x = "fa;jfkl;ajfla;f"
-x.split(
-    ";",
-)

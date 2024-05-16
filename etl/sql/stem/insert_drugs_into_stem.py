@@ -22,11 +22,9 @@ from sqlalchemy.sql.functions import concat
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
-from .utils import (
-    get_case_statement,
-    get_conversion_factor,
-    get_quantity_recipe,
-)
+from .conversions import get_conversion_factor
+from .recipes import get_quantity_recipe
+from .utils import get_case_statement
 
 
 # pylint: disable=too-many-arguments
@@ -34,19 +32,24 @@ def create_simple_stem_select(
     CteAdministrations: Any = None,
     CtePrescriptions: Any = None,
     administration_type: str = None,
-    drug_name: str = None,
     start_date_offset: str = "0 seconds",
     end_date: str = None,
-    quantity: str = None,
+    conversion_recipe: str = None,
+    quantity_recipe: str = None,
     route_source_value: str = None,
+    logger: Any = None,
 ) -> Select:
-    if quantity == "recipe":
+    if "recipe__" in str(quantity_recipe):
         quantity_column = get_quantity_recipe(
-            CteAdministrations, CtePrescriptions, administration_type, drug_name
+            CteAdministrations,
+            CtePrescriptions,
+            administration_type,
+            quantity_recipe,
+            logger,
         )
     else:
         quantity_column = get_case_statement(
-            quantity,
+            quantity_recipe,
             CteAdministrations,
             FLOAT,
         )
@@ -55,8 +58,8 @@ def create_simple_stem_select(
         end_date, CteAdministrations, TIMESTAMP
     ) - text(f"INTERVAL '{start_date_offset}'")
 
-    conversion = get_conversion_factor(
-        CteAdministrations, CtePrescriptions, drug_name
+    conversion_factor = get_conversion_factor(
+        CteAdministrations, CtePrescriptions, conversion_recipe, logger
     )
 
     StemSelect = (
@@ -82,7 +85,7 @@ def create_simple_stem_select(
                 cast(CteAdministrations.c.value, TEXT),
             ).label("source_value"),
             ConceptLookupStem.uid.label("source_concept_id"),
-            (conversion * quantity_column).label("quantity"),
+            (conversion_factor * quantity_column).label("quantity"),
             ConceptLookup.concept_id.label("route_concept_id"),
             getattr(CtePrescriptions.c, route_source_value).label(
                 "route_source_value"
@@ -127,7 +130,9 @@ def create_simple_stem_select(
 
 
 def get_drug_stem_select(
-    drug_mapping: Dict[str, Any] = None, CtePrescriptions: Any = None
+    drug_mapping: Dict[str, Any] = None,
+    CtePrescriptions: Any = None,
+    logger: Any = None,
 ) -> Select:
     drug_name: str = drug_mapping["source_variable"]
 
@@ -151,18 +156,19 @@ def get_drug_stem_select(
                 CteAdministrationsThisDrug,
                 CtePrescriptions,
                 administration_type,
-                drug_name,
                 start_datetime_offsets.get(administration_type, "0 seconds"),
                 drug_mapping["end_date"],
+                drug_mapping["conversion"],
                 drug_mapping[f"quantity_{administration_type}"],
                 drug_mapping["route_source_value"],
+                logger,
             )
         )
 
     return union_all(*select_stack)
 
 
-def get_drug_stem_insert(session: Any = None) -> Insert:
+def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     CtePrescriptions = (
         select(Prescriptions)
         .where(Prescriptions.epaspresbaseid == Prescriptions.epaspresid)
@@ -177,7 +183,7 @@ def get_drug_stem_insert(session: Any = None) -> Insert:
     mapped_drugs = [row.__dict__ for row in mapped_drugs]
     select_stack = []
     for mp in mapped_drugs:
-        select_stack.append(get_drug_stem_select(mp, CtePrescriptions))
+        select_stack.append(get_drug_stem_select(mp, CtePrescriptions, logger))
 
     MappedSelectSql = union_all(*select_stack)
 
