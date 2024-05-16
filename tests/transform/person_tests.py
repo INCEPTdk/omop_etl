@@ -7,7 +7,7 @@ from etl.models.omopcdm54.clinical import Person as OmopPerson
 from etl.models.source import Person as SourcePerson
 from etl.transform.person import transform
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, base_path, write_to_db
+from tests.testutils import DuckDBBaseTest, assert_dataframe_equality, base_path, write_to_db, enforce_dtypes
 
 
 class PersonTransformationTest(DuckDBBaseTest):
@@ -21,7 +21,7 @@ class PersonTransformationTest(DuckDBBaseTest):
         self._create_tables_and_schema(self.SOURCE_MODELS, schema='registries')
         self._create_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
         self.test_data_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
-        self.expected_df = pd.read_csv(self.OUTPUT_OMOP_PERSON, index_col=False, sep=';')
+        self.expected_df = pd.read_csv(self.OUTPUT_OMOP_PERSON, index_col=False, sep=';', parse_dates=['birth_datetime'])
         self.expected_cols = [getattr(self.TARGET_MODEL, col) for col in self.expected_df.columns.to_list()]
 
     def tearDown(self) -> None:
@@ -39,8 +39,7 @@ class PersonTransformationTest(DuckDBBaseTest):
             result = str(select(self.expected_cols).compile(self.engine, compile_kwargs={"literal_binds": True}))
             result_df = pd.read_sql(result, con=session.connection().connection)
 
-        # Only queries the columns that exist in the self.test_data_in
-        self.assertTrue(result_df.compare(self.expected_df).empty)
-
+        result_df = enforce_dtypes(self.expected_df, result_df)
+        assert_dataframe_equality(result_df, self.expected_df, index_col='person_id')
 
 __all__ = ["PersonTransformationTest"]

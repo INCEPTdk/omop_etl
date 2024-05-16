@@ -15,7 +15,7 @@ from etl.models.source import (
 from etl.models.tempmodels import ConceptLookup
 from etl.sql.visit_occurrence import get_visit_occurrence_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, base_path, write_to_db, enforce_dtypes
+from tests.testutils import DuckDBBaseTest, base_path, write_to_db, enforce_dtypes, assert_dataframe_equality
 
 
 class VisitOccurrenceTransformationTest(DuckDBBaseTest):
@@ -69,10 +69,7 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
             result = str(select(self.expected_cols).compile(self.engine, compile_kwargs={"literal_binds": True}))
             result_df = pd.read_sql(result, con=session.connection().connection)
 
-        result_df = enforce_dtypes(self.expected_df, result_df).sort_values(by='visit_occurrence_id')
-        pd.testing.assert_frame_equal(result_df,
-                                      self.expected_df,
-                                      check_like=True, check_dtype=False)
-
+        result_df = enforce_dtypes(self.expected_df, result_df)
+        assert_dataframe_equality(result_df, self.expected_df, index_col='visit_occurrence_id')
 
 __all__ = ['VisitOccurrenceTransformationTest']
