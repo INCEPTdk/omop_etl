@@ -4,10 +4,17 @@
 # pylint: disable=invalid-name
 from typing import Any, Dict, Final, List
 
-from sqlalchemy import Column, Integer, Sequence
+from sqlalchemy import Column
 
 from ..util.freeze import freeze_instance
-from .modelutils import FK, PKIntField, CharField, IntField, NumericField, make_model_base
+from .modelutils import (
+    FK,
+    CharField,
+    IntField,
+    NumericField,
+    PKIntField,
+    make_model_base,
+)
 from .omopcdm54 import Concept
 
 LOOKUPS_SCHEMA: Final[str] = "lookups"
@@ -42,7 +49,9 @@ class ConceptLookup(TempModelBase):
     __tablename__: Final = "concept_lookup"
     __table_args__ = {"schema": LOOKUPS_SCHEMA}
 
-    lookup_id: Final[Column] = PKIntField(f"{LOOKUPS_SCHEMA}_{__tablename__}_id_seq")
+    lookup_id: Final[Column] = PKIntField(
+        f"{LOOKUPS_SCHEMA}_{__tablename__}_id_seq"
+    )
     concept_string: Final[Column] = CharField(200)
     concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     filter: Final[Column] = CharField(50)

@@ -169,7 +169,12 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
         sql.append(
             str(
                 CreateSequence(
-                    Sequence(model.metadata.schema + "_" + model.__table__.name + "_id_seq"),
+                    Sequence(
+                        model.metadata.schema
+                        + "_"
+                        + model.__table__.name
+                        + "_id_seq"
+                    ),
                     if_not_exists=True,
                 ).compile(dialect=dialect)
             )
@@ -254,7 +259,7 @@ def drop_constraints_sql(
 @declarative_mixin
 class PKIdMixin:
     """A mixin"""
-    
+
     @classmethod
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

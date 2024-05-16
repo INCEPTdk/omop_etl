@@ -32,7 +32,9 @@ class Person(ModelBase):
 
     __tablename__: Final[str] = "person"
 
-    person_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    person_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
 
     gender_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
@@ -80,7 +82,9 @@ class ObservationPeriod(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "observation_period"
 
-    observation_period_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    observation_period_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     observation_period_start_date: Final[Column] = DateField(nullable=False)
     observation_period_end_date: Final[Column] = DateField(nullable=False)
     period_type_concept_id: Final[Column] = IntField(
@@ -117,7 +121,9 @@ class VisitOccurrence(
 
     __tablename__: Final[str] = "visit_occurrence"
 
-    visit_occurrence_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    visit_occurrence_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     visit_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -161,7 +167,9 @@ class VisitDetail(
 
     __tablename__: Final[str] = "visit_detail"
 
-    visit_detail_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    visit_detail_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     visit_detail_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -236,7 +244,9 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "drug_exposure"
 
-    drug_exposure_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    drug_exposure_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -269,7 +279,8 @@ class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     __tablename__: Final[str] = "procedure_occurrence"
 
     procedure_occurrence_id: Final[Column] = PKIntField(
-f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"    )
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     procedure_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -296,7 +307,9 @@ class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "device_exposure"
 
-    device_exposure_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    device_exposure_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     device_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -324,7 +337,9 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "measurement"
 
-    measurement_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    measurement_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     measurement_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -362,7 +377,9 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "observation"
 
-    observation_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    observation_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     observation_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -394,7 +411,9 @@ class Death(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "death"
 
-    death_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    death_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     death_date: Final[Column] = DateField(nullable=False)
     death_datetime: Final[Column] = DateTimeField()
     death_type_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -410,7 +429,9 @@ class Note(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "note"
 
-    note_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    note_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     note_date: Final[Column] = DateField(nullable=False)
     note_datetime: Final[Column] = DateTimeField()
     note_type_concept_id: Final[Column] = IntField(
@@ -441,7 +462,9 @@ class NoteNlp(ModelBase):
 
     __tablename__: Final[str] = "note_nlp"
 
-    note_nlp_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    note_nlp_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     note_id: Final[Column] = IntField(nullable=False)
     section_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     snippet: Final[Column] = CharField(250)
@@ -464,7 +487,9 @@ class Specimen(ModelBase):
 
     __tablename__: Final[str] = "specimen"
 
-    specimen_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    specimen_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     specimen_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -515,7 +540,9 @@ class Stem(ModelBase):
 
     domain_id: Final[Column] = CharField(50)
     datasource: Final[Column] = CharField(50)
-    stem_id: Final[Column] = PKIntField(f"{ModelBase.metadata.schema}_{__tablename__}_id_seq")
+    stem_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True

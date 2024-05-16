@@ -32,53 +32,48 @@ CONCEPT_ID_EHR: Final[int] = 32817
 cl1 = aliased(ConceptLookup)
 cl2 = aliased(ConceptLookup)
 
-CourseMetadataSelection = (
-    select(
-        CourseMetadata.courseid,
-        func.max(
-            Case([(CourseMetadata.variable == "admdate", CourseMetadata.value)])
-        ).label("admdate"),
-        func.max(
-            Case(
-                [
-                    (
-                        CourseMetadata.variable == "admdatetime",
-                        CourseMetadata.value,
-                    )
-                ]
-            )
-        ).label("admdatetime"),
-        func.max(
-            Case(
-                [(CourseMetadata.variable == "dischdate", CourseMetadata.value)]
-            )
-        ).label("dischdate"),
-        func.max(
-            Case([(CourseMetadata.variable == "dischdt", CourseMetadata.value)])
-        ).label("dischdt"),
-        func.max(
-            Case(
-                [
-                    (
-                        CourseMetadata.variable == "transfromid",
-                        CourseMetadata.value,
-                    )
-                ]
-            )
-        ).label("transfromid"),
-        func.max(
-            Case(
-                [
-                    (
-                        CourseMetadata.variable == "chkouttoid",
-                        CourseMetadata.value,
-                    )
-                ]
-            )
-        ).label("chkouttoid"),
-    )
-    .group_by(CourseMetadata.courseid)
-)
+CourseMetadataSelection = select(
+    CourseMetadata.courseid,
+    func.max(
+        Case([(CourseMetadata.variable == "admdate", CourseMetadata.value)])
+    ).label("admdate"),
+    func.max(
+        Case(
+            [
+                (
+                    CourseMetadata.variable == "admdatetime",
+                    CourseMetadata.value,
+                )
+            ]
+        )
+    ).label("admdatetime"),
+    func.max(
+        Case([(CourseMetadata.variable == "dischdate", CourseMetadata.value)])
+    ).label("dischdate"),
+    func.max(
+        Case([(CourseMetadata.variable == "dischdt", CourseMetadata.value)])
+    ).label("dischdt"),
+    func.max(
+        Case(
+            [
+                (
+                    CourseMetadata.variable == "transfromid",
+                    CourseMetadata.value,
+                )
+            ]
+        )
+    ).label("transfromid"),
+    func.max(
+        Case(
+            [
+                (
+                    CourseMetadata.variable == "chkouttoid",
+                    CourseMetadata.value,
+                )
+            ]
+        )
+    ).label("chkouttoid"),
+).group_by(CourseMetadata.courseid)
 
 metadata_subquery_alias = CourseMetadataSelection.subquery().alias(
     "metadata_alias"
