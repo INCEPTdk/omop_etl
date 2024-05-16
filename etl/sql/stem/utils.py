@@ -7,8 +7,6 @@ from sqlalchemy import and_, case, cast, func
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE
 
-from ...models.source import Prescriptions
-
 
 def get_case_statement(
     column_name: str,
