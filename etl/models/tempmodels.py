@@ -7,14 +7,7 @@ from typing import Any, Dict, Final, List
 from sqlalchemy import Column
 
 from ..util.freeze import freeze_instance
-from .modelutils import (
-    FK,
-    CharField,
-    IntField,
-    NumericField,
-    PKIntField,
-    make_model_base,
-)
+from .modelutils import FK, PKIntField, CharField, IntField, FloatField, make_model_base
 from .omopcdm54 import Concept
 
 LOOKUPS_SCHEMA: Final[str] = "lookups"
@@ -78,7 +71,7 @@ class ConceptLookupStem(TempModelBase):
     end_date: Final[Column] = CharField(50)
     provider: Final[Column] = CharField(50)
     care_site: Final[Column] = CharField(50)
-    type_concept_id: Final[Column] = NumericField()
+    type_concept_id: Final[Column] = IntField()
     mapped_standard_code: Final[Column] = IntField()
     mapped_std_code_desc: Final[Column] = CharField(200)
     std_code_vocabulary: Final[Column] = CharField(30)
@@ -86,23 +79,23 @@ class ConceptLookupStem(TempModelBase):
     std_code_domain: Final[Column] = CharField(30)
     reviewer_comment: Final[Column] = CharField(200)
     value_as_number: Final[Column] = CharField(50)
-    value_as_concept_id: Final[Column] = NumericField()
+    value_as_concept_id: Final[Column] = IntField()
     value_as_string: Final[Column] = CharField(200)
-    operator_concept_id: Final[Column] = NumericField()
+    operator_concept_id: Final[Column] = IntField()
     unit_source_value: Final[Column] = CharField(50)
-    unit_concept_id: Final[Column] = NumericField()
+    unit_concept_id: Final[Column] = IntField()
     conversion: Final[Column] = CharField(255)
-    modifier_concept_id: Final[Column] = NumericField()
-    anatomic_site_concept_id: Final[Column] = NumericField()
+    modifier_concept_id: Final[Column] = IntField()
+    anatomic_site_concept_id: Final[Column] = IntField()
     quantity_discrete: Final[Column] = CharField(255)
     quantity_bolus: Final[Column] = CharField(255)
     quantity_continuous: Final[Column] = CharField(255)
     days_supply: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
-    range_low: Final[Column] = NumericField()
-    range_high: Final[Column] = NumericField()
+    range_low: Final[Column] = FloatField()
+    range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(20)
-    route_concept_id: Final[Column] = NumericField()
+    route_concept_id: Final[Column] = FloatField()
     route_source_value: Final[Column] = CharField(50)
     refills: Final[Column] = CharField(50)
 
