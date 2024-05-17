@@ -7,7 +7,14 @@ from typing import Any, Dict, Final, List
 from sqlalchemy import Column
 
 from ..util.freeze import freeze_instance
-from .modelutils import FK, PKIntField, CharField, IntField, FloatField, make_model_base
+from .modelutils import (
+    FK,
+    CharField,
+    FloatField,
+    IntField,
+    PKIntField,
+    make_model_base,
+)
 from .omopcdm54 import Concept
 
 LOOKUPS_SCHEMA: Final[str] = "lookups"
