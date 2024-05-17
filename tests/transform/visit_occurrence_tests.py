@@ -44,7 +44,7 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
         self.omop_person = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
         self.omop_caresite = pd.read_csv(self.INPUT_OMOP_CARESITE, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=['visit_start_date', 'visit_start_datetime', 'visit_end_date', 'visit_end_datetime'])
-        self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list()]
+        self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list() if col not in {"_id"}]
 
     def tearDown(self) -> None:
         super().tearDown()
