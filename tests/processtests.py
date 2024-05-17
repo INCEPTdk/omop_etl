@@ -12,6 +12,7 @@ from etl.models.modelutils import (
     FloatField,
     IntField,
     make_model_base,
+    PKIdMixin,
 )
 from etl.models.source import SOURCE_MODELS
 from etl.models.tempmodels import TEMP_MODELS
@@ -35,21 +36,21 @@ from tests.testutils import DuckDBBaseTest
 
 class ProcessUnitTests(unittest.TestCase):
 
-    TestModelBase: Final[Any] = make_model_base()
+    TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase):
+    class DummyTable(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy"
         __table_args__ = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = IntField()
         b: Final = CharField(10)
         c: Final = FloatField()
 
-    class Dummy2Table(TestModelBase):
+    class Dummy2Table(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy2"
         __table_args__ = {"schema": "dummy"}
 
-        x: Final = IntField(primary_key=True)
+        x: Final = IntField()
         y: Final = CharField(10)
 
     def setUp(self) -> None:
@@ -58,6 +59,7 @@ class ProcessUnitTests(unittest.TestCase):
 
         self.dummy_df = pd.DataFrame(
             {
+                "_id": [1, 2, 3],
                 "a": [1, 4, 6],
                 "b": ["test1", "test2", "dhsjak"],
                 "c": [435.34, None, 1432213.2],
@@ -65,6 +67,7 @@ class ProcessUnitTests(unittest.TestCase):
         )
         self.dummy_df2 = pd.DataFrame(
             {
+                "_id": [1, 2],
                 "x": [45, 23],
                 "y": ["AB", "CD"],
             }
@@ -88,17 +91,16 @@ class ProcessUnitTests(unittest.TestCase):
             writer.write(session, columns=["x"])
 
         with session_context(self._session) as session:
-            with session.cursor() as cursor:
-                self.assertEqual(0, len(cursor.get_sql_log()))
-                run_transformations(
-                    session,
-                    transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                    ],
-                )
-                # expect 1 delete and 1 copy per table = 4
-                self.assertEqual(4, len(cursor.get_sql_log()))
+            self.assertEqual(0, len(session.get_sql_log()))
+            run_transformations(
+                session,
+                transformations=[
+                    SessionOperation("test1", session, transform1),
+                    SessionOperation("test2", session, transform2),
+                ],
+            )
+            # expect 1 delete and 1 copy per table = 4
+            self.assertEqual(4, len(session.get_sql_log()))
 
     def test_run_transformations_with_log(self):
         def transform1(session: FakeSession):
@@ -358,19 +360,19 @@ class ProcessUnitTests(unittest.TestCase):
 class ProcessDuckDBTests(DuckDBBaseTest):
     TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase):
+    class DummyTable(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy_table"
         __table_args__ = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = IntField()
         b: Final = CharField(10)
         c: Final = FloatField()
 
-    class DummyTableTwo(TestModelBase):
+    class DummyTableTwo(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy_table2"
         __table_args__ = {"schema": "dummy"}
 
-        x: Final = IntField(primary_key=True)
+        x: Final = IntField()
         y: Final = CharField(5)
 
     def setUp(self):
@@ -382,6 +384,7 @@ class ProcessDuckDBTests(DuckDBBaseTest):
 
         self.dummy_df = pd.DataFrame(
             {
+                "_id": [1, 2, 3],
                 "a": [1, 4, 6],
                 "b": ["test1", "test2", "dhsjak"],
                 "c": [435.34, None, 1432213.2],
@@ -389,6 +392,7 @@ class ProcessDuckDBTests(DuckDBBaseTest):
         )
         self.dummy_df2 = pd.DataFrame(
             {
+                "_id": [1, 2],
                 "x": [45, 23],
                 "y": ["AB", "CD"],
             }
