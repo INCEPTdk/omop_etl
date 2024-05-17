@@ -81,7 +81,7 @@ def main() -> None:
 
     if not is_db_connected(engine):
         raise DBConnectionException(
-            "Cannot connect to the database, please check configuration."
+            f"Cannot connect to the database, please check configuration. {cnxn}"
         )
 
     try:
