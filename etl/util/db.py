@@ -50,7 +50,7 @@ class AbstractSession(ABC):
         pass
 
     @abstractmethod
-    def execute(self, sql: Any, **kwargs):
+    def execute(self, sql: Any, *args, **kwargs):
         pass
 
 
@@ -83,8 +83,8 @@ class Session(AbstractSession):
     def query(self, *entities, **kwargs) -> Query:
         return self._session.query(*entities, **kwargs)
 
-    def execute(self, sql: Any, **kwargs):
-        self._session.execute(sql, **kwargs)
+    def execute(self, sql: Any, *args, **kwargs):
+        self._session.execute(sql, *args, **kwargs)
 
 
 class FakeSession(AbstractSession):
