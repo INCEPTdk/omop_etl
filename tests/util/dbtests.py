@@ -10,6 +10,7 @@ from etl.models.modelutils import (
     IntField,
     JSONField,
     make_model_base,
+    PKIdMixin,
 )
 from etl.util.db import (
     DataBaseWriterBuilder,
@@ -17,17 +18,17 @@ from etl.util.db import (
     make_db_session,
     session_context,
 )
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
-class DBPostgresTests(PostgresBaseTest):
-    TestModelBase: Final[Any] = make_model_base()
+class DBDuckDBTests(DuckDBBaseTest):
+    TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase):
+    class DummyTable(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy_table"
-        __table_args__ = {"schema": "dummy"}
+        __tableargs__: Final = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = IntField()
         b: Final = CharField(10)
         camelCase: Final = FloatField(key='"camelCase"')
         json_field: Final = JSONField()
@@ -91,7 +92,8 @@ class DBPostgresTests(PostgresBaseTest):
     def test_database_writer_all_columns(self):
         writer = DataBaseWriterBuilder().build()
         writer.set_source(self.DummyTable, self.dummy_df)
-        with session_context(self._session) as session:
+
+        with session_context(make_db_session(self.engine)) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
             writer.write(
@@ -222,10 +224,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["b"],
-            )
+            writer.write(session, columns=["b"],)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col_default_primary_key(session, "a")
@@ -241,10 +240,8 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["camelCase"],
-            )
+            writer.write(session, columns=["camelCase"])
+            import pdb; pdb.set_trace()
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col_default_primary_key(session, "a")
@@ -272,4 +269,4 @@ class DBPostgresTests(PostgresBaseTest):
             self._assert_json_col(session, "json_field")
 
 
-__all__ = ["DBPostgresTests"]
+__all__ = ["DBDuckDBTests"]

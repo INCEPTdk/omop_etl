@@ -35,28 +35,26 @@ class PostgresBaseTest(unittest.TestCase):
             if schema is not None:
                 schema_str = f"{schema}."
 
-            with session.cursor() as cursor:
-                for model in models:
-                    cursor.execute(
-                        f"DROP TABLE IF EXISTS {schema_str}{model.__tablename__} CASCADE;"
-                    )
+            for model in models:
+                session.execute(
+                    f"DROP TABLE IF EXISTS {schema_str}{model.__tablename__} CASCADE;"
+                )
 
-                if schema is not None:
-                    cursor.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
+            if schema is not None:
+                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
 
     def _create_tables_and_schema(
         self, models: List[Any], schema: Optional[str] = None
     ):
         with session_context(make_db_session(self.engine)) as session:
-            with session.cursor() as cursor:
-                if schema is not None:
-                    cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-                if models:
-                    sql = create_tables_sql(models)
-                    cursor.execute(sql)
+            if schema is not None:
+                session.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            if models:
+                sql = create_tables_sql(models)
+                session.execute(sql)
 
 class DuckDBBaseTest(unittest.TestCase):
-    """Base class for testing with postgres"""
+    """Base class for testing with duckdb"""
 
     def setUp(self):
         super().setUp()
@@ -111,7 +109,7 @@ def enforce_dtypes(df_source, df_target):
     return df_target_converted
 
 def assert_dataframe_equality(df1, df2, index_col: str = None):
-    
+
     if index_col:
         df1 = df1.drop(columns=[index_col])
         df2 = df2.drop(columns=[index_col])

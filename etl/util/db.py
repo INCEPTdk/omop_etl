@@ -9,7 +9,7 @@ from tempfile import SpooledTemporaryFile
 from typing import Any, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
-from sqlalchemy import JSON, create_engine, inspect
+from sqlalchemy import JSON, create_engine, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
@@ -291,9 +291,9 @@ class DataBaseWriter:
 
         return options_str
 
-    def _initialise_target(self, cursor: Any, table: str) -> None:
+    def _initialise_target(self, session: Any, table: str) -> None:
         if self.write_mode == WriteMode.OVERWRITE:
-            cursor.execute(f"DELETE FROM {table};")
+            session.execute(f"DELETE FROM {table};")
 
     def _do_insert(
         self,
@@ -302,15 +302,11 @@ class DataBaseWriter:
         table: str,
         columns: Iterable[str],
     ) -> None:
-        options_str = self._build_options_str()
-        cols = ",".join([f'"{c}"' for c in columns])
-        copy_query = (
-            f"COPY {table} ({cols}) FROM STDIN WITH ({options_str})".strip()
-        )
-        buffer.seek(0)
-        with session.cursor() as cursor:
-            self._initialise_target(cursor, table)
-            cursor.copy_expert(copy_query, buffer, self.read_buffer_size)
+        columns = ", ".join(c for c in columns)
+        self._initialise_target(session, table)
+        dataframe = self._source.reset_index()
+        session.execute(f"INSERT INTO {table} ({columns}) SELECT {columns} FROM dataframe;")
+
 
     def _do_read(self, buffer: Any, columns: Iterable[str]) -> None:
         self._source[columns].to_csv(
@@ -351,6 +347,19 @@ class DataBaseWriter:
         session: AbstractSession,
         columns: Optional[Iterable[str]] = None,
     ) -> None:
+        table = str(self._model.__table__)
+        df_columns = self._source.columns if columns is None else columns
+        df_columns = ", ".join(c for c in df_columns)
+        dataframe = self._source
+        schema = self._model.metadata.schema
+        if self.write_mode == WriteMode.OVERWRITE:
+            session.execute(f"DROP TABLE IF EXISTS {table};")
+            session.execute(f"CREATE TABLE {table} AS SELECT {df_columns} FROM dataframe;")
+        else:
+            session.execute(f"INSERT INTO {table} ({df_columns}) SELECT {df_columns} FROM dataframe;")
+
+        return None
+
         with SpooledTemporaryFile(
             max_size=self.write_buffer_size,
             mode="w+t",
@@ -359,7 +368,6 @@ class DataBaseWriter:
             if self._source is None or self._model is None:
                 raise RuntimeError("No source dataframe set!")
 
-            df_columns = self._source.columns if columns is None else columns
             self._process_json_fields()
             self._do_read(csv_buffer, df_columns)
             self._do_insert(
