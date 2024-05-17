@@ -90,33 +90,23 @@ class Session(AbstractSession):
 class FakeSession(AbstractSession):
     """A simple fake session for testing without having a real DB session"""
 
-    class FakeCursor:
-        """A fake cursor object needed to execute sql"""
-
-        def __init__(self) -> None:
-            self._sqllog = []
-
-        def __enter__(self) -> None:
-            return self
-
-        def __exit__(self, *args, **kwargs) -> None:
-            pass
-
-        # pylint: disable=unused-argument
-        def copy_expert(self, sql: str, buffer: Any, buffer_size: int) -> None:
-            self._sqllog.append(sql)
-
-        def execute(self, sql: str) -> None:
-            self._sqllog.append(sql)
-
-        def get_sql_log(self) -> List[str]:
-            return self._sqllog
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._commits = 0
-        self._cursor = self.FakeCursor()
         self.objects = []
+        self._sqllog = []
+
+    def execute(self, sql: Any, *args, **kwargs) -> None:
+        self._sqllog.append(sql)
+
+    def get_sql_log(self) -> List[str]:
+        return self._sqllog
+
+    def __enter__(self) -> None:
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        pass
 
     def commit(self):
         self._commits += 1
@@ -131,14 +121,8 @@ class FakeSession(AbstractSession):
         # TO-DO: implements
         self.objects.append(obj)
 
-    def cursor(self) -> "FakeCursor":
-        return self._cursor
-
     def query(self, *entities, **kwargs) -> Query:
         return Query(entities, session=None)
-
-    def execute(self, sql: Any, **kwargs):
-        pass
 
 
 def make_db_session(engine: Engine) -> Session:
