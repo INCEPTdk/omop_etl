@@ -42,7 +42,7 @@ DIALECT_POSTGRES: Final = postgresql.dialect()
 
 def create_int_pk_column(sequence_id: str) -> Column:
     return Column(
-        Integer,
+        BigInteger,
         Sequence(sequence_id),
         primary_key=True,
         server_default=Sequence(sequence_id).next_value(),
