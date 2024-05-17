@@ -14,7 +14,7 @@ from ..modelutils import (
     DateTimeField,
     FloatField,
     IntField,
-    NumericField,
+    FloatField,
     PKIdMixin,
     PKIntField,
 )
@@ -260,7 +260,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     )
     stop_reason: Final[Column] = CharField(20)
     refills: Final[Column] = IntField()
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     days_supply: Final[Column] = IntField()
     sig: Final[Column] = CharField(None)
     route_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -350,11 +350,11 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
         FK(Concept.concept_id), nullable=False
     )
     operator_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    range_low: Final[Column] = NumericField()
-    range_high: Final[Column] = NumericField()
+    range_low: Final[Column] = FloatField()
+    range_high: Final[Column] = FloatField()
     measurement_source_value: Final[Column] = CharField(50)
     measurement_source_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id)
@@ -388,7 +388,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     observation_type_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(60)
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     qualifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -498,7 +498,7 @@ class Specimen(ModelBase, PersonIdMixin):
     )
     specimen_date: Final[Column] = DateField(nullable=False)
     specimen_datetime: Final[Column] = DateTimeField()
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     anatomic_site_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     disease_status_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -566,7 +566,7 @@ class Stem(ModelBase):
         600
     )  # this may be too small for some sources
     source_concept_id: Final[Column] = IntField()
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
@@ -588,7 +588,7 @@ class Stem(ModelBase):
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(50)
