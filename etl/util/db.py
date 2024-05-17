@@ -334,9 +334,7 @@ class DataBaseWriter:
 
             self._process_json_fields()
             self._do_read(csv_buffer, df_columns)
-            self._do_insert(
-                csv_buffer, session, str(self._model.__table__), df_columns
-            )
+            self._do_insert(session, str(self._model.__table__), df_columns)
 
 
 class DataBaseWriterBuilder:
