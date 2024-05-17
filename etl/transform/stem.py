@@ -33,6 +33,45 @@ def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
 
+    logger.info("DRUG source data to the STEM table...")
+    session.execute(get_drug_stem_insert(session, logger))
+
+    logger.info(
+        "STEM Transform in Progress, %s Events Included from source administrations.",
+        session.query(OmopStem)
+        .where(OmopStem.datasource.like("%_administrations"))
+        .count(),
+    )
+
+    drug_records_in_stem = (
+        session.query(OmopStem)
+        .where(
+            and_(OmopStem.domain_id == "Drug", OmopStem.concept_id.isnot(None))
+        )
+        .count()
+    )
+
+    drug_records_with_quantity = (
+        session.query(OmopStem)
+        .where(
+            and_(
+                OmopStem.domain_id == "Drug",
+                OmopStem.concept_id.isnot(None),
+                OmopStem.quantity.isnot(None),
+            )
+        )
+        .count()
+    )
+
+    logger.info(
+        "STEM Transform in Progress, %s Drug Events Included, of which %s (%s%%) have a quantity.",
+        drug_records_in_stem,
+        drug_records_with_quantity,
+        round(
+            drug_records_with_quantity / max(1, drug_records_in_stem) * 100, 2
+        ),
+    )
+
     for model in NONDRUG_MODELS:
         logger.info(
             "%s source data to the STEM table...",
@@ -75,45 +114,6 @@ def transform(session: AbstractSession) -> None:
             .count(),
             model.__tablename__,
         )
-
-    logger.info("DRUG source data to the STEM table...")
-    session.execute(get_drug_stem_insert(session, logger))
-
-    logger.info(
-        "STEM Transform in Progress, %s Events Included from source administrations.",
-        session.query(OmopStem)
-        .where(OmopStem.datasource.like("%_administrations"))
-        .count(),
-    )
-
-    drug_records_in_stem = (
-        session.query(OmopStem)
-        .where(
-            and_(OmopStem.domain_id == "Drug", OmopStem.concept_id.isnot(None))
-        )
-        .count()
-    )
-
-    drug_records_with_quantity = (
-        session.query(OmopStem)
-        .where(
-            and_(
-                OmopStem.domain_id == "Drug",
-                OmopStem.concept_id.isnot(None),
-                OmopStem.quantity.isnot(None),
-            )
-        )
-        .count()
-    )
-
-    logger.info(
-        "STEM Transform in Progress, %s Drug Events Included, of which %s (%s%%) have a quantity.",
-        drug_records_in_stem,
-        drug_records_with_quantity,
-        round(
-            drug_records_with_quantity / max(1, drug_records_in_stem) * 100, 2
-        ),
-    )
 
     count_rows = session.query(OmopStem).count()
     mapped_rows = (
