@@ -1,5 +1,6 @@
 """ SQL query string definition for the drug-related stem functions"""
 
+from itertools import chain
 from typing import Any, Dict
 
 from sqlalchemy import (
@@ -181,9 +182,19 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .all()
     )
     mapped_drugs = [row.__dict__ for row in mapped_drugs]
+
+    drugs_with_data = set(
+        chain(*session.query(Administrations.drug_name).distinct().all())
+    )
+    mapped_drugs_with_data = [
+        d for d in mapped_drugs if d["source_variable"] in drugs_with_data
+    ]
+
     select_stack = []
-    for mp in mapped_drugs:
-        select_stack.append(get_drug_stem_select(mp, CtePrescriptions, logger))
+    for mdwd in mapped_drugs_with_data:
+        select_stack.append(
+            get_drug_stem_select(mdwd, CtePrescriptions, logger)
+        )
 
     MappedSelectSql = union_all(*select_stack)
 
