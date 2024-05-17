@@ -84,10 +84,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         writer = DataBaseWriterBuilder().build()
         with session_context(self._session) as session:
             with self.assertRaises(RuntimeError):
-                writer.write(
-                    session,
-                    columns=self.dummy_df.columns,
-                )
+                writer.write(session, columns=self.dummy_df.columns)
 
     def test_database_writer_all_columns(self):
         writer = DataBaseWriterBuilder().build()
@@ -96,10 +93,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -116,16 +110,10 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
 
@@ -139,10 +127,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -160,19 +145,15 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
 
             # need to change the primary keys to avoid duplicates
             df2 = self.dummy_df.copy()
-            df2["a"] = df2["a"] + 10
+            df2["_id"] = df2["_id"] + 10
             writer.set_source(self.DummyTable, df2)
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(6, count, "assert dummy table")
 
@@ -185,9 +166,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -204,10 +183,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["a", "b"],
-            )
+            writer.write(session, columns=["a", "b"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -227,7 +203,7 @@ class DBDuckDBTests(DuckDBBaseTest):
             writer.write(session, columns=["b"],)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "a")
+            self._assert_col_default_primary_key(session, "_id")
             self._assert_col(session, "b")
             self._assert_col_null(session, "camelCase")
             self._assert_col_null(session, "json_field")
@@ -241,10 +217,9 @@ class DBDuckDBTests(DuckDBBaseTest):
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
             writer.write(session, columns=["camelCase"])
-            import pdb; pdb.set_trace()
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "a")
+            self._assert_col_default_primary_key(session, "_id")
             self._assert_col_null(session, "b")
             self._assert_col(session, "camelCase")
             self._assert_col_null(session, "json_field")
@@ -257,13 +232,10 @@ class DBDuckDBTests(DuckDBBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["json_field"],
-            )
+            writer.write(session, columns=["json_field"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "a")
+            self._assert_col_default_primary_key(session, "_id")
             self._assert_col_null(session, "b")
             self._assert_col_null(session, "camelCase")
             self._assert_json_col(session, "json_field")
