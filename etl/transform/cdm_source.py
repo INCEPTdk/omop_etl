@@ -22,7 +22,7 @@ def get_vocabulary_version(session: AbstractSession) -> str:
     FROM {str(Vocabulary.__table__)}
     WHERE {Vocabulary.vocabulary_id.key} = 'None'
     """
-    import pdb; pdb.set_trace()
+
     try:
         result = session.execute(sql).fetchone()
     except AttributeError:

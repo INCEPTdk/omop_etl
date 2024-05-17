@@ -14,7 +14,6 @@ from ..modelutils import (
     DateTimeField,
     FloatField,
     IntField,
-    FloatField,
     PKIdMixin,
     PKIntField,
 )

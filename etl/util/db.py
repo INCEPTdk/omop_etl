@@ -9,7 +9,7 @@ from tempfile import SpooledTemporaryFile
 from typing import Any, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
-from sqlalchemy import JSON, create_engine, inspect, text
+from sqlalchemy import JSON, create_engine, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
@@ -280,9 +280,8 @@ class DataBaseWriter:
     ) -> None:
         columns = ", ".join(c for c in columns)
         self._initialise_target(session, table)
-        dataframe = self._source.reset_index()
+        dataframe = self._source.reset_index()  # noqa: F841
         session.execute(f"INSERT INTO {table} ({columns}) SELECT {columns} FROM dataframe;")
-
 
     def _do_read(self, buffer: Any, columns: Iterable[str]) -> None:
         self._source[columns].to_csv(
