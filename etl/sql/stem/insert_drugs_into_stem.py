@@ -252,4 +252,5 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.datasource,
         ],
         select=union_all(MappedSelectSql, UnmappedSelectSql),
+        include_defaults=False,
     )
