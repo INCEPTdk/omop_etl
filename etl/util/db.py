@@ -42,10 +42,6 @@ class AbstractSession(ABC):
         pass
 
     @abstractmethod
-    def cursor(self) -> Any:
-        pass
-
-    @abstractmethod
     def query(self, *entities, **kwargs) -> Query:
         pass
 
@@ -72,10 +68,6 @@ class Session(AbstractSession):
 
     def add(self, obj: Any, **kwargs):
         self._session.add(obj, **kwargs)
-
-    def cursor(self) -> Any:
-        cursor = self._session.connection().connection.cursor()
-        return cursor
 
     def connection(self) -> Any:
         return self._session.connection()
