@@ -24,14 +24,15 @@ from etl.models.tempmodels import ConceptLookup, ConceptLookupStem
 from etl.transform.stem import transform as stem_transformation
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality,
 )
 
 
-class StemTransformationTest(PostgresBaseTest):
+class StemTransformationTest(DuckDBBaseTest):
     SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata, SourceObservations, SourceAdministrations, SourcePrescriptions, SourceDiagnosesProcedures]
     REGISTRY_MODELS = [SourceLprDiagnoses, SourceLprProcedures, SourceLprOperations, SourceLabkaBccLaboratory]
     TARGET_MODEL = [OmopVisitOccurrence, OmopPerson, OmopStem]
@@ -85,7 +86,7 @@ class StemTransformationTest(PostgresBaseTest):
         self.omop_visit_occurrence = pd.read_csv(self.INPUT_OMOP_VISIT_OCCURRENCE, index_col=False, sep=';')
 
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=self.DATETIME_COLS_TO_PARSE)
-        self.expected_cols = [getattr(self.TARGET_MODEL[2], col) for col in self.expected_df.columns.to_list()]
+        self.expected_cols = [getattr(self.TARGET_MODEL[2], col) for col in self.expected_df.columns.to_list() if col not in {"_id"}]
 
     def tearDown(self) -> None:
         super().tearDown()
@@ -111,14 +112,20 @@ class StemTransformationTest(PostgresBaseTest):
         write_to_db(engine, self.source_labka_bcc_laboratory, SourceLabkaBccLaboratory.__tablename__, schema=SourceLabkaBccLaboratory.metadata.schema)
 
     def test_transform(self):
-        self._insert_test_data(self.engine)
-
         with session_context(make_db_session(self.engine)) as session:
-            stem_transformation(session)
+            self._insert_test_data(session)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine, parse_dates=self.DATETIME_COLS_TO_PARSE)
-        result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df, self.expected_df, check_like=True, check_datetimelike_compat=True)
+            stem_transformation(session)
+            result = select(self.expected_cols).subquery()
+            result_df = enforce_dtypes(
+                self.expected_df,
+                pd.DataFrame(session.query(result).all())
+            )
+
+        # Remove columns with stochastic values (uninteresting to the test)
+        del result_df["stem_id"]
+        del self.expected_df["stem_id"]
+
+        assert_dataframe_equality(result_df, self.expected_df)
 
 __all__ = ['StemTransformationTest']
