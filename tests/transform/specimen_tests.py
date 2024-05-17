@@ -10,14 +10,14 @@ from etl.models.omopcdm54.clinical import (
 from etl.transform.specimen import transform as specimen_transformation
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
     base_path,
     enforce_dtypes,
     write_to_db,
 )
 
 
-class SpecimenTest(PostgresBaseTest):
+class SpecimenTest(DuckDBBaseTest):
 
     TARGET_MODEL = [OmopStem, OmopSpecimen]
 
@@ -32,7 +32,7 @@ class SpecimenTest(PostgresBaseTest):
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
 
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates = ['specimen_date','specimen_datetime'])
-        self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list()]
+        self.expected_cols = [getattr(self.TARGET_MODEL[1], col) for col in self.expected_df.columns.to_list() if col not in {"_id"}]
 
     def tearDown(self) -> None:
         super().tearDown()
@@ -47,10 +47,12 @@ class SpecimenTest(PostgresBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             specimen_transformation(session)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
-        result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df,
-                                      self.expected_df)
+            result = select(self.expected_cols).subquery()
+            result_df = enforce_dtypes(
+                self.expected_df,
+                pd.DataFrame(session.query(result).all())
+            )
+
+        pd.testing.assert_frame_equal(result_df, self.expected_df)
 
 __all__ = ['SpecimenTest']
