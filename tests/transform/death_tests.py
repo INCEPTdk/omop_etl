@@ -43,6 +43,7 @@ class DeathTransformationTest(DuckDBBaseTest):
 
         with session_context(make_db_session(self.engine)) as session:
             self._insert_test_data(session)
+
             death_transform(session)
             result = select(self.expected_cols).subquery()
             result_df = enforce_dtypes(
