@@ -271,9 +271,9 @@ class DataBaseWriter:
         if self.write_mode == WriteMode.OVERWRITE:
             session.execute(f"DELETE FROM {table};")
 
+    # pylint: disable=unused-variable
     def _do_insert(
         self,
-        buffer: Any,
         session: AbstractSession,
         table: str,
         columns: Iterable[str],
@@ -323,19 +323,7 @@ class DataBaseWriter:
         session: AbstractSession,
         columns: Optional[Iterable[str]] = None,
     ) -> None:
-        table = str(self._model.__table__)
         df_columns = self._source.columns if columns is None else columns
-        df_columns = ", ".join(c for c in df_columns)
-        dataframe = self._source
-        schema = self._model.metadata.schema
-        if self.write_mode == WriteMode.OVERWRITE:
-            session.execute(f"DROP TABLE IF EXISTS {table};")
-            session.execute(f"CREATE TABLE {table} AS SELECT {df_columns} FROM dataframe;")
-        else:
-            session.execute(f"INSERT INTO {table} ({df_columns}) SELECT {df_columns} FROM dataframe;")
-
-        return None
-
         with SpooledTemporaryFile(
             max_size=self.write_buffer_size,
             mode="w+t",
