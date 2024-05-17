@@ -30,7 +30,7 @@ from etl.util.exceptions import (
     TransformationErrorException,
 )
 from etl.util.random import generate_dummy_data
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
 class ProcessUnitTests(unittest.TestCase):
@@ -355,7 +355,7 @@ class ProcessUnitTests(unittest.TestCase):
         self.assertEqual(dlg2(), 10 * 3)
 
 
-class ProcessPostgresTests(PostgresBaseTest):
+class ProcessDuckDBTests(DuckDBBaseTest):
     TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
     class DummyTable(TestModelBase):
@@ -646,7 +646,7 @@ class ProcessPostgresTests(PostgresBaseTest):
         self.assertTrue(called)
 
 
-class RunETLPostgresTests(PostgresBaseTest):
+class RunETLDuckDBTests(DuckDBBaseTest):
     nentries: int = 1000
     csv_dir = os.path.join(
         Path(__file__).parent.parent.absolute(), "etl", "csv"
@@ -672,4 +672,4 @@ class RunETLPostgresTests(PostgresBaseTest):
                 self._update(model.__tablename__, pd.DataFrame(dd))
             return self
 
-__all__ = ["ProcessUnitTests", "ProcessPostgresTests", "RunETLPostgresTests"]
+__all__ = ["ProcessUnitTests", "ProcessDuckDBTests", "RunETLDuckDBTests"]

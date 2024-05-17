@@ -1,10 +1,10 @@
 from etl.sql.create_omopcdm_tables import MODELS
 from etl.transform.create_omopcdm_tables import transform
 from etl.util.db import check_table_exists, make_db_session, session_context
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
-class CreateOMOPTablesPostgresTests(PostgresBaseTest):
+class CreateOMOPTablesDuckDBTests(DuckDBBaseTest):
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(MODELS, schema='omopcdm')
@@ -25,4 +25,4 @@ class CreateOMOPTablesPostgresTests(PostgresBaseTest):
             )
 
 
-__all__ = ["CreateOMOPTablesPostgresTests"]
+__all__ = ["CreateOMOPTablesDuckDBTests"]

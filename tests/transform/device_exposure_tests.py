@@ -12,14 +12,14 @@ from etl.transform.device_exposure import (
 )
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
     base_path,
     enforce_dtypes,
     write_to_db,
 )
 
 
-class DeviceExposureTest(PostgresBaseTest):
+class DeviceExposureTest(DuckDBBaseTest):
 
     TARGET_MODEL = [OmopStem, OmopDeviceExposure]
 
@@ -49,9 +49,12 @@ class DeviceExposureTest(PostgresBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             device_exposure_transformation(session)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
-        result_df = enforce_dtypes(self.expected_df, result_df)
+            result = select(self.expected_cols).subquery()
+            result_df = enforce_dtypes(
+                self.expected_df,
+                pd.DataFrame(session.query(result).all())
+            )
+
         pd.testing.assert_frame_equal(result_df, self.expected_df)
 
 __all__ = ['DeviceExposureTest']

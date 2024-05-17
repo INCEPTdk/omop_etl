@@ -3,10 +3,10 @@
 from etl.models.omopcdm54.health_systems import Location
 from etl.sql.location import get_location_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
-class LocationTransformationTest(PostgresBaseTest):
+class LocationTransformationTest(DuckDBBaseTest):
     MODELS = [Location]
 
     def setUp(self):
