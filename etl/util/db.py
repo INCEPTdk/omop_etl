@@ -256,9 +256,9 @@ class DataBaseWriter:
         self.header: bool = True
         self.delimiter: str = ";"
         self.null_field: str = None
-        self.write_mode: Literal[
-            WriteMode.APPEND, WriteMode.OVERWRITE
-        ] = WriteMode.OVERWRITE
+        self.write_mode: Literal[WriteMode.APPEND, WriteMode.OVERWRITE] = (
+            WriteMode.OVERWRITE
+        )
         self.read_buffer_size: int = 8192
         self.write_buffer_size: int = 268435500
 

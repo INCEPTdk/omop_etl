@@ -75,14 +75,14 @@ IntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Integer, *args, **kwargs
 )
 
-PKIntField: Final[
-    Callable[[Any], Column]
-] = lambda sequence_id, *args, **kwargs: create_int_pk_column(sequence_id)
+PKIntField: Final[Callable[[Any], Column]] = (
+    lambda sequence_id, *args, **kwargs: create_int_pk_column(sequence_id)
+)
 
-PKCharField: Final[
-    Callable[[Any], Column]
-] = lambda x, sequence_id, *args, **kwargs: create_char_pk_column(
-    x, sequence_id
+PKCharField: Final[Callable[[Any], Column]] = (
+    lambda x, sequence_id, *args, **kwargs: create_char_pk_column(
+        x, sequence_id
+    )
 )
 
 BigIntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
