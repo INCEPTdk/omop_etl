@@ -10,7 +10,7 @@ from typing import Any, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
 from sqlalchemy import JSON, create_engine, inspect
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, ScalarResult
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
 
@@ -46,6 +46,10 @@ class AbstractSession(ABC):
         pass
 
     @abstractmethod
+    def scalars(self, *entities, **kwargs) -> ScalarResult:
+        pass
+
+    @abstractmethod
     def execute(self, sql: Any, *args, **kwargs):
         pass
 
@@ -74,6 +78,9 @@ class Session(AbstractSession):
 
     def query(self, *entities, **kwargs) -> Query:
         return self._session.query(*entities, **kwargs)
+
+    def scalars(self, *entities, **kwargs) -> ScalarResult:
+        return self._session.scalars(*entities, **kwargs)
 
     def execute(self, sql: Any, *args, **kwargs):
         self._session.execute(sql, *args, **kwargs)
