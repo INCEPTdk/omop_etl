@@ -5,7 +5,7 @@ import os
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
-from tempfile import SpooledTemporaryFile
+from tempfile import NamedTemporaryFile
 from typing import Any, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
@@ -250,7 +250,7 @@ class DataBaseWriter:
 
         # configuration options
         self.encoding: str = "utf-8"
-        self.header: bool = False
+        self.header: bool = True
         self.delimiter: str = ";"
         self.null_field: str = None
         self.write_mode: Literal[
@@ -282,17 +282,19 @@ class DataBaseWriter:
     def _do_insert(
         self,
         session: AbstractSession,
+        file_path,
         table: str,
         columns: Iterable[str],
     ) -> None:
         columns = ", ".join(c for c in columns)
         self._initialise_target(session, table)
-        dataframe = self._source.reset_index()  # noqa: F841
-        session.execute(f"INSERT INTO {table} ({columns}) SELECT {columns} FROM dataframe;")
+        session.execute(
+            f"INSERT INTO {table} ({columns}) SELECT {columns} FROM read_csv('{file_path}');"
+        )
 
-    def _do_read(self, buffer: Any, columns: Iterable[str]) -> None:
+    def _do_read(self, file_path: Any, columns: Iterable[str]) -> None:
         self._source[columns].to_csv(
-            buffer,
+            file_path,
             sep=self.delimiter,
             header=self.header,
             index=False,
@@ -330,17 +332,19 @@ class DataBaseWriter:
         columns: Optional[Iterable[str]] = None,
     ) -> None:
         df_columns = self._source.columns if columns is None else columns
-        with SpooledTemporaryFile(
-            max_size=self.write_buffer_size,
-            mode="w+t",
-            encoding=self.encoding,
-        ) as csv_buffer:
+        with NamedTemporaryFile(
+            suffix=".csv",
+            mode="w+b",
+            delete=True,
+        ) as csv_file:
             if self._source is None or self._model is None:
                 raise RuntimeError("No source dataframe set!")
 
             self._process_json_fields()
-            self._do_read(csv_buffer, df_columns)
-            self._do_insert(session, str(self._model.__table__), df_columns)
+            self._do_read(csv_file.name, df_columns)
+            self._do_insert(
+                session, csv_file.name, str(self._model.__table__), df_columns
+            )
 
 
 class DataBaseWriterBuilder:
