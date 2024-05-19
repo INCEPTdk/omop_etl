@@ -4,6 +4,7 @@ from typing import Any, Final
 
 import pandas as pd
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import select
 
 from etl.models.modelutils import (
     CharField,
@@ -39,7 +40,6 @@ class DBDuckDBTests(DuckDBBaseTest):
         self._session = make_db_session(self.engine)
         self.dummy_df = pd.DataFrame(
             {
-                "_id": [1, 2, 3],
                 "a": [1, 4, 6],
                 "b": ["test1", "test2", "dhsjak"],
                 "json_field": [{"a": 1, "b": 2}, {"c": 3}, {"d": 4}],
@@ -56,17 +56,16 @@ class DBDuckDBTests(DuckDBBaseTest):
         else:
             return 0
 
-    def _round(self, x: float = None, decimals: int = 0) -> float:
+    def _round(self, x: float = None, precision: int = 0) -> float:
         try:
-            return round(x, decimals)
+            return round(x, precision)
         except TypeError:
             return x
 
     def _assert_col(self, session: Session, col_name: str) -> None:
-        entries = session.query(self.DummyTable).all()
-        col_values = [getattr(e, col_name) for e in entries]
+        col_values = session.scalars(select(getattr(self.DummyTable, col_name))).all()
         expected = [None if pd.isna(v) else v for v in self.dummy_df[col_name].values]
-        # Slight hack to Handle imprecision in floating point numbers
+        # Slight hack to handle imprecision in floating point numbers
         decimals = (self._find_precision(n) for n in expected)
         col_values = [
             self._round(v, n_dec) if not pd.isna(v) else None for v, n_dec in zip(col_values, decimals)
