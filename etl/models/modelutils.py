@@ -92,7 +92,7 @@ FloatField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Float, *args, **kwargs
 )
 NumericField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
-    Numeric, *args, **kwargs
+    Numeric(asdecimal=False), *args, **kwargs
 )
 TextField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Text, *args, **kwargs
