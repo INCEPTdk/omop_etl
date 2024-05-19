@@ -10,7 +10,13 @@ from etl.models.omopcdm54.clinical import (
 from etl.models.source import Person as RegistryPerson
 from etl.transform.death import transform as death_transform
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, base_path, write_to_db, enforce_dtypes, assert_dataframe_equality
+from tests.testutils import (
+    DuckDBBaseTest,
+    assert_dataframe_equality,
+    base_path,
+    enforce_dtypes,
+    write_to_db,
+)
 
 
 class DeathTransformationTest(DuckDBBaseTest):

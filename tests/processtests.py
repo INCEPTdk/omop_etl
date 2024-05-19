@@ -11,8 +11,8 @@ from etl.models.modelutils import (
     CharField,
     FloatField,
     IntField,
-    make_model_base,
     PKIdMixin,
+    make_model_base,
 )
 from etl.models.source import SOURCE_MODELS
 from etl.models.tempmodels import TEMP_MODELS

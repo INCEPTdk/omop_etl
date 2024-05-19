@@ -7,7 +7,13 @@ from etl.models.omopcdm54.clinical import Person as OmopPerson
 from etl.models.source import Person as SourcePerson
 from etl.transform.person import transform
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, assert_dataframe_equality, base_path, write_to_db, enforce_dtypes
+from tests.testutils import (
+    DuckDBBaseTest,
+    assert_dataframe_equality,
+    base_path,
+    enforce_dtypes,
+    write_to_db,
+)
 
 
 class PersonTransformationTest(DuckDBBaseTest):

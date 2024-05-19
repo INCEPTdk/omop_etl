@@ -15,7 +15,13 @@ from etl.models.source import (
 from etl.models.tempmodels import ConceptLookup
 from etl.sql.visit_occurrence import get_visit_occurrence_insert
 from etl.util.db import make_db_session, session_context
-from tests.testutils import DuckDBBaseTest, base_path, write_to_db, enforce_dtypes, assert_dataframe_equality
+from tests.testutils import (
+    DuckDBBaseTest,
+    assert_dataframe_equality,
+    base_path,
+    enforce_dtypes,
+    write_to_db,
+)
 
 
 class VisitOccurrenceTransformationTest(DuckDBBaseTest):

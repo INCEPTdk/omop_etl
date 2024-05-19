@@ -9,7 +9,12 @@ import pandas as pd
 
 from etl.models.modelutils import create_tables_sql, drop_tables_sql
 from etl.util.connection import POSTGRES_DB, ConnectionDetails
-from etl.util.db import make_db_session, make_engine_postgres, make_engine_duckdb, session_context
+from etl.util.db import (
+    make_db_session,
+    make_engine_duckdb,
+    make_engine_postgres,
+    session_context,
+)
 
 
 class PostgresBaseTest(unittest.TestCase):
