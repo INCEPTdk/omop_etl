@@ -138,7 +138,16 @@ def get_drug_stem_select(
     drug_name: str = drug_mapping["source_variable"]
 
     CteAdministrationsThisDrug = (
-        select(Administrations)
+        select(
+            Administrations.courseid,
+            Administrations.timestamp,
+            Administrations.epaspresbaseid,
+            Administrations.drug_name,
+            Administrations.administration_type,
+            Administrations.value,
+            Administrations.value0,
+            Administrations.value1,
+        )
         .where(Administrations.drug_name == drug_name)
         .cte(f"cte_administrations_{drug_name}")
     )
@@ -171,7 +180,20 @@ def get_drug_stem_select(
 
 def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     CtePrescriptions = (
-        select(Prescriptions)
+        select(
+            Prescriptions.courseid,
+            Prescriptions.epaspresbaseid,
+            Prescriptions.epaspresid,
+            Prescriptions.epaspresdrugatc,
+            Prescriptions.epaspresadmroute,
+            Prescriptions.epaspresdose,
+            Prescriptions.epaspresconc,
+            Prescriptions.epaspresdrugunit,
+            Prescriptions.epaspresdrugunitact,
+            Prescriptions.epaspresmixamount,
+            Prescriptions.epaspresweight,
+            Prescriptions.epaspresdrugname,
+        )
         .where(Prescriptions.epaspresbaseid == Prescriptions.epaspresid)
         .cte("cte_prescriptions")
     )
