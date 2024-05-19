@@ -8,10 +8,9 @@ from sqlalchemy.orm import Session
 from etl.models.modelutils import (
     CharField,
     FloatField,
-    IntField,
     JSONField,
+    PKIntField,
     make_model_base,
-    PKIdMixin,
 )
 from etl.util.db import (
     DataBaseWriterBuilder,
@@ -25,11 +24,11 @@ from tests.testutils import DuckDBBaseTest
 class DBDuckDBTests(DuckDBBaseTest):
     TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase, PKIdMixin):
+    class DummyTable(TestModelBase):
         __tablename__: Final = "dummy_table"
         __table_args__: Final = {"schema": "dummy"}
 
-        a: Final = IntField()
+        a: Final = PKIntField("dummy_dummy_table_id_seq")
         b: Final = CharField(10)
         camelCase: Final = FloatField(key='"camelCase"')
         json_field: Final = JSONField()
@@ -168,7 +167,7 @@ class DBDuckDBTests(DuckDBBaseTest):
 
             # need to change the primary keys to avoid duplicates
             df2 = self.dummy_df.copy()
-            df2["_id"] = df2["_id"] + 10
+            df2["a"] = df2["a"] + 10
             writer.set_source(self.DummyTable, df2)
             writer.write(session)
             count = session.query(self.DummyTable).count()
@@ -220,7 +219,7 @@ class DBDuckDBTests(DuckDBBaseTest):
             writer.write(session, columns=["b"],)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "_id")
+            self._assert_col_default_primary_key(session, "a")
             self._assert_col(session, "b")
             self._assert_col_null(session, "camelCase")
             self._assert_col_null(session, "json_field")
@@ -236,7 +235,7 @@ class DBDuckDBTests(DuckDBBaseTest):
             writer.write(session, columns=["camelCase"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "_id")
+            self._assert_col_default_primary_key(session, "a")
             self._assert_col_null(session, "b")
             self._assert_col(session, "camelCase")
             self._assert_col_null(session, "json_field")
@@ -252,7 +251,7 @@ class DBDuckDBTests(DuckDBBaseTest):
             writer.write(session, columns=["json_field"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            self._assert_col_default_primary_key(session, "_id")
+            self._assert_col_default_primary_key(session, "a")
             self._assert_col_null(session, "b")
             self._assert_col_null(session, "camelCase")
             self._assert_json_col(session, "json_field")
