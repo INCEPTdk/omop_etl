@@ -123,7 +123,7 @@ class FakeSession(AbstractSession):
     def query(self, *entities, **kwargs) -> Query:
         return Query(entities, session=None)
 
-    def scalars(self):
+    def scalars(self, *entities, **kwargs) -> None:
         pass
 
 
