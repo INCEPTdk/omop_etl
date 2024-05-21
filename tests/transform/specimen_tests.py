@@ -11,6 +11,7 @@ from etl.transform.specimen import transform as specimen_transformation
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
+    assert_dataframe_equality,
     base_path,
     enforce_dtypes,
     write_to_db,
@@ -53,6 +54,6 @@ class SpecimenTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        pd.testing.assert_frame_equal(result_df, self.expected_df)
+        assert_dataframe_equality(result_df, self.expected_df, index_col='specimen_id')
 
 __all__ = ['SpecimenTest']

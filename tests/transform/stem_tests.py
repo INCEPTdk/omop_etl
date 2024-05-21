@@ -121,11 +121,7 @@ class StemTransformationTest(DuckDBBaseTest):
                 self.expected_df,
                 pd.DataFrame(session.query(result).all())
             )
-
-        # Remove columns with stochastic values (uninteresting to the test)
-        del result_df["stem_id"]
-        del self.expected_df["stem_id"]
-
-        assert_dataframe_equality(result_df, self.expected_df)
+        
+        assert_dataframe_equality(result_df, self.expected_df, index_col='stem_id')
 
 __all__ = ['StemTransformationTest']
