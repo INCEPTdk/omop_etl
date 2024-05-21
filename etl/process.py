@@ -33,6 +33,7 @@ from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.device_exposure import transform as device_exposure_transform
+from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.observation import transform as observation_transform
@@ -200,6 +201,12 @@ def run_etl(
             session=session,
             func=measurement_transform,
             description="Measurement transform",
+        ),
+        SessionOperation(
+            key=str(DrugExposure.__table__),
+            session=session,
+            func=drug_exposure_transform,
+            description="Drug exposure transform",
         ),
         SessionOperation(
             key=str(Observation.__table__),
