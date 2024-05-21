@@ -2,8 +2,8 @@
 
 import logging
 
+from ..sql.eras.drug_era import DrugEraInsert
 from ..util.db import AbstractSession
-from .transformutils import execute_sql_file
 
 logger = logging.getLogger("ETL.Era")
 
@@ -11,5 +11,8 @@ logger = logging.getLogger("ETL.Era")
 def transform(session: AbstractSession) -> None:
     """Create the Era tables"""
     logger.info("Creating Era tables in DB... ")
-    execute_sql_file(session, "era.sql")
+    logger.info("  Creating DRUG ERA table...")
+    session.execute(DrugEraInsert)
+
+    # here will the other era queries be executed
     logger.info("Era tables created successfully!")
