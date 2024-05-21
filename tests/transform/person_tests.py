@@ -18,7 +18,7 @@ class PersonTransformationTest(PostgresBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
+        self._create_tables_and_schema(self.SOURCE_MODELS, schema='registries')
         self._create_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
         self.test_data_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_OMOP_PERSON, index_col=False, sep=';')
@@ -26,7 +26,7 @@ class PersonTransformationTest(PostgresBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
+        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='registries')
         self._drop_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
 
     def _insert_test_data(self, engine):
