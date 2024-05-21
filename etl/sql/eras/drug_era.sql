@@ -34,9 +34,9 @@ ctePreDrugTarget(drug_exposure_id, person_id, ingredient_concept_id, drug_exposu
 			drug_exposure_start_date + INTERVAL '1 day'
 			---Add 1 day to the drug_exposure_start_date since there is no end_date or INTERVAL for the days_supply
 		) AS drug_exposure_end_date
-	FROM {target_schema}.drug_exposure d
-		JOIN {target_schema}.concept_ancestor ca ON ca.descendant_concept_id = d.drug_concept_id
-		JOIN {target_schema}.concept c ON ca.ancestor_concept_id = c.concept_id
+	FROM {TARGET_SCHEMA}.drug_exposure d
+		JOIN {TARGET_SCHEMA}.concept_ancestor ca ON ca.descendant_concept_id = d.drug_concept_id
+		JOIN {TARGET_SCHEMA}.concept c ON ca.ancestor_concept_id = c.concept_id
 		WHERE c.vocabulary_id = 'RxNorm' ---8 selects RxNorm from the vocabulary_id
 		AND c.concept_class_id = 'Ingredient'
 		AND d.drug_concept_id != 0 ---Our unmapped drug_concept_id's are set to 0, so we don't want different drugs wrapped up in the same era
@@ -111,7 +111,7 @@ GROUP BY
 --------------------------------------------------------------------------------------------------------------
 , cteEndDates (person_id, ingredient_concept_id, end_date) AS -- the magic
 (
-	SELECT person_id, ingredient_concept_id, event_date - INTERVAL '30 days' AS end_date -- unpad the end date
+	SELECT person_id, ingredient_concept_id, event_date - INTERVAL ':look_back_interval' AS end_date -- unpad the end date
 	FROM
 	(
 		SELECT person_id, ingredient_concept_id, event_date, event_type,
@@ -158,7 +158,7 @@ GROUP BY
 	, drug_exposure_count
 	, days_exposed
 )
-INSERT INTO drug_era(person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
+INSERT INTO {TARGET_SCHEMA}.drug_era(person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
 SELECT
 	person_id
 	, drug_concept_id
