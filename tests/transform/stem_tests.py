@@ -121,7 +121,7 @@ class StemTransformationTest(DuckDBBaseTest):
                 self.expected_df,
                 pd.DataFrame(session.query(result).all())
             )
-        
+
         assert_dataframe_equality(result_df, self.expected_df, index_col='stem_id')
 
 __all__ = ['StemTransformationTest']
