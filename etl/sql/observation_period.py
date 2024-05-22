@@ -26,6 +26,7 @@ CONCEPT_ID_REGISTRY: Final[int] = 32879
 DEFAULT_DATE: Final[date] = date(1800, 1, 1)
 DEFAULT_OBSERVATION_DATE: Final[str] = DEFAULT_DATE.isoformat()
 
+
 def _obs_period_sql(type_concept_id) -> str:
     return f"""
     SELECT
@@ -206,6 +207,7 @@ def _obs_period_sql(type_concept_id) -> str:
         )
 """
 
+
 @clean_sql
 def _insert_observation_periods_sql() -> str:
     return f"""
@@ -217,46 +219,48 @@ INSERT INTO
             {ObservationPeriod.period_type_concept_id.key}
 ) WITH temp_observation_period as (
     {get_observation_period_sql(CONCEPT_ID_EHR)}
-    union all 
+    union all
     {get_observation_period_sql(CONCEPT_ID_REGISTRY)}
-), OrderedTimes AS (
-    SELECT person_id, observation_period_start_date AS TimePoint
+), ordered_times AS (
+    SELECT person_id, observation_period_start_date AS timepoint
     FROM temp_observation_period
     UNION
-    SELECT person_id, observation_period_end_date AS TimePoint
+    SELECT person_id, observation_period_end_date AS timepoint
     FROM temp_observation_period
 ),
-DistinctTimes AS (
-    SELECT person_id, TimePoint, LEAD(TimePoint, 1, TimePoint) OVER (PARTITION BY person_id ORDER BY TimePoint) AS NextTimePoint
-    FROM OrderedTimes
+distinct_times AS (
+    SELECT person_id, timepoint, LEAD(timepoint, 1, timepoint) OVER (PARTITION BY person_id ORDER BY timepoint) AS next_timepoint
+    FROM ordered_times
 ),
-TimeIntervals AS (
-    SELECT person_id, TimePoint AS IntervalStart, NextTimePoint AS IntervalEnd
-    FROM DistinctTimes
-    WHERE TimePoint <> NextTimePoint
+time_intervals AS (
+    SELECT person_id, timepoint AS interval_start, next_timepoint AS interval_end
+    FROM distinct_times
+    WHERE timepoint <> next_timepoint
 ),
-ExpandedPeriods AS (
-    SELECT t.period_type_concept_id, 
-        t.person_id, 
-        t.observation_period_start_date, 
+expanded_periods AS (
+    SELECT t.period_type_concept_id,
+        t.person_id,
+        t.observation_period_start_date,
         t.observation_period_end_date,
-        ti.person_id AS IntervalGroupID, 
-        ti.IntervalStart, 
-        ti.IntervalEnd,
+        ti.person_id AS interval_groupid,
+        ti.interval_start,
+        ti.interval_end,
         CASE WHEN t.period_type_concept_id = {CONCEPT_ID_EHR} THEN 0 ELSE 1 END AS period_type_concept_id_ranking
     FROM temp_observation_period t
-    JOIN TimeIntervals ti 
-    ON t.person_id = ti.person_id 
-        AND ti.IntervalStart < t.observation_period_end_date 
-        AND ti.IntervalEnd > t.observation_period_start_date
-) SELECT DISTINCT ON (person_id, observation_period_start_date, observation_period_end_date) person_id, IntervalStart as observation_period_start_date, IntervalEnd as observation_period_end_date, period_type_concept_id
-FROM ExpandedPeriods
-WHERE IntervalStart < IntervalEnd
+    JOIN time_intervals ti
+    ON t.person_id = ti.person_id
+        AND ti.interval_start < t.observation_period_end_date
+        AND ti.interval_end > t.observation_period_start_date
+) SELECT DISTINCT ON (person_id, observation_period_start_date, observation_period_end_date) person_id, interval_start as observation_period_start_date, interval_end as observation_period_end_date, period_type_concept_id
+FROM expanded_periods
+WHERE interval_start < interval_end
 ORDER BY person_id, observation_period_start_date, observation_period_end_date, period_type_concept_id_ranking
 """
 
+
 def get_observation_period_sql(type_concept_id: int) -> str:
     return _obs_period_sql(type_concept_id)
+
 
 def insert_observation_periods_sql() -> str:
     return _insert_observation_periods_sql()
