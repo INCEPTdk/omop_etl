@@ -185,13 +185,7 @@ def set_constraints_sql(
     sql = []
     for model in models:
         for constraint in model.__table__.constraints:
-            sql.append(
-                str(
-                    AddConstraint(constraint, if_not_exists=True).compile(
-                        dialect=dialect
-                    )
-                )
-            )
+            sql.append(str(AddConstraint(constraint).compile(dialect=dialect)))
     return "; ".join(sql) + ";"
 
 
