@@ -11,7 +11,7 @@ from ..modelutils import (
     IntField,
     NumericField,
     PKIntField,
-    add_etl_step
+    add_etl_step,
 )
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept

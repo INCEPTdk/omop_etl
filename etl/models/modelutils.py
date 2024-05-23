@@ -113,6 +113,7 @@ class _MetaModel(DeclarativeMeta):
     """
     Meta class to protect us from adding extra fields to our models
     """
+
     __step__: int = -1
 
     # pylint: disable=no-self-argument
@@ -303,4 +304,5 @@ def add_etl_step(n):
     def decorator(cls):
         cls.__step__ = n
         return cls
+
     return decorator

@@ -1,7 +1,7 @@
 """Create the omopcdm tables"""
 
-from typing import Final, List
 import os
+from typing import Final, List
 
 from ..models.modelutils import (
     DIALECT_POSTGRES,
@@ -31,6 +31,7 @@ from ..models.omopcdm54 import (
     NoteNlp,
     Observation,
     ObservationPeriod,
+    OmopCdmModelBase,
     PayerPlanPeriod,
     Person,
     ProcedureOccurrence,
@@ -40,7 +41,6 @@ from ..models.omopcdm54 import (
     VisitDetail,
     VisitOccurrence,
 )
-from ..models.omopcdm54 import OmopCdmModelBase
 from ..util.sql import clean_sql
 
 MODELS: Final[List] = [
@@ -75,7 +75,8 @@ MODELS: Final[List] = [
     CohortDefinition,
     Stem,
 ]
-ETL_RUN_STEP: Final[int] = int(os.getenv("ETL_RUN_STEP", 0))
+ETL_RUN_STEP: Final[int] = int(os.getenv("ETL_RUN_STEP", "0"))
+
 
 @clean_sql
 def _ddl_sql() -> str:
@@ -86,9 +87,13 @@ def _ddl_sql() -> str:
     ]
     return " ".join(statements)
 
+
 def get_models_in_scope() -> List[OmopCdmModelBase]:
-    models = [m for m in MODELS if m.__step__ > ETL_RUN_STEP or m.__step__ == -1]
+    models = [
+        m for m in MODELS if m.__step__ > ETL_RUN_STEP or m.__step__ == -1
+    ]
     models = sorted(models, key=lambda m: m.__step__)
     return models
+
 
 SQL: Final[str] = _ddl_sql()
