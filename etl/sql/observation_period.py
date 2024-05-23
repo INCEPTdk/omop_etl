@@ -25,35 +25,44 @@ CONCEPT_ID_EHR: Final[int] = 32817
 CONCEPT_ID_REGISTRY: Final[int] = 32879
 DEFAULT_DATE: Final[date] = date(1800, 1, 1)
 DEFAULT_OBSERVATION_DATE: Final[str] = DEFAULT_DATE.isoformat()
-
+REGISTRY_START_DATE: Final[str] = date(1977, 1, 1).isoformat()
+REGISTRY_END_DATE: Final[str] = date(2018, 4, 1).isoformat()
 
 def _obs_period_sql(type_concept_id) -> str:
     return f"""
     SELECT
         {ObservationPeriod.person_id.key},
-        COALESCE(
-            LEAST(
-                minimum_measurement_date,
-                minimum_condition_date,
-                minimum_procedure_date,
-                minimum_observation_date,
-                minimum_drug_date,
-                minimum_visit_date
-            ),
-            '{DEFAULT_OBSERVATION_DATE}'
-        ) AS {ObservationPeriod.observation_period_start_date.key},
-        COALESCE(
-            GREATEST(
-                maximum_measurement_date,
-                maximum_condition_date,
-                maximum_procedure_date,
-                maximum_observation_date,
-                maximum_drug_date,
-                death_date,
-                maximum_visit_date
-            ),
-            '{DEFAULT_OBSERVATION_DATE}'
-        ) AS {ObservationPeriod.observation_period_end_date.key},
+        CASE WHEN {type_concept_id} = {CONCEPT_ID_EHR} THEN
+            COALESCE(
+                LEAST(
+                    minimum_measurement_date,
+                    minimum_condition_date,
+                    minimum_procedure_date,
+                    minimum_observation_date,
+                    minimum_drug_date,
+                    minimum_visit_date
+                ), '{DEFAULT_OBSERVATION_DATE}'
+            ) 
+        ELSE COALESCE(
+                GREATEST( '{REGISTRY_START_DATE}', birth_datetime::date),
+                '{REGISTRY_START_DATE}'
+            ) END AS {ObservationPeriod.observation_period_start_date.key},
+        CASE WHEN {type_concept_id} = {CONCEPT_ID_EHR} THEN
+            COALESCE(
+                GREATEST(
+                    maximum_measurement_date,
+                    maximum_condition_date,
+                    maximum_procedure_date,
+                    maximum_observation_date,
+                    maximum_drug_date,
+                    death_date,
+                    maximum_visit_date
+                ), '{DEFAULT_OBSERVATION_DATE}'
+            ) 
+        ELSE COALESCE(
+            LEAST('{REGISTRY_END_DATE}', death_date),
+            '{REGISTRY_END_DATE}'
+        ) END AS {ObservationPeriod.observation_period_end_date.key},
         {type_concept_id} AS {ObservationPeriod.period_type_concept_id.key}
     FROM
     (
@@ -197,6 +206,18 @@ def _obs_period_sql(type_concept_id) -> str:
                 GROUP BY
                     1
             ) death_date USING ({Death.person_id.key})
+            
+            FULL OUTER JOIN (
+                SELECT
+                    {Person.person_id.key},
+                    MAX({Person.birth_datetime.key}) AS {Person.birth_datetime.key}
+                FROM
+                    {str(Person.__table__)}
+                WHERE
+                    {Person.birth_datetime.key} <> '{DEFAULT_OBSERVATION_DATE}'
+                GROUP BY
+                    1
+            ) birth_datetime USING ({Person.person_id.key})
     ) all_ranges
     WHERE
         {Person.person_id.key} in (
@@ -238,7 +259,8 @@ time_intervals AS (
     WHERE timepoint <> next_timepoint
 ),
 expanded_periods AS (
-    SELECT t.period_type_concept_id,
+    SELECT DISTINCT ON (t.person_id, ti.interval_start, ti.interval_end)
+        t.period_type_concept_id,
         t.person_id,
         t.observation_period_start_date,
         t.observation_period_end_date,
@@ -251,10 +273,19 @@ expanded_periods AS (
     ON t.person_id = ti.person_id
         AND ti.interval_start < t.observation_period_end_date
         AND ti.interval_end > t.observation_period_start_date
-) SELECT DISTINCT ON (person_id, observation_period_start_date, observation_period_end_date) person_id, interval_start as observation_period_start_date, interval_end as observation_period_end_date, period_type_concept_id
-FROM expanded_periods
-WHERE interval_start < interval_end
-ORDER BY person_id, observation_period_start_date, observation_period_end_date, period_type_concept_id_ranking
+    ORDER BY t.person_id, ti.interval_start, ti.interval_end, period_type_concept_id_ranking
+), adjusted as ( 
+	 select person_id
+	 ,period_type_concept_id
+	 ,case when LAG(interval_end, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_start and 
+	 			LAG (period_type_concept_id, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR} and period_type_concept_id = {CONCEPT_ID_REGISTRY} 
+	 			then date_add(interval_start, '1 day'::interval) else interval_start end AS observation_period_start_date
+	 ,case when LEAD(interval_start, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_end and 
+	 			LEAD (period_type_concept_id, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR} and period_type_concept_id = {CONCEPT_ID_REGISTRY} 
+	 			then date_add(interval_end, '-1 day'::interval) else interval_end end AS observation_period_end_date
+	from expanded_periods
+	ORDER BY person_id, interval_start, period_type_concept_id
+) select person_id, observation_period_start_date::date, observation_period_end_date::date, period_type_concept_id from adjusted;
 """
 
 
