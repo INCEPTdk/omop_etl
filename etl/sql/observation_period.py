@@ -28,6 +28,7 @@ DEFAULT_OBSERVATION_DATE: Final[str] = DEFAULT_DATE.isoformat()
 REGISTRY_START_DATE: Final[str] = date(1977, 1, 1).isoformat()
 REGISTRY_END_DATE: Final[str] = date(2018, 4, 1).isoformat()
 
+
 def _obs_period_sql(type_concept_id) -> str:
     return f"""
     SELECT
@@ -42,7 +43,7 @@ def _obs_period_sql(type_concept_id) -> str:
                     minimum_drug_date,
                     minimum_visit_date
                 ), '{DEFAULT_OBSERVATION_DATE}'
-            ) 
+            )
         ELSE COALESCE(
                 GREATEST( '{REGISTRY_START_DATE}', birth_datetime::date),
                 '{REGISTRY_START_DATE}'
@@ -58,7 +59,7 @@ def _obs_period_sql(type_concept_id) -> str:
                     death_date,
                     maximum_visit_date
                 ), '{DEFAULT_OBSERVATION_DATE}'
-            ) 
+            )
         ELSE COALESCE(
             LEAST('{REGISTRY_END_DATE}', death_date),
             '{REGISTRY_END_DATE}'
@@ -206,7 +207,7 @@ def _obs_period_sql(type_concept_id) -> str:
                 GROUP BY
                     1
             ) death_date USING ({Death.person_id.key})
-            
+
             FULL OUTER JOIN (
                 SELECT
                     {Person.person_id.key},
@@ -274,17 +275,23 @@ expanded_periods AS (
         AND ti.interval_start < t.observation_period_end_date
         AND ti.interval_end > t.observation_period_start_date
     ORDER BY t.person_id, ti.interval_start, ti.interval_end, period_type_concept_id_ranking
-), adjusted as ( 
-	 select person_id
-	 ,period_type_concept_id
-	 ,case when LAG(interval_end, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_start and 
-	 			LAG (period_type_concept_id, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR} and period_type_concept_id = {CONCEPT_ID_REGISTRY} 
-	 			then date_add(interval_start, '1 day'::interval) else interval_start end AS observation_period_start_date
-	 ,case when LEAD(interval_start, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_end and 
-	 			LEAD (period_type_concept_id, 1) OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR} and period_type_concept_id = {CONCEPT_ID_REGISTRY} 
-	 			then date_add(interval_end, '-1 day'::interval) else interval_end end AS observation_period_end_date
-	from expanded_periods
-	ORDER BY person_id, interval_start, period_type_concept_id
+), adjusted as (
+     select person_id
+     ,period_type_concept_id
+     ,case when LAG(interval_end, 1)
+                OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_start and
+                LAG (period_type_concept_id, 1)
+                OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR}
+                and period_type_concept_id = {CONCEPT_ID_REGISTRY}
+                then date_add(interval_start, '1 day'::interval) else interval_start end AS observation_period_start_date
+     ,case when LEAD(interval_start, 1)
+                OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = interval_end and
+                LEAD (period_type_concept_id, 1)
+                OVER (PARTITION BY person_id ORDER BY interval_start, period_type_concept_id) = {CONCEPT_ID_EHR}
+                and period_type_concept_id = {CONCEPT_ID_REGISTRY}
+                then date_add(interval_end, '-1 day'::interval) else interval_end end AS observation_period_end_date
+    from expanded_periods
+    ORDER BY person_id, interval_start, period_type_concept_id
 ) select person_id, observation_period_start_date::date, observation_period_end_date::date, period_type_concept_id from adjusted;
 """
 
