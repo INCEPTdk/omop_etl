@@ -25,7 +25,7 @@ from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .conversions import get_conversion_factor
 from .recipes import get_quantity_recipe
-from .utils import get_case_statement
+from .utils import get_case_statement, toggle_stem_transform
 
 
 # pylint: disable=too-many-arguments
@@ -178,6 +178,7 @@ def get_drug_stem_select(
     return union_all(*select_stack)
 
 
+@toggle_stem_transform
 def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     CtePrescriptions = (
         select(

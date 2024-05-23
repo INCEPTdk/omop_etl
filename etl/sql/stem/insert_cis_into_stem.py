@@ -20,7 +20,11 @@ from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ...models.tempmodels import ConceptLookupStem
-from .utils import find_unique_column_names, get_case_statement
+from .utils import (
+    find_unique_column_names,
+    get_case_statement,
+    toggle_stem_transform,
+)
 
 
 def create_simple_stem_insert(
@@ -133,6 +137,7 @@ def create_simple_stem_insert(
     )
 
 
+@toggle_stem_transform
 def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
     unique_start_date_columns = find_unique_column_names(
         session, model, ConceptLookupStem, "start_date"

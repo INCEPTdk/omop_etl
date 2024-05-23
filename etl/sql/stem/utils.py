@@ -1,5 +1,7 @@
 """Miscellaneous utility functions for stem-table logic"""
 
+import inspect
+import os
 from itertools import chain
 from typing import Any
 
@@ -77,3 +79,22 @@ def find_unique_column_names(
             Within one single datasource there shouln't be more than one {column}."""
         )
     return col_name
+
+
+def toggle_stem_transform(transform_function):
+    caller_module = inspect.getmodule(inspect.stack()[1][0])
+    # pylint: disable=unused-variable
+    transform_name, suffix = os.path.splitext(
+        os.path.basename(caller_module.__file__)
+    )
+
+    active_transforms = set(
+        os.getenv("STEM_TRANSFORMS", default=transform_name).split(",")
+    )
+
+    def wrapper(*args, **kwargs):
+        if transform_name in active_transforms:
+            return transform_function(*args, **kwargs)
+        return "SELECT NULL;"
+
+    return wrapper

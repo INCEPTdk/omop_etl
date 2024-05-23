@@ -22,9 +22,14 @@ from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
-from .utils import find_unique_column_names, get_case_statement
+from .utils import (
+    find_unique_column_names,
+    get_case_statement,
+    toggle_stem_transform,
+)
 
 
+@toggle_stem_transform
 def get_laboratory_stem_insert(
     session: Any = None, model: Any = None
 ) -> Insert:
