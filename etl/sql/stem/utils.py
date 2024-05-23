@@ -5,6 +5,7 @@ from typing import Any
 
 from sqlalchemy import case, cast
 from sqlalchemy.sql import expression
+from sqlalchemy.sql.expression import CTE
 
 
 def get_case_statement(
@@ -20,6 +21,9 @@ def get_case_statement(
         The columns with the specific casts.
         If value type is specified, allows to case on the value_type in the lookup.
     """
+
+    if isinstance(model, CTE):
+        model = model.c  # make getattr() to look in the right place for CTEs
 
     if column_name is None:
         exp = cast(expression.null(), cast_as)
@@ -47,7 +51,7 @@ def find_unique_column_names(
     model: Any = None,
     lookup_model: Any = None,
     column: str = None,
-) -> list:
+) -> Any:
     """
     For a given column ad datasource, ie start_date and
     procedures, find all the names of that column in the source.

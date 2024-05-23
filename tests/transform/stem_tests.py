@@ -18,6 +18,7 @@ from etl.models.source import (
     LprOperations as SourceLprOperations,
     LprProcedures as SourceLprProcedures,
     Observations as SourceObservations,
+    Prescriptions as SourcePrescriptions,
 )
 from etl.models.tempmodels import ConceptLookup, ConceptLookupStem
 from etl.transform.stem import transform as stem_transformation
@@ -31,7 +32,7 @@ from tests.testutils import (
 
 
 class StemTransformationTest(PostgresBaseTest):
-    SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata, SourceObservations, SourceAdministrations, SourceDiagnosesProcedures]
+    SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata, SourceObservations, SourceAdministrations, SourcePrescriptions, SourceDiagnosesProcedures]
     REGISTRY_MODELS = [SourceLprDiagnoses, SourceLprProcedures, SourceLprOperations, SourceLabkaBccLaboratory]
     TARGET_MODEL = [OmopVisitOccurrence, OmopPerson, OmopStem]
     LOOKUPS = [ConceptLookup, ConceptLookupStem]
@@ -43,6 +44,7 @@ class StemTransformationTest(PostgresBaseTest):
     INPUT_SOURCE_COURSEMETADATA = f"{base_path()}/test_data/stem/in_source_course_metadata.csv"
     INPUT_SOURCE_OBSERVATIONS = f"{base_path()}/test_data/stem/in_source_observations.csv"
     INPUT_SOURCE_ADMINISTRATIONS = f"{base_path()}/test_data/stem/in_source_administrations.csv"
+    INPUT_SOURCE_PRESCRIPTIONS = f"{base_path()}/test_data/stem/in_source_prescriptions.csv"
     INPUT_SOURCE_DIAGNOSESPROCEDURES = f"{base_path()}/test_data/stem/in_source_diagnoses_procedures.csv"
 
     INPUT_REGISTRIES_DIAGNOSES = f"{base_path()}/test_data/stem/in_registries_diagnoses.csv"
@@ -71,6 +73,7 @@ class StemTransformationTest(PostgresBaseTest):
         self.source_course_metadata = pd.read_csv(self.INPUT_SOURCE_COURSEMETADATA, index_col=False, sep=';')
         self.source_observations = pd.read_csv(self.INPUT_SOURCE_OBSERVATIONS, index_col=False, sep=';', dtype={'value': str}, parse_dates=['timestamp'])
         self.source_administrations = pd.read_csv(self.INPUT_SOURCE_ADMINISTRATIONS, index_col=False, sep=';')
+        self.source_prescriptions = pd.read_csv(self.INPUT_SOURCE_PRESCRIPTIONS, index_col=False, sep=';')
         self.source_diagnoses_procedures = pd.read_csv(self.INPUT_SOURCE_DIAGNOSESPROCEDURES, index_col=False, sep=';')
 
         self.source_lpr_diagnoses = pd.read_csv(self.INPUT_REGISTRIES_DIAGNOSES, index_col=False, sep=';')
@@ -98,6 +101,7 @@ class StemTransformationTest(PostgresBaseTest):
         write_to_db(engine, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
         write_to_db(engine, self.source_observations, SourceObservations.__tablename__, schema=SourceObservations.metadata.schema)
         write_to_db(engine, self.source_administrations, SourceAdministrations.__tablename__, schema=SourceAdministrations.metadata.schema)
+        write_to_db(engine, self.source_prescriptions, SourcePrescriptions.__tablename__, schema=SourcePrescriptions.metadata.schema)
         write_to_db(engine, self.source_diagnoses_procedures, SourceDiagnosesProcedures.__tablename__, schema=SourceDiagnosesProcedures.metadata.schema)
         write_to_db(engine, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
         write_to_db(engine, self.omop_visit_occurrence, OmopVisitOccurrence.__tablename__, schema=OmopVisitOccurrence.metadata.schema)

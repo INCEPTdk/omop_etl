@@ -14,6 +14,7 @@ if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.transform.condition_occurrence_tests import *
     from tests.transform.create_omopcdm_tables_tests import *
     from tests.transform.device_exposure_tests import *
+    from tests.transform.drug_exposure_tests import *
     from tests.transform.location_tests import *
     from tests.transform.measurement_tests import *
     from tests.transform.observation_period_tests import *
