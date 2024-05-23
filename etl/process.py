@@ -242,6 +242,12 @@ def run_etl(
             func=drug_era_transform,
             description="Specimen transform",
         ),
+        SessionOperation(
+            key=str(ObservationPeriod.__table__),
+            session=session,
+            func=observation_period_transform,
+            description="Observation period transform",
+        ),
     ]
 
     run_transformations(session, transformations, registry)
