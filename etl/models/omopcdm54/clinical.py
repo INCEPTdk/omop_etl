@@ -16,6 +16,7 @@ from ..modelutils import (
     IntField,
     PKIdMixin,
     PKIntField,
+    add_etl_step,
 )
 from .health_systems import CareSite, Location, Provider
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
@@ -24,6 +25,7 @@ from .vocabulary import Concept
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(3)
 class Person(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#PERSON
@@ -74,6 +76,7 @@ class PersonIdMixin:
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(14)
 class ObservationPeriod(ModelBase, PersonIdMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#OBSERVATION_PERIOD
@@ -113,6 +116,7 @@ class ProviderIdMixin:
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(5)
 class VisitOccurrence(
     ModelBase, PersonIdMixin, CareSiteIdMixin, ProviderIdMixin
 ):
@@ -207,6 +211,7 @@ class VisitAndProviderMixin(VisitOccurrenceIdMixin, ProviderIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(7)
 class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#CONDITION_OCCURRENCE"""
 
@@ -238,6 +243,7 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(10)
 class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DRUG_EXPOSURE"""
 
@@ -272,6 +278,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(8)
 class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#PROCEDURE_OCCURRENCE"""
 
@@ -301,6 +308,7 @@ class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(12)
 class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DEVICE_EXPOSURE"""
 
@@ -331,6 +339,7 @@ class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(9)
 class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#MEASUREMENT"""
 
@@ -369,6 +378,7 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(11)
 class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#OBSERVATION
@@ -405,6 +415,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(4)
 class Death(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DEATH"""
 
@@ -481,6 +492,7 @@ class NoteNlp(ModelBase):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(13)
 class Specimen(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#SPECIMEN"""
 
@@ -530,6 +542,7 @@ class FactRelationship(ModelBase, PKIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(6)
 class Stem(ModelBase):
     """
     Stem table
