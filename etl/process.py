@@ -37,6 +37,9 @@ from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.observation import transform as observation_transform
+from .transform.observation_period import (
+    transform as observation_period_transform,
+)
 from .transform.person import transform as person_transform
 from .transform.procedure_occurrence import (
     transform as procedure_occurrence_transform,
@@ -225,6 +228,12 @@ def run_etl(
             session=session,
             func=specimen_transform,
             description="Specimen transform",
+        ),
+        SessionOperation(
+            key=str(ObservationPeriod.__table__),
+            session=session,
+            func=observation_period_transform,
+            description="Observation period transform",
         ),
     ]
 
