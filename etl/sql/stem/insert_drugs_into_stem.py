@@ -1,6 +1,5 @@
 """ SQL query string definition for the drug-related stem functions"""
 
-from itertools import chain
 from typing import Any, Dict
 
 from sqlalchemy import (
@@ -17,7 +16,7 @@ from sqlalchemy import (
     union_all,
 )
 from sqlalchemy.sql import Insert, Select, text
-from sqlalchemy.sql.expression import null
+from sqlalchemy.sql.expression import CTE, null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
@@ -30,8 +29,8 @@ from .utils import get_case_statement, toggle_stem_transform
 
 # pylint: disable=too-many-arguments
 def create_simple_stem_select(
-    CteAdministrations: Any = None,
     CtePrescriptions: Any = None,
+    CteAdministrations: Any = None,
     administration_type: str = None,
     start_date_offset: str = "0 seconds",
     end_date: str = None,
@@ -40,7 +39,6 @@ def create_simple_stem_select(
     route_source_value: str = None,
     logger: Any = None,
 ) -> Select:
-    import pdb; pdb.set_trace()
     if str(quantity_recipe).startswith("recipe__"):
         quantity_column = get_quantity_recipe(
             CteAdministrations,
@@ -99,11 +97,8 @@ def create_simple_stem_select(
         .select_from(CteAdministrations)
         .join(
             CtePrescriptions,
-            and_(
-                CtePrescriptions.c.epaspresbaseid
-                == CteAdministrations.c.epaspresbaseid,
-                CteAdministrations.c.administration_type == administration_type,
-            ),
+            CtePrescriptions.c.epaspresbaseid
+            == CteAdministrations.c.epaspresbaseid,
         )
         .join(
             VisitOccurrence,
@@ -116,6 +111,7 @@ def create_simple_stem_select(
                 ConceptLookupStem.source_variable
                 == CteAdministrations.c.drug_name,
                 ConceptLookupStem.datasource == "administrations",
+                ConceptLookupStem.drug_exposure_type == administration_type,
             ),
         )
         .outerjoin(
@@ -133,7 +129,8 @@ def create_simple_stem_select(
 
 def get_drug_stem_select(
     drug_mapping: Dict[str, Any] = None,
-    CtePrescriptions: Any = None,
+    CtePrescriptions: CTE = None,
+    CteAdministrations: CTE = None,
     logger: Any = None,
 ) -> Select:
     start_datetime_offsets: Dict[str, str] = {
@@ -145,8 +142,8 @@ def get_drug_stem_select(
     administration_type: str = drug_mapping["drug_exposure_type"] or "0 hours"
 
     return create_simple_stem_select(
-        drug_mapping["AdministrationsCte"],
         CtePrescriptions,
+        CteAdministrations,
         administration_type,
         start_datetime_offsets.get(administration_type, "0 seconds"),
         drug_mapping["end_date"],
@@ -187,34 +184,51 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
 
     drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
 
-    drug_mappings_with_data = []
-    for dm in drug_mappings:
-        drug_name: str = dm["source_variable"]
-        if drug_name in drugs_with_data:
-            CteAdministrationsThisDrug = (
-                session.query(
-                    Administrations.courseid,
-                    Administrations.timestamp,
-                    Administrations.epaspresbaseid,
-                    Administrations.drug_name,
-                    Administrations.administration_type,
-                    Administrations.value,
-                    Administrations.value0,
-                    Administrations.value1,
-                )
-                .where(Administrations.drug_name == drug_name)
-                .cte(f"cte_administrations_{drug_name}")
-            )
-            drug_mappings_with_data.append({**dm, "AdministrationsCte": CteAdministrationsThisDrug})
+    drug_mappings_with_data = [
+        dm for dm in drug_mappings if dm["source_variable"] in drugs_with_data
+    ]
 
     select_stack = []
     for dmwd in drug_mappings_with_data:
+        drug_name = dmwd["source_variable"]
+        administration_type = dmwd["drug_exposure_type"]
+
+        CteAdministrations = (
+            session.query(
+                Administrations.courseid,
+                Administrations.timestamp,
+                Administrations.epaspresbaseid,
+                Administrations.drug_name,
+                Administrations.administration_type,
+                Administrations.value,
+                Administrations.value0,
+                Administrations.value1,
+            )
+            .where(
+                Administrations.drug_name == drug_name,
+                Administrations.administration_type == administration_type,
+            )
+            .cte(f"cte_administrations__{drug_name}__{administration_type}")
+        )
+
         select_stack.append(
-            get_drug_stem_select(dmwd, CtePrescriptions, logger)
+            get_drug_stem_select(
+                dmwd, CtePrescriptions, CteAdministrations, logger
+            )
         )
 
     MappedSelectSql = union_all(*select_stack)
     MappedSelectSql.compile(compile_kwargs={"literal_binds": True})
+
+    CteConceptLookupStemForAntijoin = (
+        select(
+            ConceptLookupStem.source_variable,
+            ConceptLookupStem.std_code_domain,
+            ConceptLookupStem.drug_exposure_type,
+        )
+        .distinct()
+        .cte("cte_concept_lookup_stem_for_antijoin")
+    )
 
     UnmappedSelectSql = (
         select(
@@ -245,13 +259,16 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             == concat("courseid|", Administrations.courseid),
         )
         .outerjoin(
-            ConceptLookupStem,
-            ConceptLookupStem.source_variable == Administrations.drug_name,
+            CteConceptLookupStemForAntijoin,
+            and_(
+                CteConceptLookupStemForAntijoin.c.source_variable
+                == Administrations.drug_name,
+                CteConceptLookupStemForAntijoin.c.drug_exposure_type
+                == Administrations.administration_type,
+            ),
         )
-        .where(ConceptLookupStem.std_code_domain.is_(None))
+        .where(CteConceptLookupStemForAntijoin.c.std_code_domain.is_(None))
     )
-
-    import pdb; pdb.set_trace()
 
     return insert(OmopStem).from_select(
         names=[
