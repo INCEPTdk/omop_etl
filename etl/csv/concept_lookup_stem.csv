@@ -94,7 +94,7 @@ uid;datasource;source_file;source_concept_code;source_variable;value;value_type;
 2000000093;administrations;;ultivaiv;ultivaiv;;numerical;pump;;;timestamp;;;32817;19016749;remifentanil;RxNorm;73032;Drug;;;;;;;;;;;;;;;;;;;;;;epaspresadmroute;;
 2000000094;administrations;;ultivaug;ultivaug;;numerical;nonpump;;;timestamp;;;32817;19016749;remifentanil;RxNorm;73032;Drug;;;;;;;;;;;;;;;;;;;;;;epaspresadmroute;;
 2000000095;administrations;;vancomycin1g;vancomycin1g;;numerical;pump_nonpump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;discrete;recipe__vancomycin1g;value;12 hours;;;value;;recipe__vancomycin1g;;g_mg;;;;epaspresadmroute;;
-2000000096;administrations;;vancomycin1g;vancomycin1g;;numerical;pump_nonpump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;continuous;recipe__vancomycin1g;recipe__vancomycin1g__vancomycin1g;12 hours;;;value;;recipe__vancomycin1g;;g_mg;;;;epaspresadmroute;;
+2000000096;administrations;;vancomycin1g;vancomycin1g;;numerical;pump_nonpump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;continuous;recipe__vancomycin1g;recipe__vancomycin1g__continuous;12 hours;;;value;;recipe__vancomycin1g;;g_mg;;;;epaspresadmroute;;
 2000000097;administrations;;vancomycinalp;vancomycinalp;;numerical;pump_nonpump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;;recipe__g_to_mg;;;;;;;;;;;;;epaspresadmroute;;
 2000000098;administrations;;vancomycinfrs;vancomycinfrs;;numerical;pump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;;;;;;;;;;;;;;;epaspresadmroute;;
 2000000099;administrations;;vancomycinhsp;vancomycinhsp;;numerical;pump;;;timestamp;;;32817;1707687;vancomycin;RxNorm;11124;Drug;;;;;;;;;;;;;;;;;;;;;;epaspresadmroute;;
