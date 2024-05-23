@@ -139,7 +139,7 @@ def get_drug_stem_select(
         "continuous": "59 seconds",
     }
 
-    administration_type: str = drug_mapping["drug_exposure_type"] or "0 hours"
+    administration_type: str = drug_mapping.get("drug_exposure_type")
 
     return create_simple_stem_select(
         CtePrescriptions,
