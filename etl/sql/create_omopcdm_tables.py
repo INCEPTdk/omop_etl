@@ -39,6 +39,7 @@ from ..models.omopcdm54 import (
     VisitDetail,
     VisitOccurrence,
 )
+from ..models.omopcdm54.registry import TARGET_SCHEMA
 from ..util.sql import clean_sql
 
 MODELS: Final[List] = [
@@ -74,10 +75,13 @@ MODELS: Final[List] = [
     Stem,
 ]
 
+SQL_CREATE_SCHEMA: Final[str] = f"CREATE SCHEMA IF NOT EXISTS {TARGET_SCHEMA};"
+
 
 @clean_sql
 def _ddl_sql() -> str:
     statements = [
+        SQL_CREATE_SCHEMA,
         drop_tables_sql(MODELS, cascade=True),
         create_tables_sql(MODELS, dialect=DIALECT_POSTGRES),
     ]

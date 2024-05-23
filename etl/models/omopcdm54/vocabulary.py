@@ -1,8 +1,9 @@
 """vocabulary models for OMOPCDM"""
 
 # pylint: disable=invalid-name
-from typing import Final
+from typing import Any, Final
 
+from ...util.db import get_schema_name
 from ...util.freeze import freeze_instance
 from ..modelutils import (
     FK,
@@ -14,14 +15,17 @@ from ..modelutils import (
     PKCharField,
     PKIdMixin,
     PKIntField,
+    make_model_base,
 )
-from .registry import OmopCdmModelBase as ModelBase
+
+VOCAB_SCHEMA: Final[str] = get_schema_name("VOCAB_SCHEMA", "vocab")
+VocabularyModelBase: Any = make_model_base(schema=VOCAB_SCHEMA)
 
 
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class Concept(ModelBase):
+class Concept(VocabularyModelBase):
     """
     The Standardized Vocabularies contains records, or Concepts, that uniquely
     identify each fundamental unit of meaning used to express clinical information
@@ -106,7 +110,7 @@ class Concept(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class Vocabulary(ModelBase):
+class Vocabulary(VocabularyModelBase):
     """
     The VOCABULARY table includes a list of the Vocabularies collected from
     various sources or created de novo by the OMOP community. This reference
@@ -140,7 +144,7 @@ class Vocabulary(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class Domain(ModelBase):
+class Domain(VocabularyModelBase):
     """
     The DOMAIN table includes a list of OMOP-defined Domains the
     Concepts of the Standardized Vocabularies can belong to.
@@ -170,7 +174,7 @@ class Domain(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class ConceptClass(ModelBase):
+class ConceptClass(VocabularyModelBase):
     """
     The CONCEPT_CLASS table is a reference table, which includes a list of the
     classifications used to differentiate Concepts within a given Vocabulary.
@@ -196,7 +200,7 @@ class ConceptClass(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class ConceptRelationship(ModelBase):
+class ConceptRelationship(VocabularyModelBase):
     """
     The CONCEPT_RELATIONSHIP table contains records that define direct
     relationships between any two Concepts and the nature or type of the relationship.
@@ -237,7 +241,7 @@ class ConceptRelationship(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class Relationship(ModelBase):
+class Relationship(VocabularyModelBase):
     """
     The RELATIONSHIP table provides a reference list of all types of
     relationships that can be used to associate any two concepts in
@@ -266,7 +270,7 @@ class Relationship(ModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class ConceptSynonym(ModelBase, PKIdMixin):
+class ConceptSynonym(VocabularyModelBase, PKIdMixin):
     """
     The CONCEPT_SYNONYM table is used to store alternate names and descriptions for Concepts.
 
@@ -289,7 +293,7 @@ class ConceptSynonym(ModelBase, PKIdMixin):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class ConceptAncestor(ModelBase, PKIdMixin):
+class ConceptAncestor(VocabularyModelBase, PKIdMixin):
     """
     The CONCEPT_ANCESTOR table is designed to simplify observational analysis by
     providing the complete hierarchical relationships between Concepts.
@@ -331,7 +335,7 @@ class ConceptAncestor(ModelBase, PKIdMixin):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class SourceToConceptMap(ModelBase, PKIdMixin):
+class SourceToConceptMap(VocabularyModelBase, PKIdMixin):
     """
     The source to concept map table is a legacy data structure within the OMOP Common Data Model,
     recommended for use in ETL processes to maintain local source codes which are not available
@@ -390,7 +394,7 @@ class SourceToConceptMap(ModelBase, PKIdMixin):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class DrugStrength(ModelBase, PKIdMixin):
+class DrugStrength(VocabularyModelBase, PKIdMixin):
     """
     The DRUG_STRENGTH table contains structured content about the amount
     or concentration and associated units of a specific ingredient
@@ -453,7 +457,7 @@ class DrugStrength(ModelBase, PKIdMixin):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class Cohort(ModelBase, PKIdMixin):
+class Cohort(VocabularyModelBase, PKIdMixin):
     """
     Table Description
     ---
@@ -494,7 +498,7 @@ class Cohort(ModelBase, PKIdMixin):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class CohortDefinition(ModelBase, PKIdMixin):
+class CohortDefinition(VocabularyModelBase, PKIdMixin):
     """
     Table Description
     ---
