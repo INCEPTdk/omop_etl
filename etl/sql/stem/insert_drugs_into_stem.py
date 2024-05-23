@@ -40,7 +40,8 @@ def create_simple_stem_select(
     route_source_value: str = None,
     logger: Any = None,
 ) -> Select:
-    if "recipe__" in str(quantity_recipe):
+    import pdb; pdb.set_trace()
+    if str(quantity_recipe).startswith("recipe__"):
         quantity_column = get_quantity_recipe(
             CteAdministrations,
             CtePrescriptions,
@@ -135,47 +136,25 @@ def get_drug_stem_select(
     CtePrescriptions: Any = None,
     logger: Any = None,
 ) -> Select:
-    drug_name: str = drug_mapping["source_variable"]
-
-    CteAdministrationsThisDrug = (
-        select(
-            Administrations.courseid,
-            Administrations.timestamp,
-            Administrations.epaspresbaseid,
-            Administrations.drug_name,
-            Administrations.administration_type,
-            Administrations.value,
-            Administrations.value0,
-            Administrations.value1,
-        )
-        .where(Administrations.drug_name == drug_name)
-        .cte(f"cte_administrations_{drug_name}")
-    )
-
     start_datetime_offsets: Dict[str, str] = {
         "discrete": "0 seconds",
         "bolus": "0 seconds",
         "continuous": "59 seconds",
     }
 
-    administration_types: tuple = ("discrete", "bolus", "continuous")
-    select_stack = []
-    for administration_type in administration_types:
-        select_stack.append(
-            create_simple_stem_select(
-                CteAdministrationsThisDrug,
-                CtePrescriptions,
-                administration_type,
-                start_datetime_offsets.get(administration_type, "0 seconds"),
-                drug_mapping["end_date"],
-                drug_mapping["conversion"],
-                drug_mapping[f"quantity_{administration_type}"],
-                drug_mapping["route_source_value"],
-                logger,
-            )
-        )
+    administration_type: str = drug_mapping["drug_exposure_type"] or "0 hours"
 
-    return union_all(*select_stack)
+    return create_simple_stem_select(
+        drug_mapping["AdministrationsCte"],
+        CtePrescriptions,
+        administration_type,
+        start_datetime_offsets.get(administration_type, "0 seconds"),
+        drug_mapping["end_date"],
+        drug_mapping["conversion"],
+        drug_mapping["quantity"],
+        drug_mapping["route_source_value"],
+        logger,
+    )
 
 
 @toggle_stem_transform
@@ -199,27 +178,43 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .cte("cte_prescriptions")
     )
 
-    mapped_drugs = (
+    drug_mappings = (
         session.query(ConceptLookupStem)
         .where(ConceptLookupStem.datasource == "administrations")
         .all()
     )
-    mapped_drugs = [row.__dict__ for row in mapped_drugs]
+    drug_mappings = [row.__dict__ for row in drug_mappings]
 
-    drugs_with_data = set(
-        chain(*session.query(Administrations.drug_name).distinct().all())
-    )
-    mapped_drugs_with_data = [
-        d for d in mapped_drugs if d["source_variable"] in drugs_with_data
-    ]
+    drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
+
+    drug_mappings_with_data = []
+    for dm in drug_mappings:
+        drug_name: str = dm["source_variable"]
+        if drug_name in drugs_with_data:
+            CteAdministrationsThisDrug = (
+                session.query(
+                    Administrations.courseid,
+                    Administrations.timestamp,
+                    Administrations.epaspresbaseid,
+                    Administrations.drug_name,
+                    Administrations.administration_type,
+                    Administrations.value,
+                    Administrations.value0,
+                    Administrations.value1,
+                )
+                .where(Administrations.drug_name == drug_name)
+                .cte(f"cte_administrations_{drug_name}")
+            )
+            drug_mappings_with_data.append({**dm, "AdministrationsCte": CteAdministrationsThisDrug})
 
     select_stack = []
-    for mdwd in mapped_drugs_with_data:
+    for dmwd in drug_mappings_with_data:
         select_stack.append(
-            get_drug_stem_select(mdwd, CtePrescriptions, logger)
+            get_drug_stem_select(dmwd, CtePrescriptions, logger)
         )
 
     MappedSelectSql = union_all(*select_stack)
+    MappedSelectSql.compile(compile_kwargs={"literal_binds": True})
 
     UnmappedSelectSql = (
         select(
@@ -255,6 +250,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         )
         .where(ConceptLookupStem.std_code_domain.is_(None))
     )
+
+    import pdb; pdb.set_trace()
 
     return insert(OmopStem).from_select(
         names=[
