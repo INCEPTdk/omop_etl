@@ -20,6 +20,26 @@ services:
       SOURCE_SCHEMA: "source"
       DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
       RELOAD_VOCAB: "FALSE"
+  merge:
+    build:
+      context: .
+      dockerfile: Dockerfile.merge
+      args:
+        - "COMMIT_SHA=dev"
+        - "GITHUB_TAG=dev"
+        - "DEV_BUILD=1"
+    volumes:
+      - "./log:/log"
+      #- "/path/to/data:/data"
+    networks:
+      - etl-net
+    env_file:
+      - db.env
+    environment:
+      VERBOSITY_LEVEL: "DEBUG"
+      SOURCE_SCHEMA: "source"
+      DEPARTMENT_SHAK_CODE: "" # Fill with the department specific code
+      RELOAD_VOCAB: "FALSE"
 
 networks:
   etl-net:

@@ -80,6 +80,13 @@ docker-compose run --rm -e RUN_TESTS="True" etl
 ```bash
 docker-compose run --rm etl
 ```
+### Step 8. Run the merge ETL in a Docker container
+This will merge all the previous ETLs' target into the new TARGET_SCHEMA. At the moment schemas used as target from the single ETLs are fetched from the DB by looking at the which schemas contain the CDM tables. This in the future could be changed to be passed as an environment variable or config file.
+The merge docker service uses a different entrypoint - a better approach may be possible but with the current set-up should be straight-forward simply changing the entrypoiny when running with singularitycontainers.
+
+```bash
+docker-compose run --rm -e TARGET_SCHEMA=merge_etl merge
+```
 
 ## Option 2 - Running in a Virtual Environment
 
