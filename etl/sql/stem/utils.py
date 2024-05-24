@@ -102,15 +102,3 @@ def toggle_stem_transform(transform_function):
         return "SELECT NULL;"
 
     return wrapper
-
-
-def parse_interval(interval: str = None):
-    try:
-        match = re.match(
-            r"(\d+)\s*(hour|day|minute|second)s?", interval, re.IGNORECASE
-        )
-        value, unit = match.groups()
-        unit = unit if unit.endswith("s") else unit + "s"
-        return timedelta(**{unit: float(value)})
-    except (TypeError, ValueError):
-        raise InvalidEraLookbackInterval(interval)
