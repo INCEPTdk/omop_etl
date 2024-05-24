@@ -2,7 +2,7 @@
 
 import logging
 
-from ..models.omopcdm54.standarized_derived_elements import (
+from ..models.omopcdm54.standardized_derived_elements import (
     DrugEra as OmopDrugEra,
 )
 from ..sql.eras.drug_era import DrugEraInsert

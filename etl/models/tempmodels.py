@@ -102,7 +102,7 @@ class ConceptLookupStem(TempModelBase):
     quantity_discrete: Final[Column] = CharField(255)
     quantity_bolus: Final[Column] = CharField(255)
     quantity_continuous: Final[Column] = CharField(255)
-    days_supply: Final[Column] = CharField(50)
+    days_supply: Final[Column] = IntField()
     dose_unit_source_value: Final[Column] = CharField(50)
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()

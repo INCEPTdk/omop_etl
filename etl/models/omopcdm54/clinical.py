@@ -577,7 +577,7 @@ class Stem(ModelBase):
     unit_source_concept_id: Final[Column] = IntField()
     unit_source_value: Final[Column] = CharField(50)
     verbatim_end_date: Final[Column] = CharField(50)
-    days_supply: Final[Column] = CharField(50)
+    days_supply: Final[Column] = IntField()
     dose_unit_source_value: Final[Column] = CharField(50)
     modifier_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
