@@ -83,7 +83,7 @@ class Session(AbstractSession):
         return self._session.scalars(*entities, **kwargs)
 
     def execute(self, sql: Any, *args, **kwargs):
-        self._session.execute(sql, *args, **kwargs)
+        return self._session.execute(sql, *args, **kwargs)
 
 
 class FakeSession(AbstractSession):
@@ -437,3 +437,20 @@ def df_to_sql(
         session.execute(
             f"create table {table} as select {columns} from dataframe;"
         )
+
+
+def get_source_cdm_schemas(
+    session: AbstractSession,
+) -> List[str]:
+    """
+    These functions reads all the schema in the database, excludes the schemas that are not structured as a cdm schema andreturns the list of cdm schemas
+    """
+
+    query = """SELECT table_schema
+FROM information_schema.tables
+WHERE table_name IN ('person', 'death', 'measurement', 'location', 'care_site')
+GROUP BY table_schema
+HAVING COUNT(table_name) = 5;"""
+    result = session.execute(query)
+    TARGET_SCHEMA = get_schema_name("TARGET_SCHEMA", "omopcdm")
+    return [row[0] for row in result if row[0] != TARGET_SCHEMA]

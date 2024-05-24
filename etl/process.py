@@ -36,6 +36,7 @@ from .transform.device_exposure import transform as device_exposure_transform
 from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
+from .transform.merge.location import transform as merge_location_transform
 from .transform.observation import transform as observation_transform
 from .transform.observation_period import (
     transform as observation_period_transform,
@@ -262,6 +263,26 @@ def run_etl(
             ConditionEra,
         ],
     )
+
+
+def run_merge(session: AbstractSession) -> None:
+    """Run the merge ETL"""
+    registry = TransformationRegistry()
+    transformations = [
+        SessionOperation(
+            key="create_omop",
+            session=session,
+            func=create_omop_tables,
+            description="Create OMOP tables",
+        ),
+        SessionOperation(
+            key=str(Location.__table__),
+            session=session,
+            func=merge_location_transform,
+            description="Merge Location transform",
+        ),
+    ]
+    run_transformations(session, transformations, registry)
 
 
 def print_summary(
