@@ -2,12 +2,16 @@
 
 import inspect
 import os
+import re
+from datetime import timedelta
 from itertools import chain
 from typing import Any
 
 from sqlalchemy import case, cast
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE
+
+from etl.util.exceptions import InvalidEraLookbackInterval
 
 
 def get_case_statement(
@@ -98,3 +102,15 @@ def toggle_stem_transform(transform_function):
         return "SELECT NULL;"
 
     return wrapper
+
+
+def parse_interval(interval: str = None):
+    try:
+        match = re.match(
+            r"(\d+)\s*(hour|day|minute|second)s?", interval, re.IGNORECASE
+        )
+        value, unit = match.groups()
+        unit = unit if unit.endswith("s") else unit + "s"
+        return timedelta(**{unit: float(value)})
+    except (TypeError, ValueError):
+        raise InvalidEraLookbackInterval(interval)

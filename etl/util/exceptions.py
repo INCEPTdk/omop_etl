@@ -27,3 +27,6 @@ class TransformationErrorException(ETLException):
 
 class ETLFatalErrorException(ETLException):
     """Throw when ETL fails"""
+
+class InvalidEraLookbackInterval(ETLException):
+    """Throw when era lookback interval is invalid"""
