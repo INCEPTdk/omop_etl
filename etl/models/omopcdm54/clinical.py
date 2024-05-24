@@ -597,6 +597,7 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     route_source_value: Final[Column] = CharField(50)
+    era_lookback_interval: Final[Column] = CharField(50)
     lot_number: Final[Column] = CharField(50)
     unique_device_id: Final[Column] = IntField()
     production_id: Final[Column] = CharField(255)

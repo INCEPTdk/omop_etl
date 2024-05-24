@@ -90,6 +90,7 @@ def create_simple_stem_select(
             getattr(CtePrescriptions.c, route_source_value).label(
                 "route_source_value"
             ),
+            ConceptLookupStem.era_lookback_interval,
             literal(f"{administration_type}_administrations").label(
                 "datasource"
             ),
@@ -250,6 +251,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             null().label("quantity"),
             null().label("route_concept_id"),
             null().label("route_source_value"),
+            null().label("era_lookback_interval"),
             literal("unmapped_administrations").label("datasource"),
         )
         .select_from(Administrations)
@@ -286,6 +288,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.quantity,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
+            OmopStem.era_lookback_interval,
             OmopStem.datasource,
         ],
         select=union_all(MappedSelectSql, UnmappedSelectSql),
