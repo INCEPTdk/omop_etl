@@ -19,7 +19,7 @@ from .metadata import *
 from .registry import OmopCdmModelBase, OmopCdmModelRegistry
 
 # Standardized Derived Elements
-from .standarized_derived_elements import *
+from .standardized_derived_elements import *
 
 # Vocabulary Tables
 from .vocabulary import *

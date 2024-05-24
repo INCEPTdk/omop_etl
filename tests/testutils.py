@@ -113,15 +113,18 @@ def enforce_dtypes(df_source, df_target):
 
     return df_target_converted
 
-def assert_dataframe_equality(df1, df2, index_col: str = None):
+def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
+    if index_cols:
+        if isinstance(index_cols, str):
+            index_cols = [index_cols]
 
-    if index_col:
-        df1 = df1.drop(columns=[index_col])
-        df2 = df2.drop(columns=[index_col])
+        for index_col in index_cols:
+            df1 = df1.drop(columns=[index_col])
+            df2 = df2.drop(columns=[index_col])
 
     column_names = sorted(df1.columns.tolist())
 
     sorted_df1 = df1.sort_values(by=column_names).reset_index(drop=True)
     sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
 
-    pd.testing.assert_frame_equal(sorted_df1, sorted_df2, check_like=True, check_dtype=False)
+    pd.testing.assert_frame_equal(sorted_df1, sorted_df2, check_like=True, check_dtype=False, check_datetimelike_compat=True, **kwargs)

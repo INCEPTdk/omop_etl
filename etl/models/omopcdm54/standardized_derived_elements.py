@@ -15,7 +15,7 @@ from ..modelutils import (
     PKIdMixin,
     PKIntField,
 )
-from .clinical import PersonIdMixin
+from .clinical import Person, PersonIdMixin
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
 
@@ -32,6 +32,7 @@ class DrugEra(ModelBase, PersonIdMixin):
     drug_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
