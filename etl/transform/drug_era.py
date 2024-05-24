@@ -5,7 +5,7 @@ import logging
 from ..models.omopcdm54.standardized_derived_elements import (
     DrugEra as OmopDrugEra,
 )
-from ..sql.eras.drug_era import get_drug_era_insert
+from ..sql.drug_era import get_drug_era_insert
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.DrugEra")

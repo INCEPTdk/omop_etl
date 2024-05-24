@@ -2,16 +2,12 @@
 
 import inspect
 import os
-import re
-from datetime import timedelta
 from itertools import chain
 from typing import Any
 
 from sqlalchemy import case, cast
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE
-
-from etl.util.exceptions import InvalidEraLookbackInterval
 
 
 def get_case_statement(
