@@ -240,7 +240,7 @@ def run_etl(
             key=str(DrugEra.__table__),
             session=session,
             func=drug_era_transform,
-            description="Specimen transform",
+            description="Drug era transform",
         ),
         SessionOperation(
             key=str(ObservationPeriod.__table__),
