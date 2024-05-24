@@ -19,7 +19,7 @@ from tests.testutils import (
 )
 
 
-class DrugExposureTest(DuckDBBaseTest):
+class DrugEraTest(DuckDBBaseTest):
 
     TARGET_MODELS = [OmopStem, OmopDrugEra, Concept, ConceptAncestor]
 
@@ -60,4 +60,4 @@ class DrugExposureTest(DuckDBBaseTest):
         result_df = enforce_dtypes(self.expected_df, result_df)
         assert_dataframe_equality(result_df, self.expected_df)
 
-__all__ = ['DrugExposureTest']
+__all__ = ['DrugEraTest']
