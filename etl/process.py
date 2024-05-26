@@ -1,7 +1,8 @@
 """Run the ETL and supporting classes for transformations"""
 
 import logging
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+import os
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from .loader import Loader
 from .models.omopcdm54 import (
@@ -56,6 +57,7 @@ from .util.logger import ErrorHandler
 from .util.preprocessing import validate_concept_ids
 
 logger = logging.getLogger("ETL.Core")
+ETL_RUN_STEP = int(os.getenv("ETL_RUN_STEP", "0"))
 
 
 class TransformationRegistry:
@@ -87,7 +89,7 @@ class TransformationRegistry:
 
 def run_transformations(
     session: AbstractSession,
-    transformations: Iterable[SessionOperation],
+    transformations: Iterable[Tuple[int, SessionOperation]],
     registry: Optional[TransformationRegistry] = None,
 ) -> None:
     """
@@ -109,10 +111,11 @@ def run_transformations(
         )
         return trans(session)
 
-    for i, operation in enumerate(transformations):
-        result = log_and_call(i, operation)
-        if registry is not None:
-            registry.add_or_update(operation.key, result)
+    for step, operation in transformations:
+        if step == -1 or ETL_RUN_STEP <= step:
+            result = log_and_call(step, operation)
+            if registry is not None:
+                registry.add_or_update(operation.key, result)
 
     # check errors after all transformations have run
     # Raise an exception at the end
@@ -146,95 +149,140 @@ def run_etl(
     registry = TransformationRegistry()
 
     transformations = [
-        SessionOperation(
-            key="create_omop",
-            session=session,
-            func=create_omop_tables,
-            description="Create OMOP tables",
+        (
+            -1,
+            SessionOperation(
+                key="create_omop",
+                session=session,
+                func=create_omop_tables,
+                description="Create OMOP tables",
+            ),
         ),
-        SessionOperation(
-            key=str(Location.__table__),
-            session=session,
-            func=location_transform,
-            description="Location transform",
+        (
+            Location.__step__,
+            SessionOperation(
+                key=str(Location.__table__),
+                session=session,
+                func=location_transform,
+                description="Location transform",
+            ),
         ),
-        SessionOperation(
-            key=str(CareSite.__table__),
-            session=session,
-            func=care_site_transform,
-            description="Care site transform",
+        (
+            CareSite.__step__,
+            SessionOperation(
+                key=str(CareSite.__table__),
+                session=session,
+                func=care_site_transform,
+                description="Care site transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Person.__table__),
-            session=session,
-            func=person_transform,
-            description="Person transform",
+        (
+            Person.__step__,
+            SessionOperation(
+                key=str(Person.__table__),
+                session=session,
+                func=person_transform,
+                description="Person transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Death.__table__),
-            session=session,
-            func=death_transform,
-            description="Death transform",
+        (
+            Death.__step__,
+            SessionOperation(
+                key=str(Death.__table__),
+                session=session,
+                func=death_transform,
+                description="Death transform",
+            ),
         ),
-        SessionOperation(
-            key=str(VisitOccurrence.__table__),
-            session=session,
-            func=visit_occurrence_transform,
-            description="Visit occurrence transform",
+        (
+            VisitOccurrence.__step__,
+            SessionOperation(
+                key=str(VisitOccurrence.__table__),
+                session=session,
+                func=visit_occurrence_transform,
+                description="Visit occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Stem.__table__),
-            session=session,
-            func=stem_transform,
-            description="Stem transform",
+        (
+            Stem.__step__,
+            SessionOperation(
+                key=str(Stem.__table__),
+                session=session,
+                func=stem_transform,
+                description="Stem transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ConditionOccurrence.__table__),
-            session=session,
-            func=condition_occurrence_transform,
-            description="Condition Occurrence transform",
+        (
+            ConditionOccurrence.__step__,
+            SessionOperation(
+                key=str(ConditionOccurrence.__table__),
+                session=session,
+                func=condition_occurrence_transform,
+                description="Condition Occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ProcedureOccurrence.__table__),
-            session=session,
-            func=procedure_occurrence_transform,
-            description="Procedure occurrence transform",
+        (
+            ProcedureOccurrence.__step__,
+            SessionOperation(
+                key=str(ProcedureOccurrence.__table__),
+                session=session,
+                func=procedure_occurrence_transform,
+                description="Procedure occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Measurement.__table__),
-            session=session,
-            func=measurement_transform,
-            description="Measurement transform",
+        (
+            Measurement.__step__,
+            SessionOperation(
+                key=str(Measurement.__table__),
+                session=session,
+                func=measurement_transform,
+                description="Measurement transform",
+            ),
         ),
-        SessionOperation(
-            key=str(DrugExposure.__table__),
-            session=session,
-            func=drug_exposure_transform,
-            description="Drug exposure transform",
+        (
+            DrugExposure.__step__,
+            SessionOperation(
+                key=str(DrugExposure.__table__),
+                session=session,
+                func=drug_exposure_transform,
+                description="Drug exposure transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Observation.__table__),
-            session=session,
-            func=observation_transform,
-            description="Observation transform",
+        (
+            Observation.__step__,
+            SessionOperation(
+                key=str(Observation.__table__),
+                session=session,
+                func=observation_transform,
+                description="Observation transform",
+            ),
         ),
-        SessionOperation(
-            key=str(DeviceExposure.__table__),
-            session=session,
-            func=device_exposure_transform,
-            description="Device Exposure transform",
+        (
+            DeviceExposure.__step__,
+            SessionOperation(
+                key=str(DeviceExposure.__table__),
+                session=session,
+                func=device_exposure_transform,
+                description="Device Exposure transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Specimen.__table__),
-            session=session,
-            func=specimen_transform,
-            description="Specimen transform",
+        (
+            Specimen.__step__,
+            SessionOperation(
+                key=str(Specimen.__table__),
+                session=session,
+                func=specimen_transform,
+                description="Specimen transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ObservationPeriod.__table__),
-            session=session,
-            func=observation_period_transform,
-            description="Observation period transform",
+        (
+            ObservationPeriod.__step__,
+            SessionOperation(
+                key=str(ObservationPeriod.__table__),
+                session=session,
+                func=observation_period_transform,
+                description="Observation period transform",
+            ),
         ),
         SessionOperation(
             key=str(DrugEra.__table__),
