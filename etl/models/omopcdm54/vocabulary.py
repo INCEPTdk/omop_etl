@@ -52,7 +52,9 @@ class Concept(VocabularyModelBase):
     __tablename__: Final[str] = "concept"
 
     # A unique identifier for each Concept across all domains.
-    concept_id: Final[Column] = PKIntField("concept_id_seq")
+    concept_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
 
     # An unambiguous, meaningful and descriptive name for the Concept.
     concept_name: Final[Column] = CharField(255, nullable=False)
