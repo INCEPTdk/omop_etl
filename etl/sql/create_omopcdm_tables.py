@@ -41,6 +41,7 @@ from ..models.omopcdm54 import (
     VisitDetail,
     VisitOccurrence,
 )
+from ..models.omopcdm54.registry import TARGET_SCHEMA
 from ..util.sql import clean_sql
 
 MODELS: Final[List] = [
@@ -77,11 +78,14 @@ MODELS: Final[List] = [
 ]
 ETL_RUN_STEP: Final[int] = int(os.getenv("ETL_RUN_STEP", "0"))
 
+SQL_CREATE_SCHEMA: Final[str] = f"CREATE SCHEMA IF NOT EXISTS {TARGET_SCHEMA};"
+
 
 @clean_sql
 def _ddl_sql() -> str:
     models_to_create = get_models_in_scope()
     statements = [
+        SQL_CREATE_SCHEMA,
         drop_tables_sql(models_to_create, cascade=True),
         create_tables_sql(models_to_create, dialect=DIALECT_POSTGRES),
     ]
