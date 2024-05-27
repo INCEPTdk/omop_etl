@@ -54,6 +54,7 @@ class DoseEra(ModelBase, PersonIdMixin):
     dose_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -77,6 +78,7 @@ class ConditionEra(ModelBase, PersonIdMixin):
     condition_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     condition_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
