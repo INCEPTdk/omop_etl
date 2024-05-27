@@ -127,4 +127,11 @@ def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
     sorted_df1 = df1.sort_values(by=column_names).reset_index(drop=True)
     sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
 
-    pd.testing.assert_frame_equal(sorted_df1, sorted_df2, check_like=True, check_dtype=False, check_datetimelike_compat=True, **kwargs)
+    pd.testing.assert_frame_equal(
+        sorted_df1,
+        sorted_df2,
+        check_like=True,
+        check_dtype=False,
+        check_datetimelike_compat=True,
+        **kwargs,
+    )
