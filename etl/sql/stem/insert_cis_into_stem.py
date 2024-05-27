@@ -105,7 +105,7 @@ def create_simple_stem_insert(
                 ),
             ),
         )
-        .join(
+        .outerjoin(
             Concept,
             Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
