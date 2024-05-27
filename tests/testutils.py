@@ -122,7 +122,7 @@ def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
             df1 = df1.drop(columns=[index_col])
             df2 = df2.drop(columns=[index_col])
 
-    column_names = sorted(df1.columns.tolist())
+    column_names = df1.columns.tolist()
 
     sorted_df1 = df1.sort_values(by=column_names).reset_index(drop=True)
     sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
