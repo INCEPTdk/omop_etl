@@ -53,7 +53,6 @@ class ConditionEraTest(DuckDBBaseTest):
         result_df = pd.read_sql(result, self.engine)
         result_df = enforce_dtypes(self.expected_df, result_df)
 
-        import pdb; pdb.set_trace()
         assert_dataframe_equality(result_df, self.expected_df, index_cols=['condition_era_id'])
 
 __all__ = ['ConditionEraTest']
