@@ -27,6 +27,7 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.condition_era import transform as condition_era_transform
 from .transform.condition_occurrence import (
     transform as condition_occurrence_transform,
 )
@@ -284,17 +285,23 @@ def run_etl(
                 description="Observation period transform",
             ),
         ),
-        SessionOperation(
-            key=str(DrugEra.__table__),
-            session=session,
-            func=drug_era_transform,
-            description="Drug era transform",
+        (
+            DrugEra.__step__,
+            SessionOperation(
+                key=str(DrugEra.__table__),
+                session=session,
+                func=drug_era_transform,
+                description="Drug era transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ObservationPeriod.__table__),
-            session=session,
-            func=observation_period_transform,
-            description="Observation period transform",
+        (
+            ConditionEra.__step__,
+            SessionOperation(
+                key=str(ConditionEra.__table__),
+                session=session,
+                func=condition_era_transform,
+                description="Condition era period transform",
+            ),
         ),
     ]
 
