@@ -223,7 +223,7 @@ def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
         ) from excep
 
 
-def get_schema_name(
+def get_environment_variable(
     environment_variable_name: str = None, default: str = None
 ) -> str:
     schema_name: str = os.getenv(environment_variable_name, default=None)

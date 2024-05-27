@@ -3,7 +3,7 @@
 # pylint: disable=invalid-name
 from typing import Any, Final
 
-from ...util.db import get_schema_name
+from ...util.db import get_environment_variable as get_schema_name
 from ...util.freeze import freeze_instance
 from ..modelutils import (
     FK,
