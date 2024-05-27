@@ -10,10 +10,22 @@ from ..models.omopcdm54.standardized_derived_elements import (
     DrugEra as OmopDrugEra,
 )
 from ..models.omopcdm54.vocabulary import Concept, ConceptAncestor
-from ..util.db import AbstractSession
+from ..util.db import AbstractSession, get_environment_variable as get_era_lookback_interval
+
+
+DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
+    "DRUG_ERA_LOOKBACK", "0 hours"
+)
 
 
 def get_drug_era_insert(session: AbstractSession = None) -> Insert:
+    lookback_interval = cast(
+        func.coalesce(
+            OmopStem.era_lookback_interval, DEFAULT_ERA_LOOKBACK_INTERVAL
+        ),
+        INTERVAL,
+    )
+
     CteIngredientLevel = (
         session.query(
             OmopStem.person_id,
@@ -22,8 +34,7 @@ def get_drug_era_insert(session: AbstractSession = None) -> Insert:
             OmopStem.start_datetime.label("drug_exposure_start_datetime"),
             OmopStem.end_datetime.label("drug_exposure_end_datetime"),
             func.coalesce(
-                OmopStem.start_datetime
-                - cast(OmopStem.era_lookback_interval, INTERVAL),
+                OmopStem.start_datetime - lookback_interval,
                 OmopStem.start_datetime,
             ).label("lookback_datetime"),
             func.coalesce(
@@ -117,23 +128,26 @@ def get_drug_era_insert(session: AbstractSession = None) -> Insert:
         .label("drug_era_id"),
     ).cte("cte_era_id")
 
-    DrugEraSelect = session.query(
-        CteEraId.c.person_id,
-        CteEraId.c.ingredient_concept_id.label("drug_concept_id"),
-        cast(func.min(CteEraId.c.drug_exposure_start_datetime), DATE).label(
-            "drug_era_start_date"
-        ),
-        cast(func.max(CteEraId.c.drug_exposure_end_datetime), DATE).label(
-            "drug_era_end_date"
-        ),
-        func.count(CteEraId.c.ingredient_concept_id).label(
-            "drug_exposure_count"
-        ),
-        null().label("gap_days"),
-    ).group_by(
-        CteEraId.c.drug_era_id,
-        CteEraId.c.person_id,
-        CteEraId.c.ingredient_concept_id,
+    DrugEraSelect = (
+        session.query(
+            CteEraId.c.person_id,
+            CteEraId.c.ingredient_concept_id.label("drug_concept_id"),
+            cast(func.min(CteEraId.c.drug_exposure_start_datetime), DATE).label(
+                "drug_era_start_date"
+            ),
+            cast(func.max(CteEraId.c.drug_exposure_end_datetime), DATE).label(
+                "drug_era_end_date"
+            ),
+            func.count(CteEraId.c.ingredient_concept_id).label(
+                "drug_exposure_count"
+            ),
+            null().label("gap_days"),
+        ).group_by(
+            CteEraId.c.drug_era_id,
+            CteEraId.c.person_id,
+            CteEraId.c.ingredient_concept_id,
+        ).
+        distinct()  # collapse identical eras into one
     )
 
     return insert(OmopDrugEra).from_select(
