@@ -19,6 +19,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookupStem
 from .utils import (
     find_unique_column_names,
@@ -36,7 +37,7 @@ def create_simple_stem_insert(
 ) -> Insert:
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -103,6 +104,10 @@ def create_simple_stem_insert(
                     ConceptLookupStem.datasource == model.__tablename__,
                 ),
             ),
+        )
+        .join(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
