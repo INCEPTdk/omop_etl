@@ -53,7 +53,7 @@ class Concept(VocabularyModelBase):
 
     # A unique identifier for each Concept across all domains.
     concept_id: Final[Column] = PKIntField(
-        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+        f"{VocabularyModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
 
     # An unambiguous, meaningful and descriptive name for the Concept.
