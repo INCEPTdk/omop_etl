@@ -31,7 +31,7 @@ class DrugEraTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.TARGET_MODELS, schema='omopcdm')
+        self._create_tables_and_schemas(self.TARGET_MODELS)
 
         self.vocab_concept = pd.read_csv(self.INPUT_VOCAB_CONCEPT, index_col=False, sep=';')
         self.vocab_concept_ancestor = pd.read_csv(self.INPUT_VOCAB_CONCEPT_ANCESTOR, index_col=False, sep=';')
@@ -42,14 +42,14 @@ class DrugEraTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.TARGET_MODELS, schema='omopcdm')
+        self._drop_tables_and_schemas(self.TARGET_MODELS)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.vocab_concept, Concept.__tablename__, schema=Concept.metadata.schema)
         write_to_db(engine, self.vocab_concept_ancestor, ConceptAncestor.__tablename__, schema=ConceptAncestor.metadata.schema)
         write_to_db(engine, self.omop_stem, OmopStem.__tablename__, schema=OmopStem.metadata.schema)
 
-    def test_transform(self):
+    def test_transform_drug_era(self):
         self._insert_test_data(self.engine)
 
         with session_context(make_db_session(self.engine)) as session:

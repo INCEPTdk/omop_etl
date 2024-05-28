@@ -32,31 +32,27 @@ class PostgresBaseTest(unittest.TestCase):
         )
         self.engine = make_engine_postgres(cxn_details)
 
-    def _drop_tables_and_schema(
-        self, models: List[str], schema: Optional[str] = None
-    ):
+    def _drop_tables_and_schemas(self, models: List[str]):
         with session_context(make_db_session(self.engine)) as session:
-            schema_str = ""
-            if schema is not None:
-                schema_str = f"{schema}."
+            # Fully-qualified table names
+            fqtn = [f"{m.metadata.schema}.{m.__table__.name}" for m in models]
+            session.execute(
+                "".join(f"DROP TABLE IF EXISTS {t} CASCADE; " for t in fqtn)
+            )
 
-            for model in models:
-                session.execute(
-                    f"DROP TABLE IF EXISTS {schema_str}{model.__tablename__} CASCADE;"
-                )
+            schemas = set(m.metadata.schema for m in models)
+            session.execute(
+                "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
+            )
 
-            if schema is not None:
-                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
-
-    def _create_tables_and_schema(
-        self, models: List[Any], schema: Optional[str] = None
-    ):
+    def _create_tables_and_schemas(self, models: List[Any]):
         with session_context(make_db_session(self.engine)) as session:
-            if schema is not None:
-                session.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            schemas_to_create = set(m.metadata.schema for m in models)
+            session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
             if models:
                 sql = create_tables_sql(models)
                 session.execute(sql)
+
 
 class DuckDBBaseTest(unittest.TestCase):
     """Base class for testing with duckdb"""
@@ -69,26 +65,27 @@ class DuckDBBaseTest(unittest.TestCase):
         )
         self.engine = make_engine_duckdb(cxn_details)
 
-    def _drop_tables_and_schema(
-        self, models: List[str], schema: Optional[str] = None
-    ):
+    def _drop_tables_and_schemas(self, models: List[str]):
         with session_context(make_db_session(self.engine)) as session:
-            if schema is not None:
-                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
+            # Fully-qualified table names
+            fqtn = [f"{m.metadata.schema}.{m.__table__.name}" for m in models]
+            session.execute(
+                "".join(f"DROP TABLE IF EXISTS {t} CASCADE; " for t in fqtn)
+            )
 
-            if models:
-                sql = drop_tables_sql(models)
-                session.execute(sql)
+            schemas = set(m.metadata.schema for m in models)
+            session.execute(
+                "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
+            )
 
-    def _create_tables_and_schema(
-        self, models: List[Any], schema: Optional[str] = None
-    ):
+    def _create_tables_and_schemas(self, models: List[Any]):
         with session_context(make_db_session(self.engine)) as session:
-            if schema is not None:
-                session.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            schemas_to_create = set(m.metadata.schema for m in models)
+            session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
             if models:
                 sql = create_tables_sql(models)
                 session.execute(sql)
+
 
 def write_to_db(session, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):
     table_name = "{}.{}".format(schema, table_name) if schema else table_name

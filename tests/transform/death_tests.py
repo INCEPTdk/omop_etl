@@ -28,8 +28,8 @@ class DeathTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._create_tables_and_schemas(self.REGISTRY_MODELS)
+        self._create_tables_and_schemas(self.TARGET_MODEL)
         self.source_person_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
         self.omop_person_in = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_FILE, index_col=False, sep=';', parse_dates=['death_date', 'death_datetime'])
@@ -37,8 +37,8 @@ class DeathTransformationTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._drop_tables_and_schemas(self.REGISTRY_MODELS)
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
 
     def _insert_test_data(self, session):
         write_to_db(session, self.source_person_in, RegistryPerson.__tablename__, schema=RegistryPerson.metadata.schema)
