@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from sqlalchemy import Date, DateTime, and_, cast, func, insert, select
+from sqlalchemy import DateTime, and_, cast, func, insert, select, or_
 from sqlalchemy.sql import Insert, Select
 
 from ..models.omopcdm54.clinical import (
@@ -13,8 +13,12 @@ from ..models.omopcdm54.clinical import (
 StemProcedureOccurrence: Final[Select] = select(
     OmopStem.person_id,
     OmopStem.concept_id,
-    OmopStem.start_date,
-    OmopStem.start_datetime,
+    func.coalesce(OmopStem.start_date, OmopStem.end_date).label("start_date"),
+    func.coalesce(
+        OmopStem.start_datetime,
+        cast(OmopStem.start_datetime, DateTime),
+        OmopStem.end_datetime,
+    ).label("start_datetime"),
     func.coalesce(OmopStem.end_date, OmopStem.start_date).label("end_date"),
     func.coalesce(
         OmopStem.end_datetime,
@@ -34,6 +38,12 @@ StemProcedureOccurrence: Final[Select] = select(
         OmopStem.domain_id == "Procedure",
         OmopStem.concept_id.is_not(None),
         OmopStem.type_concept_id.is_not(None),
+        or_(
+            OmopStem.start_date.is_not(None),
+            OmopStem.end_date.is_not(None),
+            OmopStem.start_datetime.is_not(None),
+            OmopStem.end_datetime.is_not(None),
+        ),
     )
 )
 
