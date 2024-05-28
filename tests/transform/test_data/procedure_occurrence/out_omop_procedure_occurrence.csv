@@ -1,3 +1,5 @@
 procedure_occurrence_id;person_id;procedure_concept_id;procedure_date;procedure_datetime;procedure_end_date;procedure_end_datetime;procedure_type_concept_id;modifier_concept_id;quantity;provider_id;visit_occurrence_id;visit_detail_id;procedure_source_value;procedure_source_concept_id;modifier_source_value
 1;3;4142645;1800-01-01;1800-01-01 00:00:00;1800-01-01;1800-01-01 00:00:00;32879;;;;5;;UXAC85A__true;2000000987;
-2;5;4046030;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;;;7;;piccoktt__true;2000000456;
+2;4;4142645;1800-01-01;1800-01-01 00:00:00;1800-01-01;1800-01-01 00:00:00;32879;;;;6;;UXAC85A__true;2000000987;
+3;5;4046030;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;;;7;;piccoktt__true;2000000456;
+4;6;0;1801-01-10;1801-01-10 12:12:12;1803-01-01;1803-01-01 14:09:01;32817;;;;8;;piccokttunmappable__true;2000000456;
