@@ -17,6 +17,7 @@ from tests.testutils import (
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality
 )
 
 
@@ -56,6 +57,6 @@ class ConditionOccurenceTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        pd.testing.assert_frame_equal(result_df,self.expected_df)
+        assert_dataframe_equality(result_df,self.expected_df)
 
 __all__ = ['ConditionOccurenceTest']
