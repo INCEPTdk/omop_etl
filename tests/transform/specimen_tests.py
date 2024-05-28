@@ -54,6 +54,6 @@ class SpecimenTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        assert_dataframe_equality(result_df, self.expected_df, index_col='specimen_id')
+        assert_dataframe_equality(result_df, self.expected_df, index_cols='specimen_id')
 
 __all__ = ['SpecimenTest']
