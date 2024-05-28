@@ -14,6 +14,7 @@ from tests.testutils import (
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality
 )
 
 
@@ -53,6 +54,6 @@ class MeasurementTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        pd.testing.assert_frame_equal(result_df, self.expected_df)
+        assert_dataframe_equality(result_df, self.expected_df, index_cols='measurement_id')
 
 __all__ = ['MeasurementTest']
