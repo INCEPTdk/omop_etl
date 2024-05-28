@@ -30,8 +30,6 @@ StemSpecimen: Final[Select] = select(
         OmopStem.domain_id == "Specimen",
         OmopStem.concept_id.is_not(None),
         OmopStem.type_concept_id.is_not(None),
-        OmopStem.concept_id != 0,
-        OmopStem.start_date == cast(OmopStem.start_datetime, Date),
     )
 )
 
