@@ -3,7 +3,6 @@
 from sqlalchemy import and_, case, cast, func, insert, or_
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql import Insert
-from sqlalchemy.sql.expression import null
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.omopcdm54.standardized_derived_elements import (
@@ -13,7 +12,6 @@ from ..util.db import (
     AbstractSession,
     get_environment_variable as get_era_lookback_interval,
 )
-
 
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
     "CONDITION_ERA_LOOKBACK", "30 days"
@@ -32,8 +30,12 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
         session.query(
             OmopStem.person_id,
             OmopStem.concept_id.label("condition_concept_id"),
-            func.coalesce(OmopStem.start_date, OmopStem.end_date).label("condition_start_date"),
-            func.coalesce(OmopStem.end_date, OmopStem.start_date).label("condition_end_date"),
+            func.coalesce(OmopStem.start_date, OmopStem.end_date).label(
+                "condition_start_date"
+            ),
+            func.coalesce(OmopStem.end_date, OmopStem.start_date).label(
+                "condition_end_date"
+            ),
             (OmopStem.start_date - lookback_interval).label("lookback_date"),
             func.coalesce(
                 func.lag(OmopStem.end_date).over(), OmopStem.start_date
@@ -91,12 +93,13 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
             func.count(CteEraId.c.condition_concept_id).label(
                 "condition_occurrence_count"
             ),
-        ).group_by(
+        )
+        .group_by(
             CteEraId.c.era_id,
             CteEraId.c.person_id,
             CteEraId.c.condition_concept_id,
-        ).
-        distinct()  # collapse identical eras into one
+        )
+        .distinct()  # collapse identical eras into one
     )
 
     return insert(OmopConditionEra).from_select(
