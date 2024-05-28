@@ -24,6 +24,9 @@ from .standardized_derived_elements import *
 # Vocabulary Tables
 from .vocabulary import *
 
+# Results Tables
+from .results import *
+
 OMOPCDM_VERSION: Final[str] = "5.4"
 
 # pylint: disable=no-member
