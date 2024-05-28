@@ -10,8 +10,10 @@ from ..models.omopcdm54.standardized_derived_elements import (
     DrugEra as OmopDrugEra,
 )
 from ..models.omopcdm54.vocabulary import Concept, ConceptAncestor
-from ..util.db import AbstractSession, get_environment_variable as get_era_lookback_interval
-
+from ..util.db import (
+    AbstractSession,
+    get_environment_variable as get_era_lookback_interval,
+)
 
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
     "DRUG_ERA_LOOKBACK", "0 hours"
@@ -142,12 +144,13 @@ def get_drug_era_insert(session: AbstractSession = None) -> Insert:
                 "drug_exposure_count"
             ),
             null().label("gap_days"),
-        ).group_by(
+        )
+        .group_by(
             CteEraId.c.drug_era_id,
             CteEraId.c.person_id,
             CteEraId.c.ingredient_concept_id,
-        ).
-        distinct()  # collapse identical eras into one
+        )
+        .distinct()  # collapse identical eras into one
     )
 
     return insert(OmopDrugEra).from_select(
