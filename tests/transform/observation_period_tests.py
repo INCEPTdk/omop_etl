@@ -19,14 +19,15 @@ from etl.transform.observation_period import (
 )
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality
 )
 
 
-class ObservationPeriodTransformationTest(PostgresBaseTest):
+class ObservationPeriodTransformationTest(DuckDBBaseTest):
 
     OMOP_MODELS = [OmopMeasurement, OmopConditionOccurrence, OmopVisitOccurrence, OmopProcedureOccurrence, OmopObservation, OmopDrugExposure, OmopDeath, OmopPerson, OmopObservationPeriod]
 
@@ -46,7 +47,7 @@ class ObservationPeriodTransformationTest(PostgresBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.OMOP_MODELS, schema='omopcdm')
+        self._create_tables_and_schemas(self.OMOP_MODELS)
 
 
         self.omop_person = pd.read_csv(self.INPUT_OMOP_PERSON, index_col=False, sep=';')
@@ -64,7 +65,7 @@ class ObservationPeriodTransformationTest(PostgresBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.OMOP_MODELS, schema='omopcdm')
+        self._drop_tables_and_schemas(self.OMOP_MODELS)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.omop_person, OmopPerson.__tablename__, schema=OmopPerson.metadata.schema)
@@ -85,6 +86,6 @@ class ObservationPeriodTransformationTest(PostgresBaseTest):
         result = select(self.expected_cols)
         result_df = pd.read_sql(result, self.engine, parse_dates=self.DATETIME_COLS_TO_PARSE)
         result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df, self.expected_df, check_like=True, check_datetimelike_compat=True)
+        assert_dataframe_equality(result_df, self.expected_df, index_cols="observation_period_id")
 
 __all__ = ['ObservationPeriodTransformationTest']
