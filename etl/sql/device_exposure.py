@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from sqlalchemy import Date, DateTime, and_, cast, func, insert, select
+from sqlalchemy import DateTime, and_, cast, func, insert, select
 from sqlalchemy.sql import Insert, Select
 
 from ..models.omopcdm54.clinical import (
