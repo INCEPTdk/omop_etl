@@ -12,14 +12,15 @@ from etl.transform.drug_exposure import (
 )
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality
 )
 
 
-class DrugExposureTest(PostgresBaseTest):
+class DrugExposureTest(DuckDBBaseTest):
 
     TARGET_MODEL = [OmopStem, OmopDrugExposure]
 
@@ -35,7 +36,6 @@ class DrugExposureTest(PostgresBaseTest):
     def setUp(self):
         super().setUp()
         self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-
 
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
 
@@ -58,6 +58,7 @@ class DrugExposureTest(PostgresBaseTest):
         result = select(self.expected_cols)
         result_df = pd.read_sql(result, self.engine)
         result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df, self.expected_df, check_like=True, check_datetimelike_compat=True)
+
+        assert_dataframe_equality(result_df, self.expected_df, index_cols=['drug_exposure_id'])
 
 __all__ = ['DrugExposureTest']
