@@ -16,6 +16,7 @@ from tests.testutils import (
     base_path,
     enforce_dtypes,
     write_to_db,
+    assert_dataframe_equality
 )
 
 
@@ -28,7 +29,7 @@ class DeviceExposureTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._create_tables_and_schemas(self.TARGET_MODEL)
 
 
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
@@ -38,7 +39,7 @@ class DeviceExposureTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.omop_stem, OmopStem.__tablename__, schema=OmopStem.metadata.schema)
@@ -55,6 +56,6 @@ class DeviceExposureTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        pd.testing.assert_frame_equal(result_df, self.expected_df)
+        assert_dataframe_equality(result_df, self.expected_df)
 
 __all__ = ['DeviceExposureTest']

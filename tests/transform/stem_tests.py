@@ -66,11 +66,11 @@ class StemTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-        self._create_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
-        self._create_tables_and_schema(self.VOCAB_MODELS, schema='vocab')
+        self._create_tables_and_schemas(self.LOOKUPS)
+        self._create_tables_and_schemas(self.SOURCE_MODELS)
+        self._create_tables_and_schemas(self.TARGET_MODEL)
+        self._create_tables_and_schemas(self.REGISTRY_MODELS)
+        self._create_tables_and_schemas(self.VOCAB_MODELS)
 
         self.concept_lookup = pd.read_csv(self.CONCEPT_LOOKUP_DF, index_col=False, sep=';')
         self.concept_lookup_stem = pd.read_csv(self.CONCEPT_LOOKUP_STEM_DF, index_col=False, sep=';', dtype=str)
@@ -96,11 +96,11 @@ class StemTransformationTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-        self._drop_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
-        self._drop_tables_and_schema(self.VOCAB_MODELS, schema='vocab')
+        self._drop_tables_and_schemas(self.LOOKUPS)
+        self._drop_tables_and_schemas(self.SOURCE_MODELS)
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
+        self._drop_tables_and_schemas(self.REGISTRY_MODELS)
+        self._drop_tables_and_schemas(self.VOCAB_MODELS)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)

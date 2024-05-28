@@ -37,8 +37,7 @@ StemDeviceExposure: Final[Select] = select(
     and_(
         OmopStem.domain_id == "Device",
         OmopStem.concept_id.is_not(None),
-        OmopStem.concept_id != 0,
-        OmopStem.start_date == cast(OmopStem.start_datetime, Date),
+        OmopStem.type_concept_id.is_not(None),
     )
 )
 

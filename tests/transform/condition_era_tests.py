@@ -29,7 +29,7 @@ class ConditionEraTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.TARGET_MODELS, schema='omopcdm')
+        self._create_tables_and_schemas(self.TARGET_MODELS)
 
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
 
@@ -38,7 +38,7 @@ class ConditionEraTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.TARGET_MODELS, schema='omopcdm')
+        self._drop_tables_and_schemas(self.TARGET_MODELS)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.omop_stem, OmopStem.__tablename__, schema=OmopStem.metadata.schema)
