@@ -8,7 +8,9 @@ from etl.models.omopcdm54.standardized_derived_elements import (
     ConditionEra as OmopConditionEra,
 )
 from etl.models.omopcdm54.vocabulary import Concept, ConceptAncestor
-from etl.transform.condition_era import transform as condition_era_transformation
+from etl.transform.condition_era import (
+    transform as condition_era_transformation,
+)
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,

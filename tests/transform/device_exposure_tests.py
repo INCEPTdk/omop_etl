@@ -13,10 +13,10 @@ from etl.transform.device_exposure import (
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
+    assert_dataframe_equality,
     base_path,
     enforce_dtypes,
     write_to_db,
-    assert_dataframe_equality
 )
 
 
