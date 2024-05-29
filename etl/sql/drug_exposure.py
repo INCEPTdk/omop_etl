@@ -30,6 +30,7 @@ StemDrugExposure: Final[Select] = select(
     and_(
         OmopStem.domain_id == "Drug",
         OmopStem.concept_id.is_not(None),
+        OmopStem.type_concept_id.is_not(None),
     )
 )
 

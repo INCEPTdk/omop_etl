@@ -156,7 +156,7 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
     drop_sql = (
         "; ".join(
             [
-                f"""DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str};
+                f"""DROP TABLE IF EXISTS {m.metadata.schema}.{m.__table__.name} {cascade_str};
                 DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
                 for m in models
             ]

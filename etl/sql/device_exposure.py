@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from sqlalchemy import Date, DateTime, and_, cast, func, insert, select
+from sqlalchemy import DateTime, and_, cast, func, insert, select
 from sqlalchemy.sql import Insert, Select
 
 from ..models.omopcdm54.clinical import (
@@ -37,8 +37,7 @@ StemDeviceExposure: Final[Select] = select(
     and_(
         OmopStem.domain_id == "Device",
         OmopStem.concept_id.is_not(None),
-        OmopStem.concept_id != 0,
-        OmopStem.start_date == cast(OmopStem.start_datetime, Date),
+        OmopStem.type_concept_id.is_not(None),
     )
 )
 
