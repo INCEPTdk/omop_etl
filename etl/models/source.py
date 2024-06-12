@@ -58,6 +58,7 @@ class CourseMetadata(SourceModelBase, PKIdMixin):
     variable: Final[Column] = CharField(50)
     value: Final[Column] = CharField(145)
     from_file: Final[Column] = CharField(50)
+    description: Final[Column] = CharField(150)
 
 
 @register_source_model
@@ -87,7 +88,7 @@ class Administrations(SourceModelBase, PKIdMixin):
     value0: Final[Column] = FloatField()
     value1: Final[Column] = FloatField()
     from_file: Final[Column] = CharField(50)
-
+    description: Final[Column] = CharField(150)
 
 @register_source_model
 @freeze_instance
@@ -170,6 +171,7 @@ class DiagnosesProcedures(SourceModelBase, PKIdMixin):
     variable: Final[Column] = CharField(50)
     value: Final[Column] = BoolField()
     from_file: Final[Column] = CharField(50)
+    description: Final[Column] = CharField(150)
 
 
 @register_source_model
@@ -187,7 +189,7 @@ class Observations(SourceModelBase, PKIdMixin):
     variable: Final[Column] = CharField(140)
     value: Final[Column] = CharField(580)
     from_file: Final[Column] = CharField(50)
-
+    description: Final[Column] = CharField(150)
 
 @register_source_model
 @freeze_instance
