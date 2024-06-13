@@ -103,7 +103,7 @@ def setup_logger(verbosity_level: str) -> logging.Logger:
     logfilename = f"etl_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     f_handler = logging.FileHandler(os.path.join(logdir, logfilename))
     l_format = logging.Formatter(
-        "[%(asctime)s] [%(levelname)8s] - %(name)-25s %(message)s (%(filename)s:%(lineno)s)",
+        "[%(asctime)s] [%(levelname)8s] - %(name)-35s %(message)s (%(filename)s:%(lineno)s)",
         "%Y-%m-%d %H:%M:%S",
     )
     c_handler.setFormatter(l_format)
