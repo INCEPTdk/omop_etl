@@ -443,7 +443,8 @@ def get_source_cdm_schemas(
     session: AbstractSession,
 ) -> List[str]:
     """
-    These functions reads all the schema in the database, excludes the schemas that are not structured as a cdm schema andreturns the list of cdm schemas
+    These functions reads all the schema in the database
+    excludes the schemas that are not structured as a cdm schema and returns the list of cdm schemas
     """
 
     query = """SELECT table_schema

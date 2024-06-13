@@ -36,7 +36,9 @@ from .transform.device_exposure import transform as device_exposure_transform
 from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
-from .transform.merge.location import transform as merge_location_transform
+from .transform.merge.care_site import transform as merge_care_site_transform
+from .transform.merge.death import transform as merge_death_transform
+from .transform.merge.person import transform as merge_person_transform
 from .transform.observation import transform as observation_transform
 from .transform.observation_period import (
     transform as observation_period_transform,
@@ -46,7 +48,10 @@ from .transform.procedure_occurrence import (
     transform as procedure_occurrence_transform,
 )
 from .transform.reload_vocab import transform as reload_vocab_files
-from .transform.session_operation import SessionOperation
+from .transform.session_operation import (
+    SessionOperation,
+    SessionOperationDefaultMerge,
+)
 from .transform.specimen import transform as specimen_transform
 from .transform.stem import transform as stem_transform
 from .transform.visit_occurrence import transform as visit_occurrence_transform
@@ -275,14 +280,108 @@ def run_merge(session: AbstractSession) -> None:
             func=create_omop_tables,
             description="Create OMOP tables",
         ),
-        SessionOperation(
-            key=str(Location.__table__),
+        SessionOperationDefaultMerge(
+            cdm_table=Location,
             session=session,
-            func=merge_location_transform,
             description="Merge Location transform",
+        ),
+        SessionOperation(
+            key=str(CareSite.__table__),
+            session=session,
+            func=merge_care_site_transform,
+            description="Merge Care site transform",
+        ),
+        SessionOperation(
+            key=str(Person.__table__),
+            session=session,
+            func=merge_person_transform,
+            description="Merge Person transform",
+        ),
+        SessionOperation(
+            key=str(Death.__table__),
+            session=session,
+            func=merge_death_transform,
+            description="Merge Death transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=VisitOccurrence,
+            session=session,
+            description="Merge Visit Occurrence transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=ConditionOccurrence,
+            session=session,
+            description="Condition Occurrence transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=DrugExposure,
+            session=session,
+            description="Measurement transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=Observation,
+            session=session,
+            description="Observation transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=ProcedureOccurrence,
+            session=session,
+            description="Procedure occurrence transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=Measurement,
+            session=session,
+            description="Measurement transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=DeviceExposure,
+            session=session,
+            description="Device Exposure transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=Specimen,
+            session=session,
+            description="Specimen transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=ObservationPeriod,
+            session=session,
+            description="Observation period transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=DrugEra,
+            session=session,
+            description="Drug Era transform",
+        ),
+        SessionOperationDefaultMerge(
+            cdm_table=ConditionEra,
+            session=session,
+            description="Condition Era transform",
         ),
     ]
     run_transformations(session, transformations, registry)
+
+    logger.info("ETL Merge Complete")
+    print_summary(
+        session,
+        [
+            Location,
+            CareSite,
+            Person,
+            Death,
+            VisitOccurrence,
+            ConditionOccurrence,
+            DrugExposure,
+            Observation,
+            ProcedureOccurrence,
+            Measurement,
+            DeviceExposure,
+            Specimen,
+            ObservationPeriod,
+            DrugEra,
+            ConditionEra,
+        ],
+    )
 
 
 def print_summary(
