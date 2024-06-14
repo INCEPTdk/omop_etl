@@ -32,7 +32,7 @@ class SessionOperation(BaseOperation):
 
 
 class SessionOperationDefaultMerge(BaseOperation):
-    """ This operation is used exclusively for merging tables. it uses a default merge function """
+    """This operation is used exclusively for merging tables. it uses a default merge function"""
 
     def __init__(
         self,

@@ -77,7 +77,7 @@ class DuckDBBaseTest(unittest.TestCase):
                 session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
 
             if models:
-                sql = drop_tables_sql(models)
+                sql = drop_tables_sql(models, schema=schema)
                 session.execute(sql)
 
     def _create_tables_and_schema(
@@ -87,7 +87,7 @@ class DuckDBBaseTest(unittest.TestCase):
             if schema is not None:
                 session.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
             if models:
-                sql = create_tables_sql(models)
+                sql = create_tables_sql(models, schema=schema)
                 session.execute(sql)
 
 def write_to_db(session, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):

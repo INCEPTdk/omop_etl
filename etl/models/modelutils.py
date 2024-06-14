@@ -20,6 +20,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Sequence,
     String,
+    Table,
     Text,
 )
 from sqlalchemy.dialects import postgresql
@@ -146,16 +147,40 @@ def make_model_base(schema: Optional[str] = None) -> Any:
 
 
 @clean_sql
-def drop_tables_sql(models: List[Any], cascade=True) -> str:
+def drop_tables_sql(models: List[Any], cascade=True, schema: str = None) -> str:
+
+    if schema and all(schema != m.metadata.schema for m in models):
+        tables = [
+            Table(
+                m.__tablename__,
+                m.metadata,
+                *[
+                    Column(
+                        c.name,
+                        c.type,
+                        primary_key=c.primary_key,
+                        default=c.default,
+                        server_default=c.server_default,
+                    )
+                    for c in m.__table__.columns
+                ],
+                schema=schema,
+                extend_existing=True,
+            )
+            for m in models
+        ]
+    else:
+        tables = [m.__table__ for m in models]
+
     cascade_str = ""
     if cascade:
         cascade_str = "CASCADE"
     drop_sql = (
         "; ".join(
             [
-                f"""DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str};
-                DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
-                for m in models
+                f"""DROP TABLE IF EXISTS {t} {cascade_str};
+                DROP SEQUENCE IF EXISTS {str(t.schema + '_' + t.name + '_id_seq')} {cascade_str}"""
+                for t in tables
             ]
         )
         + ";"
@@ -164,18 +189,37 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
 
 
 @clean_sql
-def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
+def create_tables_sql(
+    models: List[Any], dialect=DIALECT_POSTGRES, schema: str = None
+) -> str:
+    if schema and all(schema != m.metadata.schema for m in models):
+        tables = [
+            Table(
+                m.__tablename__,
+                m.metadata,
+                *[
+                    Column(
+                        c.name,
+                        c.type,
+                        primary_key=c.primary_key,
+                        default=c.default,
+                        server_default=c.server_default,
+                    )
+                    for c in m.__table__.columns
+                ],
+                schema=schema,
+            )
+            for m in models
+        ]
+    else:
+        tables = [m.__table__ for m in models]
+
     sql = []
-    for model in models:
+    for table in tables:
         sql.append(
             str(
                 CreateSequence(
-                    Sequence(
-                        model.metadata.schema
-                        + "_"
-                        + model.__table__.name
-                        + "_id_seq"
-                    ),
+                    Sequence(table.schema + "_" + table.name + "_id_seq"),
                     if_not_exists=True,
                 ).compile(dialect=dialect)
             )
@@ -183,7 +227,7 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
         sql.append(
             str(
                 CreateTable(
-                    model.__table__,
+                    table,
                     include_foreign_key_constraints=[],
                     if_not_exists=True,
                 ).compile(dialect=dialect)
