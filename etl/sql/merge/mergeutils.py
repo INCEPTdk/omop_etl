@@ -104,7 +104,7 @@ def remap_person_id(
     schema: str, cdm_table: OmopCdmModelBase, person_table: OmopCdmModelBase
 ):
     """Remap Person IDs in a CDM table."""
-    return f"""SELECT  site_cdm_table.person_id AS site_person_id,
+    return f"""SELECT DISTINCT site_cdm_table.person_id AS site_person_id,
                         merge_person.person_id AS merge_person_id
             FROM {schema}.{cdm_table.__tablename__} AS site_cdm_table
             INNER JOIN {schema}.{person_table.__tablename__} AS site_person
@@ -116,7 +116,7 @@ def remap_person_id(
 @clean_sql
 def remap_care_site_id(schema: str, care_site_table: OmopCdmModelBase):
     """Remap Care Site IDs in a CDM table."""
-    return f"""SELECT merge_care_site.care_site_id as merge_care_site_id,
+    return f"""SELECT DISTINCT merge_care_site.care_site_id as merge_care_site_id,
                     site_care_site.care_site_id as site_care_site_id
                 FROM {schema}.{care_site_table.__tablename__} AS site_care_site
                 INNER JOIN {care_site_table.__table__} AS merge_care_site
