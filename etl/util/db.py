@@ -207,7 +207,7 @@ def _create_engine_duckdb(
 ) -> Engine:
     """Create a Duckdb database engine based on connection details"""
     url = f"duckdb:///{dbname}"
-    return create_engine(url, **kwargs)
+    return create_engine(url, connect_args={"config": kwargs})
 
 
 def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:

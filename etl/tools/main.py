@@ -61,6 +61,7 @@ def main() -> None:
     Main entrypoint for running the ETL
     """
     args = process_args()
+    MAX_MEMORY_LIMIT = '250gb' #TODO make parameter
 
     csv_dir = os.path.join(Path(__file__).parent.parent.absolute(), "csv")
     verbosity = args.verbosity_level
@@ -77,7 +78,7 @@ def main() -> None:
     if cnxn.dbms == "postgresql":
         engine = make_engine_postgres(cnxn, implicit_returning=False)
     elif cnxn.dbms == "duckdb":
-        engine = make_engine_duckdb(cnxn)
+        engine = make_engine_duckdb(cnxn, memory_limit=MAX_MEMORY_LIMIT)
 
     if not is_db_connected(engine):
         raise DBConnectionException(
