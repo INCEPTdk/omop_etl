@@ -32,7 +32,7 @@ LABORATORY_MODELS = [LabkaBccLaboratory]
 def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
-    
+
     for model in NONDRUG_MODELS:
         logger.info(
             "%s source data to the STEM table...",
@@ -47,7 +47,7 @@ def transform(session: AbstractSession) -> None:
             .count(),
             model.__tablename__,
         )
-    
+
     logger.info("DRUG source data to the STEM table...")
     session.execute(get_drug_stem_insert(session, logger))
 
