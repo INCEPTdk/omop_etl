@@ -32,7 +32,22 @@ LABORATORY_MODELS = [LabkaBccLaboratory]
 def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
+    
+    for model in NONDRUG_MODELS:
+        logger.info(
+            "%s source data to the STEM table...",
+            model.__tablename__.upper(),
+        )
 
+        session.execute(get_nondrug_stem_insert(session, model))
+        logger.info(
+            "STEM Transform in Progress, %s Events Included from source %s.",
+            session.query(OmopStem)
+            .where(OmopStem.datasource == model.__tablename__)
+            .count(),
+            model.__tablename__,
+        )
+    
     logger.info("DRUG source data to the STEM table...")
     session.execute(get_drug_stem_insert(session, logger))
 
@@ -71,21 +86,6 @@ def transform(session: AbstractSession) -> None:
             drug_records_with_quantity / max(1, drug_records_in_stem) * 100, 2
         ),
     )
-
-    for model in NONDRUG_MODELS:
-        logger.info(
-            "%s source data to the STEM table...",
-            model.__tablename__.upper(),
-        )
-
-        session.execute(get_nondrug_stem_insert(session, model))
-        logger.info(
-            "STEM Transform in Progress, %s Events Included from source %s.",
-            session.query(OmopStem)
-            .where(OmopStem.datasource == model.__tablename__)
-            .count(),
-            model.__tablename__,
-        )
 
     for model in REGISTRY_MODELS:
         logger.info(
