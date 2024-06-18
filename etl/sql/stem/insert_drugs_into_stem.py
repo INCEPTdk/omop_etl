@@ -108,7 +108,7 @@ def create_simple_stem_select(
             VisitOccurrence.visit_source_value
             == concat("courseid|", CteAdministrations.c.courseid),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.source_variable
@@ -116,6 +116,7 @@ def create_simple_stem_select(
                 ConceptLookupStem.datasource == "administrations",
                 ConceptLookupStem.drug_exposure_type == administration_type,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
