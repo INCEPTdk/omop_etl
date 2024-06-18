@@ -29,7 +29,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
 
     StemSelect = (
         select(
-            Concept.domain_id,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -63,10 +63,6 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
-        )
-        .outerjoin(
-            Concept,
-            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 

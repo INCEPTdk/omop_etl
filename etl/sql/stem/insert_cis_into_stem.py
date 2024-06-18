@@ -38,7 +38,7 @@ def create_simple_stem_insert(
 ) -> Insert:
     StemSelect = (
         select(
-            Concept.domain_id,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -106,10 +106,6 @@ def create_simple_stem_insert(
                 ),
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
-        )
-        .outerjoin(
-            Concept,
-            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 

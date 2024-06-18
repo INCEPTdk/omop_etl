@@ -66,7 +66,7 @@ def create_simple_stem_select(
 
     StemSelect = (
         select(
-            Concept.domain_id,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -125,10 +125,6 @@ def create_simple_stem_select(
                 == getattr(CtePrescriptions.c, route_source_value),
                 ConceptLookup.filter == "administration_route",
             ),
-        )
-        .outerjoin(
-            Concept,
-            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
