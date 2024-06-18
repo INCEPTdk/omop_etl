@@ -77,6 +77,7 @@ def main() -> None:
     Main entrypoint for running the ETL
     """
     args = process_args()
+    MAX_MEMORY_LIMIT = '250gb' #TODO make parameter
 
     csv_dir = os.path.join(Path(__file__).parent.parent.absolute(), "csv")
     verbosity = args.verbosity_level

@@ -1,5 +1,6 @@
 """ SQL query string definition for the drug-related stem functions"""
 
+import os
 from typing import Any, Dict
 
 from sqlalchemy import (
@@ -20,6 +21,7 @@ from sqlalchemy.sql.expression import CTE, null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .conversions import get_conversion_factor
@@ -64,7 +66,7 @@ def create_simple_stem_select(
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -106,7 +108,7 @@ def create_simple_stem_select(
             VisitOccurrence.visit_source_value
             == concat("courseid|", CteAdministrations.c.courseid),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.source_variable
@@ -114,6 +116,7 @@ def create_simple_stem_select(
                 ConceptLookupStem.datasource == "administrations",
                 ConceptLookupStem.drug_exposure_type == administration_type,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
@@ -122,6 +125,10 @@ def create_simple_stem_select(
                 == getattr(CtePrescriptions.c, route_source_value),
                 ConceptLookup.filter == "administration_route",
             ),
+        )
+        .outerjoin(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
@@ -272,6 +279,11 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .where(CteConceptLookupStemForAntijoin.c.std_code_domain.is_(None))
     )
 
+    if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
+        StemSelect = union_all(MappedSelectSql, UnmappedSelectSql)
+    else:
+        StemSelect = MappedSelectSql
+
     return insert(OmopStem).from_select(
         names=[
             OmopStem.domain_id,
@@ -291,6 +303,6 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.era_lookback_interval,
             OmopStem.datasource,
         ],
-        select=union_all(MappedSelectSql, UnmappedSelectSql),
+        select=StemSelect,
         include_defaults=False,
     )
