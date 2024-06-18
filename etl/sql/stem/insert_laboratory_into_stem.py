@@ -1,5 +1,6 @@
 """ SQL logic for inserting laboratory data into the stem table"""
 
+import os
 from typing import Any
 
 from sqlalchemy import (
@@ -21,10 +22,16 @@ from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
-from .utils import find_unique_column_names, get_case_statement
+from .utils import (
+    find_unique_column_names,
+    get_case_statement,
+    toggle_stem_transform,
+)
 
 
+@toggle_stem_transform
 def get_laboratory_stem_insert(
     session: Any = None, model: Any = None
 ) -> Insert:
@@ -42,7 +49,7 @@ def get_laboratory_stem_insert(
 
     StemSelectMeasurement = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -82,13 +89,14 @@ def get_laboratory_stem_insert(
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
                 == func.lower(model.lab_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
@@ -103,6 +111,10 @@ def get_laboratory_stem_insert(
                 ),
                 ConceptLookup.filter == "laboratory_category",
             ),
+        )
+        .outerjoin(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
@@ -138,13 +150,14 @@ def get_laboratory_stem_insert(
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
                 == func.lower(model.lab_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
@@ -177,4 +190,5 @@ def get_laboratory_stem_insert(
             OmopStem.range_high,
         ],
         select=union(StemSelectMeasurement, StemSelectSpecimen),
+        include_defaults=False,
     )

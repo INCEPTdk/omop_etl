@@ -14,8 +14,9 @@ from ..modelutils import (
     DateTimeField,
     FloatField,
     IntField,
-    NumericField,
     PKIdMixin,
+    PKIntField,
+    add_etl_step,
 )
 from .health_systems import CareSite, Location, Provider
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
@@ -24,6 +25,7 @@ from .vocabulary import Concept
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(3)
 class Person(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#PERSON
@@ -31,7 +33,10 @@ class Person(ModelBase):
 
     __tablename__: Final[str] = "person"
 
-    person_id: Final[Column] = IntField(primary_key=True)
+    person_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
+
     gender_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -71,6 +76,7 @@ class PersonIdMixin:
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(14)
 class ObservationPeriod(ModelBase, PersonIdMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#OBSERVATION_PERIOD
@@ -78,7 +84,9 @@ class ObservationPeriod(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "observation_period"
 
-    observation_period_id: Final[Column] = IntField(primary_key=True)
+    observation_period_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     observation_period_start_date: Final[Column] = DateField(nullable=False)
     observation_period_end_date: Final[Column] = DateField(nullable=False)
     period_type_concept_id: Final[Column] = IntField(
@@ -108,6 +116,7 @@ class ProviderIdMixin:
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(5)
 class VisitOccurrence(
     ModelBase, PersonIdMixin, CareSiteIdMixin, ProviderIdMixin
 ):
@@ -115,7 +124,9 @@ class VisitOccurrence(
 
     __tablename__: Final[str] = "visit_occurrence"
 
-    visit_occurrence_id: Final[Column] = IntField(primary_key=True)
+    visit_occurrence_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     visit_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -159,7 +170,9 @@ class VisitDetail(
 
     __tablename__: Final[str] = "visit_detail"
 
-    visit_detail_id: Final[Column] = IntField(primary_key=True)
+    visit_detail_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     visit_detail_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -198,12 +211,15 @@ class VisitAndProviderMixin(VisitOccurrenceIdMixin, ProviderIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(7)
 class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#CONDITION_OCCURRENCE"""
 
     __tablename__: Final[str] = "condition_occurrence"
 
-    condition_occurrence_id: Final[Column] = IntField(primary_key=True)
+    condition_occurrence_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     condition_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -227,12 +243,15 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(10)
 class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DRUG_EXPOSURE"""
 
     __tablename__: Final[str] = "drug_exposure"
 
-    drug_exposure_id: Final[Column] = IntField(primary_key=True)
+    drug_exposure_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -246,7 +265,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     )
     stop_reason: Final[Column] = CharField(20)
     refills: Final[Column] = IntField()
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     days_supply: Final[Column] = IntField()
     sig: Final[Column] = CharField(None)
     route_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -259,12 +278,15 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(8)
 class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#PROCEDURE_OCCURRENCE"""
 
     __tablename__: Final[str] = "procedure_occurrence"
 
-    procedure_occurrence_id: Final[Column] = IntField(primary_key=True)
+    procedure_occurrence_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     procedure_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -286,12 +308,15 @@ class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(12)
 class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DEVICE_EXPOSURE"""
 
     __tablename__: Final[str] = "device_exposure"
 
-    device_exposure_id: Final[Column] = IntField(primary_key=True)
+    device_exposure_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     device_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -314,12 +339,15 @@ class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(9)
 class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#MEASUREMENT"""
 
     __tablename__: Final[str] = "measurement"
 
-    measurement_id: Final[Column] = IntField(primary_key=True)
+    measurement_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     measurement_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -330,11 +358,11 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
         FK(Concept.concept_id), nullable=False
     )
     operator_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    range_low: Final[Column] = NumericField()
-    range_high: Final[Column] = NumericField()
+    range_low: Final[Column] = FloatField()
+    range_high: Final[Column] = FloatField()
     measurement_source_value: Final[Column] = CharField(50)
     measurement_source_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id)
@@ -350,6 +378,7 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(11)
 class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#OBSERVATION
@@ -357,7 +386,9 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "observation"
 
-    observation_id: Final[Column] = IntField(primary_key=True)
+    observation_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     observation_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -366,7 +397,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     observation_type_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(60)
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     qualifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -384,11 +415,15 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
 @register_omop_model
 @freeze_instance
-class Death(ModelBase, PersonIdMixin, PKIdMixin):
+@add_etl_step(4)
+class Death(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#DEATH"""
 
     __tablename__: Final[str] = "death"
 
+    death_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     death_date: Final[Column] = DateField(nullable=False)
     death_datetime: Final[Column] = DateTimeField()
     death_type_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -404,7 +439,9 @@ class Note(ModelBase, PersonIdMixin, VisitAndProviderMixin):
 
     __tablename__: Final[str] = "note"
 
-    note_id: Final[Column] = IntField(primary_key=True)
+    note_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     note_date: Final[Column] = DateField(nullable=False)
     note_datetime: Final[Column] = DateTimeField()
     note_type_concept_id: Final[Column] = IntField(
@@ -435,7 +472,9 @@ class NoteNlp(ModelBase):
 
     __tablename__: Final[str] = "note_nlp"
 
-    note_nlp_id: Final[Column] = IntField(primary_key=True)
+    note_nlp_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     note_id: Final[Column] = IntField(nullable=False)
     section_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     snippet: Final[Column] = CharField(250)
@@ -453,12 +492,15 @@ class NoteNlp(ModelBase):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(13)
 class Specimen(ModelBase, PersonIdMixin):
     """https://ohdsi.github.io/CommonDataModel/cdm54.html#SPECIMEN"""
 
     __tablename__: Final[str] = "specimen"
 
-    specimen_id: Final[Column] = IntField(primary_key=True)
+    specimen_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     specimen_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -467,7 +509,7 @@ class Specimen(ModelBase, PersonIdMixin):
     )
     specimen_date: Final[Column] = DateField(nullable=False)
     specimen_datetime: Final[Column] = DateTimeField()
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     anatomic_site_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     disease_status_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -500,6 +542,7 @@ class FactRelationship(ModelBase, PKIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(6)
 class Stem(ModelBase):
     """
     Stem table
@@ -509,7 +552,9 @@ class Stem(ModelBase):
 
     domain_id: Final[Column] = CharField(50)
     datasource: Final[Column] = CharField(50)
-    stem_id: Final[Column] = IntField(primary_key=True)
+    stem_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
@@ -533,7 +578,7 @@ class Stem(ModelBase):
         600
     )  # this may be too small for some sources
     source_concept_id: Final[Column] = IntField()
-    value_as_number: Final[Column] = NumericField()
+    value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
@@ -545,7 +590,7 @@ class Stem(ModelBase):
     unit_source_concept_id: Final[Column] = IntField()
     unit_source_value: Final[Column] = CharField(50)
     verbatim_end_date: Final[Column] = CharField(50)
-    days_supply: Final[Column] = CharField(50)
+    days_supply: Final[Column] = IntField()
     dose_unit_source_value: Final[Column] = CharField(50)
     modifier_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
@@ -555,7 +600,7 @@ class Stem(ModelBase):
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
-    quantity: Final[Column] = NumericField()
+    quantity: Final[Column] = FloatField()
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(50)
@@ -565,6 +610,7 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     route_source_value: Final[Column] = CharField(50)
+    era_lookback_interval: Final[Column] = CharField(50)
     lot_number: Final[Column] = CharField(50)
     unique_device_id: Final[Column] = IntField()
     production_id: Final[Column] = CharField(255)

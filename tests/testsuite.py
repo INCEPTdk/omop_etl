@@ -10,7 +10,7 @@ from tests.util.sqltests import *
 
 # only run regression tests if explicitly set ETL_RUN_INTEGRATION_TESTS variable
 if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
-    from tests.processtests import ProcessPostgresTests, RunETLPostgresTests
+    from tests.processtests import ProcessDuckDBTests, RunETLDuckDBTests
     from tests.transform.condition_occurrence_tests import *
     from tests.transform.create_omopcdm_tables_tests import *
     from tests.transform.device_exposure_tests import *

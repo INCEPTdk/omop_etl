@@ -6,3 +6,4 @@ psycopg2-binary~=2.9.9
 python-dateutil~=2.9.0.post0
 pytz~=2024.1
 six~=1.16.0
+duckdb-engine~=0.12.0

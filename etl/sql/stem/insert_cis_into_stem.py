@@ -1,5 +1,6 @@
 """ SQL query string definition for the stem functions"""
 
+import os
 from typing import Any
 
 from sqlalchemy import (
@@ -19,8 +20,13 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookupStem
-from .utils import find_unique_column_names, get_case_statement
+from .utils import (
+    find_unique_column_names,
+    get_case_statement,
+    toggle_stem_transform,
+)
 
 
 def create_simple_stem_insert(
@@ -32,7 +38,7 @@ def create_simple_stem_insert(
 ) -> Insert:
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -83,7 +89,7 @@ def create_simple_stem_insert(
             VisitOccurrence.visit_source_value
             == concat("courseid|", model.courseid),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             or_(
                 and_(
@@ -99,6 +105,11 @@ def create_simple_stem_insert(
                     ConceptLookupStem.datasource == model.__tablename__,
                 ),
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
+        )
+        .outerjoin(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
@@ -133,6 +144,7 @@ def create_simple_stem_insert(
     )
 
 
+@toggle_stem_transform
 def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
     unique_start_date_columns = find_unique_column_names(
         session, model, ConceptLookupStem, "start_date"

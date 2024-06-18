@@ -4,13 +4,22 @@
 from typing import Final
 
 from ...util.freeze import freeze_instance
-from ..modelutils import FK, CharField, Column, IntField, NumericField
+from ..modelutils import (
+    FK,
+    CharField,
+    Column,
+    IntField,
+    NumericField,
+    PKIntField,
+    add_etl_step,
+)
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
 
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(1)
 class Location(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#LOCATION
@@ -18,7 +27,9 @@ class Location(ModelBase):
 
     __tablename__: Final[str] = "location"
 
-    location_id: Final[Column] = IntField(primary_key=True)
+    location_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     address_1: Final[Column] = CharField(50)
     address_2: Final[Column] = CharField(50)
     city: Final[Column] = CharField(50)
@@ -34,6 +45,7 @@ class Location(ModelBase):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(2)
 class CareSite(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#CARE_SITE
@@ -41,7 +53,9 @@ class CareSite(ModelBase):
 
     __tablename__: Final[str] = "care_site"
 
-    care_site_id: Final[Column] = IntField(primary_key=True)
+    care_site_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     care_site_name: Final[Column] = CharField(255)
     place_of_service_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id)
@@ -60,7 +74,9 @@ class Provider(ModelBase):
 
     __tablename__: Final[str] = "provider"
 
-    provider_id: Final[Column] = IntField(primary_key=True)
+    provider_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     provider_name: Final[Column] = CharField(255)
     npi: Final[Column] = CharField(20)
     dea: Final[Column] = CharField(20)

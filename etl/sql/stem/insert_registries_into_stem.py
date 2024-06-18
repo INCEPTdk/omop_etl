@@ -1,5 +1,6 @@
 """ SQL logic for inserting registry data into the stem table"""
 
+import os
 from typing import Any
 
 from sqlalchemy import DATE, INT, TIMESTAMP, and_, cast, insert, literal, select
@@ -7,10 +8,16 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookupStem
-from .utils import find_unique_column_names, get_case_statement
+from .utils import (
+    find_unique_column_names,
+    get_case_statement,
+    toggle_stem_transform,
+)
 
 
+@toggle_stem_transform
 def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
     unique_start_date = find_unique_column_names(
         session, model, ConceptLookupStem, "start_date"
@@ -22,7 +29,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -47,7 +54,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.value_type == "categorical",
@@ -55,6 +62,11 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 == func.lower(model.sks_code),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
+        )
+        .outerjoin(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 

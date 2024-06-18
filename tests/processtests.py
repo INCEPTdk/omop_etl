@@ -11,6 +11,7 @@ from etl.models.modelutils import (
     CharField,
     FloatField,
     IntField,
+    PKIdMixin,
     make_model_base,
 )
 from etl.models.source import SOURCE_MODELS
@@ -30,26 +31,26 @@ from etl.util.exceptions import (
     TransformationErrorException,
 )
 from etl.util.random import generate_dummy_data
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
 class ProcessUnitTests(unittest.TestCase):
 
-    TestModelBase: Final[Any] = make_model_base()
+    TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase):
+    class DummyTable(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy"
         __table_args__ = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = IntField()
         b: Final = CharField(10)
         c: Final = FloatField()
 
-    class Dummy2Table(TestModelBase):
+    class Dummy2Table(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy2"
         __table_args__ = {"schema": "dummy"}
 
-        x: Final = IntField(primary_key=True)
+        x: Final = IntField()
         y: Final = CharField(10)
 
     def setUp(self) -> None:
@@ -58,6 +59,7 @@ class ProcessUnitTests(unittest.TestCase):
 
         self.dummy_df = pd.DataFrame(
             {
+                "_id": [1, 2, 3],
                 "a": [1, 4, 6],
                 "b": ["test1", "test2", "dhsjak"],
                 "c": [435.34, None, 1432213.2],
@@ -65,6 +67,7 @@ class ProcessUnitTests(unittest.TestCase):
         )
         self.dummy_df2 = pd.DataFrame(
             {
+                "_id": [1, 2],
                 "x": [45, 23],
                 "y": ["AB", "CD"],
             }
@@ -88,17 +91,16 @@ class ProcessUnitTests(unittest.TestCase):
             writer.write(session, columns=["x"])
 
         with session_context(self._session) as session:
-            with session.cursor() as cursor:
-                self.assertEqual(0, len(cursor.get_sql_log()))
-                run_transformations(
-                    session,
-                    transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                    ],
-                )
-                # expect 1 delete and 1 copy per table = 4
-                self.assertEqual(4, len(cursor.get_sql_log()))
+            self.assertEqual(0, len(session.get_sql_log()))
+            run_transformations(
+                session,
+                transformations=[
+                    (0, SessionOperation("test1", session, transform1)),
+                    (1, SessionOperation("test2", session, transform2)),
+                ],
+            )
+            # expect 1 delete and 1 copy per table = 4
+            self.assertEqual(4, len(session.get_sql_log()))
 
     def test_run_transformations_with_log(self):
         def transform1(session: FakeSession):
@@ -123,10 +125,16 @@ class ProcessUnitTests(unittest.TestCase):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation(
-                            "test1", session, transform1, description="Test 1"
+                        (
+                            0,
+                            SessionOperation(
+                                "test1",
+                                session,
+                                transform1,
+                                description="Test 1",
+                            ),
                         ),
-                        SessionOperation("test2", session, transform2),
+                        (1, SessionOperation("test2", session, transform2)),
                     ],
                 )
 
@@ -324,18 +332,24 @@ class ProcessUnitTests(unittest.TestCase):
 
         reg = TransformationRegistry()
         transformations = [
-            DummyOperation(
-                key="dummy",
-                session=self._session,
-                func=lambda _, x: x * 2,
-                initial_value=5,
+            (
+                0,
+                DummyOperation(
+                    key="dummy",
+                    session=self._session,
+                    func=lambda _, x: x * 2,
+                    initial_value=5,
+                ),
             ),
             # this takes the value from dummy to calculate post_dummy
-            PostDummyOperation(
-                key="post_dummy",
-                session=self._session,
-                func=lambda _, x: x * 3,
-                value_getter=reg.lazy_get("dummy"),
+            (
+                1,
+                PostDummyOperation(
+                    key="post_dummy",
+                    session=self._session,
+                    func=lambda _, x: x * 3,
+                    value_getter=reg.lazy_get("dummy"),
+                ),
             ),
         ]
 
@@ -355,33 +369,34 @@ class ProcessUnitTests(unittest.TestCase):
         self.assertEqual(dlg2(), 10 * 3)
 
 
-class ProcessPostgresTests(PostgresBaseTest):
+class ProcessDuckDBTests(DuckDBBaseTest):
     TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
-    class DummyTable(TestModelBase):
+    class DummyTable(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy_table"
         __table_args__ = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = IntField()
         b: Final = CharField(10)
         c: Final = FloatField()
 
-    class DummyTableTwo(TestModelBase):
+    class DummyTableTwo(TestModelBase, PKIdMixin):
         __tablename__: Final = "dummy_table2"
         __table_args__ = {"schema": "dummy"}
 
-        x: Final = IntField(primary_key=True)
+        x: Final = IntField()
         y: Final = CharField(5)
 
     def setUp(self):
         super().setUp()
         self._session = make_db_session(self.engine)
-        self._create_tables_and_schema(
-            models=[self.DummyTable, self.DummyTableTwo], schema="dummy"
+        self._create_tables_and_schemas(
+            models=[self.DummyTable, self.DummyTableTwo]
         )
 
         self.dummy_df = pd.DataFrame(
             {
+                "_id": [1, 2, 3],
                 "a": [1, 4, 6],
                 "b": ["test1", "test2", "dhsjak"],
                 "c": [435.34, None, 1432213.2],
@@ -389,14 +404,15 @@ class ProcessPostgresTests(PostgresBaseTest):
         )
         self.dummy_df2 = pd.DataFrame(
             {
+                "_id": [1, 2],
                 "x": [45, 23],
                 "y": ["AB", "CD"],
             }
         )
 
     def tearDown(self) -> None:
-        self._drop_tables_and_schema(
-            models=[self.DummyTable, self.DummyTableTwo], schema="dummy"
+        self._drop_tables_and_schemas(
+            models=[self.DummyTable, self.DummyTableTwo]
         )
         super().tearDown()
 
@@ -429,8 +445,8 @@ class ProcessPostgresTests(PostgresBaseTest):
             run_transformations(
                 session,
                 transformations=[
-                    SessionOperation("test1", session, transform1),
-                    SessionOperation("test2", session, transform2),
+                    (1, SessionOperation("test1", session, transform1)),
+                    (2, SessionOperation("test2", session, transform2)),
                 ],
             )
             self.assertEqual(
@@ -465,8 +481,8 @@ class ProcessPostgresTests(PostgresBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
                     ],
                 )
             self.assertEqual(len(captured.records), 4)
@@ -515,9 +531,9 @@ class ProcessPostgresTests(PostgresBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
+                        (2, SessionOperation("test3", session, transform3)),
                     ],
                 )
             self.assertEqual(len(captured.records), 1)
@@ -562,9 +578,9 @@ class ProcessPostgresTests(PostgresBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
+                        (2, SessionOperation("test3", session, transform3)),
                     ],
                 )
             self.assertEqual(len(captured.records), 1)
@@ -621,9 +637,9 @@ class ProcessPostgresTests(PostgresBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (1, SessionOperation("test1", session, transform1)),
+                        (2, SessionOperation("test2", session, transform2)),
+                        (3, SessionOperation("test3", session, transform3)),
                     ],
                 )
 
@@ -646,7 +662,7 @@ class ProcessPostgresTests(PostgresBaseTest):
         self.assertTrue(called)
 
 
-class RunETLPostgresTests(PostgresBaseTest):
+class RunETLDuckDBTests(DuckDBBaseTest):
     nentries: int = 1000
     csv_dir = os.path.join(
         Path(__file__).parent.parent.absolute(), "etl", "csv"
@@ -672,4 +688,5 @@ class RunETLPostgresTests(PostgresBaseTest):
                 self._update(model.__tablename__, pd.DataFrame(dd))
             return self
 
-__all__ = ["ProcessUnitTests", "ProcessPostgresTests", "RunETLPostgresTests"]
+
+__all__ = ["ProcessUnitTests", "ProcessDuckDBTests", "RunETLDuckDBTests"]

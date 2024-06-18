@@ -7,9 +7,14 @@ from typing import Any, List, Optional
 
 import pandas as pd
 
-from etl.models.modelutils import create_tables_sql
+from etl.models.modelutils import create_tables_sql, drop_tables_sql
 from etl.util.connection import POSTGRES_DB, ConnectionDetails
-from etl.util.db import make_db_session, make_engine_postgres, session_context
+from etl.util.db import (
+    make_db_session,
+    make_engine_duckdb,
+    make_engine_postgres,
+    session_context,
+)
 
 
 class PostgresBaseTest(unittest.TestCase):
@@ -27,36 +32,66 @@ class PostgresBaseTest(unittest.TestCase):
         )
         self.engine = make_engine_postgres(cxn_details)
 
-    def _drop_tables_and_schema(
-        self, models: List[str], schema: Optional[str] = None
-    ):
+    def _drop_tables_and_schemas(self, models: List[str]):
         with session_context(make_db_session(self.engine)) as session:
-            schema_str = ""
-            if schema is not None:
-                schema_str = f"{schema}."
+            # Fully-qualified table names
+            fqtn = [f"{m.metadata.schema}.{m.__table__.name}" for m in models]
+            session.execute(
+                "".join(f"DROP TABLE IF EXISTS {t} CASCADE; " for t in fqtn)
+            )
 
-            with session.cursor() as cursor:
-                for model in models:
-                    cursor.execute(
-                        f"DROP TABLE IF EXISTS {schema_str}{model.__tablename__} CASCADE;"
-                    )
+            schemas = set(m.metadata.schema for m in models)
+            session.execute(
+                "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
+            )
 
-                if schema is not None:
-                    cursor.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
-
-    def _create_tables_and_schema(
-        self, models: List[Any], schema: Optional[str] = None
-    ):
+    def _create_tables_and_schemas(self, models: List[Any]):
         with session_context(make_db_session(self.engine)) as session:
-            with session.cursor() as cursor:
-                if schema is not None:
-                    cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
-                if models:
-                    sql = create_tables_sql(models)
-                    cursor.execute(sql)
+            schemas_to_create = set(m.metadata.schema for m in models)
+            session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
+            if models:
+                sql = create_tables_sql(models)
+                session.execute(sql)
 
-def write_to_db(db_engine, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None, if_exists: str="append"):
-    table_frame.to_sql(table_name, db_engine, if_exists=if_exists, index=False, schema=schema)
+
+class DuckDBBaseTest(unittest.TestCase):
+    """Base class for testing with duckdb"""
+
+    def setUp(self):
+        super().setUp()
+        cxn_details = ConnectionDetails(
+            host="duckdb",
+            dbname=os.getenv("ETL_TEST_TARGET_DBNAME", ":memory:"),
+        )
+        self.engine = make_engine_duckdb(cxn_details)
+
+    def _drop_tables_and_schemas(self, models: List[str]):
+        with session_context(make_db_session(self.engine)) as session:
+            # Fully-qualified table names
+            fqtn = [f"{m.metadata.schema}.{m.__table__.name}" for m in models]
+            session.execute(
+                "".join(f"DROP TABLE IF EXISTS {t} CASCADE; " for t in fqtn)
+            )
+
+            schemas = set(m.metadata.schema for m in models)
+            session.execute(
+                "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
+            )
+
+    def _create_tables_and_schemas(self, models: List[Any]):
+        with session_context(make_db_session(self.engine)) as session:
+            schemas_to_create = set(m.metadata.schema for m in models)
+            session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
+            if models:
+                sql = create_tables_sql(models)
+                session.execute(sql)
+
+
+def write_to_db(session, table_frame: pd.DataFrame, table_name: str, schema: Optional[str]=None):
+    table_name = "{}.{}".format(schema, table_name) if schema else table_name
+    cols = "(" + ", ".join(table_frame.columns) + ")"
+    session.execute(f"INSERT INTO {table_name} {cols} select * from table_frame")
+
 
 def base_path() -> Path:
     caller_module = inspect.getmodule(inspect.stack()[1][0])
@@ -74,3 +109,26 @@ def enforce_dtypes(df_source, df_target):
                 print(f"Cannot convert column {column} to {dtype}: {e}")
 
     return df_target_converted
+
+def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
+    if index_cols:
+        if isinstance(index_cols, str):
+            index_cols = [index_cols]
+
+        for index_col in index_cols:
+            df1 = df1.drop(columns=[index_col])
+            df2 = df2.drop(columns=[index_col])
+
+    column_names = df1.columns.tolist()
+
+    sorted_df1 = df1.sort_values(by=column_names).reset_index(drop=True)
+    sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
+
+    pd.testing.assert_frame_equal(
+        sorted_df1,
+        sorted_df2,
+        check_like=True,
+        check_dtype=False,
+        check_datetimelike_compat=True,
+        **kwargs,
+    )

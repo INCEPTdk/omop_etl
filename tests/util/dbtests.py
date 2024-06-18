@@ -1,14 +1,16 @@
 import json
+import math
 from typing import Any, Final
 
 import pandas as pd
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import select
 
 from etl.models.modelutils import (
     CharField,
     FloatField,
-    IntField,
     JSONField,
+    PKIntField,
     make_model_base,
 )
 from etl.util.db import (
@@ -17,24 +19,24 @@ from etl.util.db import (
     make_db_session,
     session_context,
 )
-from tests.testutils import PostgresBaseTest
+from tests.testutils import DuckDBBaseTest
 
 
-class DBPostgresTests(PostgresBaseTest):
-    TestModelBase: Final[Any] = make_model_base()
+class DBDuckDBTests(DuckDBBaseTest):
+    TestModelBase: Final[Any] = make_model_base(schema="dummy")
 
     class DummyTable(TestModelBase):
         __tablename__: Final = "dummy_table"
-        __table_args__ = {"schema": "dummy"}
+        __table_args__: Final = {"schema": "dummy"}
 
-        a: Final = IntField(primary_key=True)
+        a: Final = PKIntField("dummy_dummy_table_id_seq")
         b: Final = CharField(10)
         camelCase: Final = FloatField(key='"camelCase"')
         json_field: Final = JSONField()
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(models=[self.DummyTable], schema="dummy")
+        self._create_tables_and_schemas(models=[self.DummyTable])
         self._session = make_db_session(self.engine)
         self.dummy_df = pd.DataFrame(
             {
@@ -46,13 +48,27 @@ class DBPostgresTests(PostgresBaseTest):
         )
 
     def tearDown(self):
-        self._drop_tables_and_schema(models=[self.DummyTable], schema="dummy")
+        self._drop_tables_and_schemas(models=[self.DummyTable])
+
+    def _find_precision(self, number: float = None) -> int:
+        if isinstance(number, float):
+            return len(str(number).split('.')[1])
+        else:
+            return 0
+
+    def _round(self, x: float = None, precision: int = 0) -> float:
+        try:
+            return round(x, precision)
+        except TypeError:
+            return x
 
     def _assert_col(self, session: Session, col_name: str) -> None:
-        entries = session.query(self.DummyTable).all()
-        col_values = [getattr(e, col_name) for e in entries]
-        expected = [
-            None if pd.isna(v) else v for v in self.dummy_df[col_name].values
+        col_values = session.scalars(select(getattr(self.DummyTable, col_name))).all()
+        expected = [None if pd.isna(v) else v for v in self.dummy_df[col_name].values]
+        # Slight hack to handle imprecision in floating point numbers
+        decimals = (self._find_precision(n) for n in expected)
+        col_values = [
+            self._round(v, n_dec) if not pd.isna(v) else None for v, n_dec in zip(col_values, decimals)
         ]
         self.assertEqual(col_values, expected)
 
@@ -83,21 +99,16 @@ class DBPostgresTests(PostgresBaseTest):
         writer = DataBaseWriterBuilder().build()
         with session_context(self._session) as session:
             with self.assertRaises(RuntimeError):
-                writer.write(
-                    session,
-                    columns=self.dummy_df.columns,
-                )
+                writer.write(session, columns=self.dummy_df.columns)
 
     def test_database_writer_all_columns(self):
         writer = DataBaseWriterBuilder().build()
         writer.set_source(self.DummyTable, self.dummy_df)
-        with session_context(self._session) as session:
+
+        with session_context(make_db_session(self.engine)) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -114,16 +125,10 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
 
@@ -137,10 +142,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=self.dummy_df.columns,
-            )
+            writer.write(session, columns=self.dummy_df.columns)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -158,9 +160,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
 
@@ -168,9 +168,7 @@ class DBPostgresTests(PostgresBaseTest):
             df2 = self.dummy_df.copy()
             df2["a"] = df2["a"] + 10
             writer.set_source(self.DummyTable, df2)
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(6, count, "assert dummy table")
 
@@ -183,9 +181,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-            )
+            writer.write(session)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -202,10 +198,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["a", "b"],
-            )
+            writer.write(session, columns=["a", "b"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col(session, "a")
@@ -222,10 +215,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["b"],
-            )
+            writer.write(session, columns=["b"],)
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col_default_primary_key(session, "a")
@@ -241,10 +231,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["camelCase"],
-            )
+            writer.write(session, columns=["camelCase"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col_default_primary_key(session, "a")
@@ -260,10 +247,7 @@ class DBPostgresTests(PostgresBaseTest):
         with session_context(self._session) as session:
             count = session.query(self.DummyTable).count()
             self.assertEqual(0, count, "assert dummy table")
-            writer.write(
-                session,
-                columns=["json_field"],
-            )
+            writer.write(session, columns=["json_field"])
             count = session.query(self.DummyTable).count()
             self.assertEqual(3, count, "assert dummy table")
             self._assert_col_default_primary_key(session, "a")
@@ -272,4 +256,4 @@ class DBPostgresTests(PostgresBaseTest):
             self._assert_json_col(session, "json_field")
 
 
-__all__ = ["DBPostgresTests"]
+__all__ = ["DBDuckDBTests"]

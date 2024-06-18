@@ -1,5 +1,6 @@
 """ SQL query string definition for the drug-related stem functions"""
 
+import os
 from typing import Any, Dict
 
 from sqlalchemy import (
@@ -16,21 +17,22 @@ from sqlalchemy import (
     union_all,
 )
 from sqlalchemy.sql import Insert, Select, text
-from sqlalchemy.sql.expression import null
+from sqlalchemy.sql.expression import CTE, null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
+from ...models.omopcdm54.vocabulary import Concept
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .conversions import get_conversion_factor
 from .recipes import get_quantity_recipe
-from .utils import get_case_statement
+from .utils import get_case_statement, toggle_stem_transform
 
 
 # pylint: disable=too-many-arguments
 def create_simple_stem_select(
-    CteAdministrations: Any = None,
     CtePrescriptions: Any = None,
+    CteAdministrations: Any = None,
     administration_type: str = None,
     start_date_offset: str = "0 seconds",
     end_date: str = None,
@@ -39,7 +41,7 @@ def create_simple_stem_select(
     route_source_value: str = None,
     logger: Any = None,
 ) -> Select:
-    if "recipe__" in str(quantity_recipe):
+    if str(quantity_recipe).startswith("recipe__"):
         quantity_column = get_quantity_recipe(
             CteAdministrations,
             CtePrescriptions,
@@ -64,7 +66,7 @@ def create_simple_stem_select(
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            Concept.domain_id,
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -90,6 +92,7 @@ def create_simple_stem_select(
             getattr(CtePrescriptions.c, route_source_value).label(
                 "route_source_value"
             ),
+            ConceptLookupStem.era_lookback_interval,
             literal(f"{administration_type}_administrations").label(
                 "datasource"
             ),
@@ -97,24 +100,23 @@ def create_simple_stem_select(
         .select_from(CteAdministrations)
         .join(
             CtePrescriptions,
-            and_(
-                CtePrescriptions.c.epaspresbaseid
-                == CteAdministrations.c.epaspresbaseid,
-                CteAdministrations.c.administration_type == administration_type,
-            ),
+            CtePrescriptions.c.epaspresbaseid
+            == CteAdministrations.c.epaspresbaseid,
         )
         .join(
             VisitOccurrence,
             VisitOccurrence.visit_source_value
             == concat("courseid|", CteAdministrations.c.courseid),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.source_variable
                 == CteAdministrations.c.drug_name,
                 ConceptLookupStem.datasource == "administrations",
+                ConceptLookupStem.drug_exposure_type == administration_type,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
@@ -124,6 +126,10 @@ def create_simple_stem_select(
                 ConceptLookup.filter == "administration_route",
             ),
         )
+        .outerjoin(
+            Concept,
+            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
+        )
     )
 
     return StemSelect
@@ -131,61 +137,106 @@ def create_simple_stem_select(
 
 def get_drug_stem_select(
     drug_mapping: Dict[str, Any] = None,
-    CtePrescriptions: Any = None,
+    CtePrescriptions: CTE = None,
+    CteAdministrations: CTE = None,
     logger: Any = None,
 ) -> Select:
-    drug_name: str = drug_mapping["source_variable"]
-
-    CteAdministrationsThisDrug = (
-        select(Administrations)
-        .where(Administrations.drug_name == drug_name)
-        .cte(f"cte_administrations_{drug_name}")
-    )
-
     start_datetime_offsets: Dict[str, str] = {
         "discrete": "0 seconds",
         "bolus": "0 seconds",
         "continuous": "59 seconds",
     }
 
-    administration_types: tuple = ("discrete", "bolus", "continuous")
-    select_stack = []
-    for administration_type in administration_types:
-        select_stack.append(
-            create_simple_stem_select(
-                CteAdministrationsThisDrug,
-                CtePrescriptions,
-                administration_type,
-                start_datetime_offsets.get(administration_type, "0 seconds"),
-                drug_mapping["end_date"],
-                drug_mapping["conversion"],
-                drug_mapping[f"quantity_{administration_type}"],
-                drug_mapping["route_source_value"],
-                logger,
-            )
-        )
+    administration_type: str = drug_mapping.get("drug_exposure_type")
 
-    return union_all(*select_stack)
+    return create_simple_stem_select(
+        CtePrescriptions,
+        CteAdministrations,
+        administration_type,
+        start_datetime_offsets.get(administration_type, "0 seconds"),
+        drug_mapping["end_date"],
+        drug_mapping["conversion"],
+        drug_mapping["quantity"],
+        drug_mapping["route_source_value"],
+        logger,
+    )
 
 
+@toggle_stem_transform
 def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     CtePrescriptions = (
-        select(Prescriptions)
+        select(
+            Prescriptions.courseid,
+            Prescriptions.epaspresbaseid,
+            Prescriptions.epaspresid,
+            Prescriptions.epaspresdrugatc,
+            Prescriptions.epaspresadmroute,
+            Prescriptions.epaspresdose,
+            Prescriptions.epaspresconc,
+            Prescriptions.epaspresdrugunit,
+            Prescriptions.epaspresdrugunitact,
+            Prescriptions.epaspresmixamount,
+            Prescriptions.epaspresweight,
+            Prescriptions.epaspresdrugname,
+        )
         .where(Prescriptions.epaspresbaseid == Prescriptions.epaspresid)
         .cte("cte_prescriptions")
     )
 
-    mapped_drugs = (
+    drug_mappings = (
         session.query(ConceptLookupStem)
         .where(ConceptLookupStem.datasource == "administrations")
         .all()
     )
-    mapped_drugs = [row.__dict__ for row in mapped_drugs]
+    drug_mappings = [row.__dict__ for row in drug_mappings]
+
+    drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
+
+    drug_mappings_with_data = [
+        dm for dm in drug_mappings if dm["source_variable"] in drugs_with_data
+    ]
+
     select_stack = []
-    for mp in mapped_drugs:
-        select_stack.append(get_drug_stem_select(mp, CtePrescriptions, logger))
+    for dmwd in drug_mappings_with_data:
+        drug_name = dmwd["source_variable"]
+        administration_type = dmwd["drug_exposure_type"]
+
+        CteAdministrations = (
+            session.query(
+                Administrations.courseid,
+                Administrations.timestamp,
+                Administrations.epaspresbaseid,
+                Administrations.drug_name,
+                Administrations.administration_type,
+                Administrations.value,
+                Administrations.value0,
+                Administrations.value1,
+            )
+            .where(
+                Administrations.drug_name == drug_name,
+                Administrations.administration_type == administration_type,
+            )
+            .cte(f"cte_administrations__{drug_name}__{administration_type}")
+        )
+
+        select_stack.append(
+            get_drug_stem_select(
+                dmwd, CtePrescriptions, CteAdministrations, logger
+            )
+        )
 
     MappedSelectSql = union_all(*select_stack)
+    MappedSelectSql.compile(compile_kwargs={"literal_binds": True})
+
+    CteConceptLookupStemForAntijoin = (
+        select(
+            ConceptLookupStem.source_variable,
+            ConceptLookupStem.std_code_domain,
+            ConceptLookupStem.drug_exposure_type,
+        )
+        .distinct()
+        .cte("cte_concept_lookup_stem_for_antijoin")
+    )
 
     UnmappedSelectSql = (
         select(
@@ -207,6 +258,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             null().label("quantity"),
             null().label("route_concept_id"),
             null().label("route_source_value"),
+            null().label("era_lookback_interval"),
             literal("unmapped_administrations").label("datasource"),
         )
         .select_from(Administrations)
@@ -216,11 +268,21 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             == concat("courseid|", Administrations.courseid),
         )
         .outerjoin(
-            ConceptLookupStem,
-            ConceptLookupStem.source_variable == Administrations.drug_name,
+            CteConceptLookupStemForAntijoin,
+            and_(
+                CteConceptLookupStemForAntijoin.c.source_variable
+                == Administrations.drug_name,
+                CteConceptLookupStemForAntijoin.c.drug_exposure_type
+                == Administrations.administration_type,
+            ),
         )
-        .where(ConceptLookupStem.std_code_domain.is_(None))
+        .where(CteConceptLookupStemForAntijoin.c.std_code_domain.is_(None))
     )
+
+    if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
+        StemSelect = union_all(MappedSelectSql, UnmappedSelectSql)
+    else:
+        StemSelect = MappedSelectSql
 
     return insert(OmopStem).from_select(
         names=[
@@ -238,7 +300,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.quantity,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
+            OmopStem.era_lookback_interval,
             OmopStem.datasource,
         ],
-        select=union_all(MappedSelectSql, UnmappedSelectSql),
+        select=StemSelect,
+        include_defaults=False,
     )

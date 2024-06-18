@@ -22,10 +22,9 @@ def get_vocabulary_version(session: AbstractSession) -> str:
     FROM {str(Vocabulary.__table__)}
     WHERE {Vocabulary.vocabulary_id.key} = 'None'
     """
+
     try:
-        with session.cursor() as cursor:
-            cursor.execute(sql)
-            result = cursor.fetchone()
+        result = session.execute(sql).fetchone()
     except AttributeError:
         logger.warning("Vocabulary version missing")
         return ""

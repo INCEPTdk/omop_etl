@@ -28,4 +28,4 @@ courseid;timestamp;epaspresbaseid;drug_name;administration_type;value;value0;val
 1;1811-11-13 13:10:00;177626;vancomycin1g;continuous;1.91;;;8-415.csv
 1;1811-11-13 13:11:00;177626;vancomycin1g;continuous;1.76;;;8-415.csv
 1;1811-11-13 13:11:00;999999999;vancomycin1000mg;discrete;1000;;;8-99999.csv
-4;1811-11-13 13:11:00;999999999;solumdrl;bolus;999999999;;;0-99999.csv
+4;1811-11-13 13:11:00;999999999;solumdrl;bolus;99999;;;0-99999.csv

@@ -18,6 +18,7 @@ from sqlalchemy import (
     MetaData,
     Numeric,
     PrimaryKeyConstraint,
+    Sequence,
     String,
     Text,
 )
@@ -27,6 +28,7 @@ from sqlalchemy.orm import declarative_base, declarative_mixin
 from sqlalchemy.schema import (
     AddConstraint,
     CreateIndex,
+    CreateSequence,
     CreateTable,
     DropConstraint,
     DropIndex,
@@ -36,6 +38,23 @@ from ..util.exceptions import FrozenClassException
 from ..util.sql import clean_sql
 
 DIALECT_POSTGRES: Final = postgresql.dialect()
+
+
+def create_int_pk_column(sequence_id: str) -> Column:
+    return Column(
+        BigInteger,
+        Sequence(sequence_id),
+        primary_key=True,
+        server_default=Sequence(sequence_id).next_value(),
+    )
+
+
+def create_char_pk_column(x: int, sequence_id: str) -> Column:
+    seq = Sequence(sequence_id)
+    return Column(
+        String(x), seq, primary_key=True, server_default=seq.next_value()
+    )
+
 
 ConstraintPK: Final = PrimaryKeyConstraint
 # A simple alias for sqlalchemy's ForiegnKey
@@ -55,6 +74,17 @@ EnumField: Final[Callable[[Any], Column]] = lambda x, *args, **kwargs: Column(
 IntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Integer, *args, **kwargs
 )
+
+PKIntField: Final[Callable[[Any], Column]] = (
+    lambda sequence_id, *args, **kwargs: create_int_pk_column(sequence_id)
+)
+
+PKCharField: Final[Callable[[Any], Column]] = (
+    lambda x, sequence_id, *args, **kwargs: create_char_pk_column(
+        x, sequence_id
+    )
+)
+
 BigIntField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     BigInteger, *args, **kwargs
 )
@@ -62,7 +92,7 @@ FloatField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Float, *args, **kwargs
 )
 NumericField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
-    Numeric, *args, **kwargs
+    Numeric(asdecimal=False), *args, **kwargs
 )
 TextField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Text, *args, **kwargs
@@ -84,6 +114,8 @@ class _MetaModel(DeclarativeMeta):
     Meta class to protect us from adding extra fields to our models
     """
 
+    __step__: int = -1
+
     # pylint: disable=no-self-argument
     def __setattr__(cls, name: str, value: Any) -> None:
         if (
@@ -94,6 +126,7 @@ class _MetaModel(DeclarativeMeta):
                 "_sa_class_manager",
                 "_sa_declared_attr_reg",
                 "__table__",
+                "__step__",
                 "__mapper__",
                 "__frozen",
                 "_id",
@@ -123,7 +156,8 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
     drop_sql = (
         "; ".join(
             [
-                f"DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str}"
+                f"""DROP TABLE IF EXISTS {m.metadata.schema}.{m.__table__.name} {cascade_str};
+                DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
                 for m in models
             ]
         )
@@ -136,6 +170,19 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
 def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
     sql = []
     for model in models:
+        sql.append(
+            str(
+                CreateSequence(
+                    Sequence(
+                        model.metadata.schema
+                        + "_"
+                        + model.__table__.name
+                        + "_id_seq"
+                    ),
+                    if_not_exists=True,
+                ).compile(dialect=dialect)
+            )
+        )
         sql.append(
             str(
                 CreateTable(
@@ -211,7 +258,18 @@ def drop_constraints_sql(
 class PKIdMixin:
     """A mixin"""
 
-    _id = BigIntField(primary_key=True)
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        seq_name = cls.metadata.schema + "_" + cls.__tablename__ + "_id_seq"
+        _id = Column(
+            "_id",
+            Integer,
+            Sequence(seq_name, start=1),
+            primary_key=True,
+            server_default=Sequence(seq_name).next_value(),
+        )
+        setattr(cls, "_id", _id)
 
 
 ModelBase: Final[Any] = make_model_base()
@@ -240,3 +298,11 @@ NULL 'NULL';
 """
         )
     return "; ".join(sql) + ";"
+
+
+def add_etl_step(n):
+    def decorator(cls):
+        cls.__step__ = n
+        return cls
+
+    return decorator

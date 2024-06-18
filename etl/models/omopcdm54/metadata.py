@@ -15,6 +15,7 @@ from ..modelutils import (
     IntField,
     NumericField,
     PKIdMixin,
+    PKIntField,
 )
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
@@ -29,7 +30,9 @@ class Metadata(ModelBase):
 
     __tablename__: Final[str] = "metadata"
 
-    metadata_id: Final[Column] = IntField(primary_key=True)
+    metadata_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     metadata_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )

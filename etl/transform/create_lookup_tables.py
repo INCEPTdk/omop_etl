@@ -25,6 +25,6 @@ def transform(
             session=session,
             dataframe=temp_df,
             table=str(model.__table__),
-            columns=temp_df.columns,
+            columns=temp_df.columns.tolist(),
         )
     logger.info("Lookup tables created successfully!")

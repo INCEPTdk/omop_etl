@@ -10,8 +10,7 @@ logger = logging.getLogger("ETL.Core")
 
 def execute_sql_transform(session: AbstractSession, sql: str) -> None:
     """Execute sql for a given session"""
-    with session.cursor() as cursor:
-        cursor.execute(sql)
+    session.execute(sql)
 
 
 def execute_sql_file(
@@ -19,8 +18,5 @@ def execute_sql_file(
 ) -> None:
     """Execute SQL given a filename containing the SQL statements"""
     parent_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-    with session.cursor() as cursor:
-        with open(
-            f"{parent_dir}/sql/{filename}", "r", encoding=encoding
-        ) as fsql:
-            cursor.execute(fsql.read())
+    with open(f"{parent_dir}/sql/{filename}", "r", encoding=encoding) as fsql:
+        session.execute(fsql.read())

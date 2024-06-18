@@ -6,7 +6,7 @@ from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column, Index
 
-from ..util.db import get_schema_name
+from ..util.db import get_environment_variable as get_schema_name
 from ..util.freeze import freeze_instance
 from .modelutils import (
     BigIntField,
@@ -300,14 +300,14 @@ class LprDiagnoses(RegistryModelBase, PKIdMixin):
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
-SOURCE_REGISTRY: Final[Dict[str, SourceModelBase]] = (  # type: ignore
-    SourceModelRegistry().registered
-)
+SOURCE_REGISTRY: Final[
+    Dict[str, SourceModelBase]
+] = SourceModelRegistry().registered  # type: ignore
 
 # pylint: disable=no-member
-SOURCE_MODELS: Final[List[SourceModelBase]] = (  # type: ignore
-    SourceModelRegistry().registered.values()
-)
+SOURCE_MODELS: Final[
+    List[SourceModelBase]
+] = SourceModelRegistry().registered.values()  # type: ignore
 
 # pylint: disable=no-member
 SOURCE_MODEL_NAMES: Final[List[str]] = [

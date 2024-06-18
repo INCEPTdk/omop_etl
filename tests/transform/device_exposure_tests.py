@@ -12,14 +12,15 @@ from etl.transform.device_exposure import (
 )
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    PostgresBaseTest,
+    DuckDBBaseTest,
+    assert_dataframe_equality,
     base_path,
     enforce_dtypes,
     write_to_db,
 )
 
 
-class DeviceExposureTest(PostgresBaseTest):
+class DeviceExposureTest(DuckDBBaseTest):
 
     TARGET_MODEL = [OmopStem, OmopDeviceExposure]
 
@@ -28,7 +29,7 @@ class DeviceExposureTest(PostgresBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._create_tables_and_schemas(self.TARGET_MODEL)
 
 
         self.omop_stem = pd.read_csv(self.INPUT_OMOP_STEM, index_col=False, sep=';')
@@ -38,7 +39,7 @@ class DeviceExposureTest(PostgresBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.omop_stem, OmopStem.__tablename__, schema=OmopStem.metadata.schema)
@@ -49,9 +50,12 @@ class DeviceExposureTest(PostgresBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             device_exposure_transformation(session)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
-        result_df = enforce_dtypes(self.expected_df, result_df)
-        pd.testing.assert_frame_equal(result_df, self.expected_df)
+            result = select(self.expected_cols).subquery()
+            result_df = enforce_dtypes(
+                self.expected_df,
+                pd.DataFrame(session.query(result).all())
+            )
+
+        assert_dataframe_equality(result_df, self.expected_df)
 
 __all__ = ['DeviceExposureTest']

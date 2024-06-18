@@ -11,6 +11,7 @@ from ..modelutils import (
     DateField,
     IntField,
     NumericField,
+    PKIntField,
 )
 from .clinical import PersonIdMixin
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
@@ -26,7 +27,9 @@ class PayerPlanPeriod(ModelBase, PersonIdMixin):
 
     __tablename__: Final[str] = "payer_plan_period"
 
-    payer_plan_period_id: Final[Column] = IntField(primary_key=True)
+    payer_plan_period_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     payer_plan_period_start_date: Final[Column] = DateField(nullable=False)
     payer_plan_period_end_date: Final[Column] = DateField(nullable=False)
     payer_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
@@ -55,7 +58,9 @@ class Cost(ModelBase):
 
     __tablename__: Final[str] = "cost"
 
-    cost_id: Final[Column] = IntField(primary_key=True)
+    cost_id: Final[Column] = PKIntField(
+        f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
+    )
     cost_event_id: Final[Column] = IntField(nullable=False)
     cost_domain_id: Final[Column] = CharField(
         20, FK(Domain.domain_id), nullable=False

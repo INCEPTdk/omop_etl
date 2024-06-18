@@ -5,12 +5,12 @@ import os
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
-from tempfile import SpooledTemporaryFile
+from tempfile import NamedTemporaryFile
 from typing import Any, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
 from sqlalchemy import JSON, create_engine, inspect
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, ScalarResult
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Query, sessionmaker
 
@@ -42,15 +42,15 @@ class AbstractSession(ABC):
         pass
 
     @abstractmethod
-    def cursor(self) -> Any:
-        pass
-
-    @abstractmethod
     def query(self, *entities, **kwargs) -> Query:
         pass
 
     @abstractmethod
-    def execute(self, sql: Any, **kwargs):
+    def scalars(self, *entities, **kwargs) -> ScalarResult:
+        pass
+
+    @abstractmethod
+    def execute(self, sql: Any, *args, **kwargs):
         pass
 
 
@@ -73,50 +73,39 @@ class Session(AbstractSession):
     def add(self, obj: Any, **kwargs):
         self._session.add(obj, **kwargs)
 
-    def cursor(self) -> Any:
-        cursor = self._session.connection().connection.cursor()
-        return cursor
-
     def connection(self) -> Any:
         return self._session.connection()
 
     def query(self, *entities, **kwargs) -> Query:
         return self._session.query(*entities, **kwargs)
 
-    def execute(self, sql: Any, **kwargs):
-        self._session.execute(sql, **kwargs)
+    def scalars(self, *entities, **kwargs) -> ScalarResult:
+        return self._session.scalars(*entities, **kwargs)
+
+    def execute(self, sql: Any, *args, **kwargs):
+        self._session.execute(sql, *args, **kwargs)
 
 
 class FakeSession(AbstractSession):
     """A simple fake session for testing without having a real DB session"""
 
-    class FakeCursor:
-        """A fake cursor object needed to execute sql"""
-
-        def __init__(self) -> None:
-            self._sqllog = []
-
-        def __enter__(self) -> None:
-            return self
-
-        def __exit__(self, *args, **kwargs) -> None:
-            pass
-
-        # pylint: disable=unused-argument
-        def copy_expert(self, sql: str, buffer: Any, buffer_size: int) -> None:
-            self._sqllog.append(sql)
-
-        def execute(self, sql: str) -> None:
-            self._sqllog.append(sql)
-
-        def get_sql_log(self) -> List[str]:
-            return self._sqllog
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._commits = 0
-        self._cursor = self.FakeCursor()
         self.objects = []
+        self._sqllog = []
+
+    def execute(self, sql: Any, *args, **kwargs) -> None:
+        self._sqllog.append(sql)
+
+    def get_sql_log(self) -> List[str]:
+        return self._sqllog
+
+    def __enter__(self) -> None:
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        pass
 
     def commit(self):
         self._commits += 1
@@ -131,13 +120,10 @@ class FakeSession(AbstractSession):
         # TO-DO: implements
         self.objects.append(obj)
 
-    def cursor(self) -> "FakeCursor":
-        return self._cursor
-
     def query(self, *entities, **kwargs) -> Query:
         return Query(entities, session=None)
 
-    def execute(self, sql: Any, **kwargs):
+    def scalars(self, *entities, **kwargs) -> None:
         pass
 
 
@@ -215,7 +201,29 @@ def make_engine_postgres(connection: ConnectionDetails, **kwargs) -> Engine:
         ) from excep
 
 
-def get_schema_name(
+def _create_engine_duckdb(
+    dbname: Optional[str] = ":memory:",
+    **kwargs,
+) -> Engine:
+    """Create a Duckdb database engine based on connection details"""
+    url = f"duckdb:///{dbname}"
+    return create_engine(url, connect_args={"config": kwargs})
+
+
+def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
+    """Check if can create an engine with duckdb-engine"""
+    try:
+        return _create_engine_duckdb(
+            dbname=connection.dbname,
+            **kwargs,
+        )
+    except ModuleNotFoundError as excep:
+        raise DependencyNotFoundException(
+            "duckdb is needed for a DuckDB DBMS! Please install it!"
+        ) from excep
+
+
+def get_environment_variable(
     environment_variable_name: str = None, default: str = None
 ) -> str:
     schema_name: str = os.getenv(environment_variable_name, default=None)
@@ -245,7 +253,7 @@ class DataBaseWriter:
 
         # configuration options
         self.encoding: str = "utf-8"
-        self.header: bool = False
+        self.header: bool = True
         self.delimiter: str = ";"
         self.null_field: str = None
         self.write_mode: Literal[WriteMode.APPEND, WriteMode.OVERWRITE] = (
@@ -269,30 +277,27 @@ class DataBaseWriter:
 
         return options_str
 
-    def _initialise_target(self, cursor: Any, table: str) -> None:
+    def _initialise_target(self, session: Any, table: str) -> None:
         if self.write_mode == WriteMode.OVERWRITE:
-            cursor.execute(f"DELETE FROM {table};")
+            session.execute(f"DELETE FROM {table};")
 
+    # pylint: disable=unused-variable
     def _do_insert(
         self,
-        buffer: Any,
         session: AbstractSession,
+        file_path,
         table: str,
         columns: Iterable[str],
     ) -> None:
-        options_str = self._build_options_str()
-        cols = ",".join([f'"{c}"' for c in columns])
-        copy_query = (
-            f"COPY {table} ({cols}) FROM STDIN WITH ({options_str})".strip()
+        columns = ", ".join(c for c in columns)
+        self._initialise_target(session, table)
+        session.execute(
+            f"INSERT INTO {table} ({columns}) SELECT {columns} FROM read_csv('{file_path}');"
         )
-        buffer.seek(0)
-        with session.cursor() as cursor:
-            self._initialise_target(cursor, table)
-            cursor.copy_expert(copy_query, buffer, self.read_buffer_size)
 
-    def _do_read(self, buffer: Any, columns: Iterable[str]) -> None:
+    def _do_read(self, file_path: Any, columns: Iterable[str]) -> None:
         self._source[columns].to_csv(
-            buffer,
+            file_path,
             sep=self.delimiter,
             header=self.header,
             index=False,
@@ -329,19 +334,19 @@ class DataBaseWriter:
         session: AbstractSession,
         columns: Optional[Iterable[str]] = None,
     ) -> None:
-        with SpooledTemporaryFile(
-            max_size=self.write_buffer_size,
-            mode="w+t",
-            encoding=self.encoding,
-        ) as csv_buffer:
+        df_columns = self._source.columns if columns is None else columns
+        with NamedTemporaryFile(
+            suffix=".csv",
+            mode="w+b",
+            delete=True,
+        ) as csv_file:
             if self._source is None or self._model is None:
                 raise RuntimeError("No source dataframe set!")
 
-            df_columns = self._source.columns if columns is None else columns
             self._process_json_fields()
-            self._do_read(csv_buffer, df_columns)
+            self._do_read(csv_file.name, df_columns)
             self._do_insert(
-                csv_buffer, session, str(self._model.__table__), df_columns
+                session, csv_file.name, str(self._model.__table__), df_columns
             )
 
 
@@ -408,59 +413,27 @@ def check_table_exists(
 # pylint: disable=too-many-arguments
 def df_to_sql(
     session: AbstractSession,
-    dataframe: pd.DataFrame,
     table: str,
-    columns: Optional[Iterable[str]] = None,
-    encoding: Optional[str] = "utf-8",
-    delimiter: Optional[str] = ";",
-    null_field: Optional[str] = None,
-    write_mode: Optional[
-        Literal[WriteMode.APPEND, WriteMode.OVERWRITE]
-    ] = WriteMode.OVERWRITE,
+    dataframe: pd.DataFrame,
+    columns: Optional[List[str]] = None,
 ):
     """
     Helper function to quickly copy a Pandas DataFrame to an
     existing table in the database. All rows in the table are
     deleted before the copy.
+    NOTE: This function should just to an insert but for some reason with duckdb
+    it does not work. So we drop and recreate. The proper solution would be:
+        session.execute(f"INSERT INTO {table} ({columns}) select {columns} from dataframe;")
     """
-    read_buffer_size: int = 8192
-    write_buffer_size: int = 268435500
 
-    if not dataframe.empty:
-        with SpooledTemporaryFile(
-            max_size=write_buffer_size,
-            mode="w+t",
-            encoding=encoding,
-        ) as csv_buffer:
-            # take all columns by default
-            if columns is None:
-                columns = dataframe.columns
-
-            dataframe[columns].to_csv(
-                csv_buffer,
-                delimiter,
-                header=False,
-                index=False,
-                encoding=encoding,
-            )
-
-            quote = '"'
-            options = [
-                "FORMAT CSV",
-                f"DELIMITER E'{delimiter}'",
-                "HEADER FALSE",
-                f"QUOTE E'{quote}'",
-            ]
-            if null_field is not None:
-                options.append(f"NULL '{null_field}'")
-            options_str = ", ".join(options)
-
-            cols = ",".join([f'"{c}"' for c in columns])
-            copy_query = (
-                f"COPY {table} ({cols}) FROM STDIN WITH ({options_str})".strip()
-            )
-            csv_buffer.seek(0)
-            with session.cursor() as cursor:
-                if write_mode == WriteMode.OVERWRITE:
-                    cursor.execute(f"DELETE FROM {table};")
-                cursor.copy_expert(copy_query, csv_buffer, read_buffer_size)
+    columns = ", ".join(columns) if columns else "*"
+    session.execute(f"drop table if exists {table}")
+    if table == "lookups.concept_lookup":
+        dataframe = dataframe.reset_index()
+        session.execute(
+            f"create table {table} as select index as lookup_id, {columns} from dataframe;"
+        )
+    else:
+        session.execute(
+            f"create table {table} as select {columns} from dataframe;"
+        )
