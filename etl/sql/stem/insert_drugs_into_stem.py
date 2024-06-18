@@ -21,7 +21,6 @@ from sqlalchemy.sql.expression import CTE, null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.omopcdm54.vocabulary import Concept
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .conversions import get_conversion_factor

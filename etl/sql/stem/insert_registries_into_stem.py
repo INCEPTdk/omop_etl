@@ -8,7 +8,6 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
-from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookupStem
 from .utils import (
     find_unique_column_names,
