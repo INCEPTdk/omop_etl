@@ -25,7 +25,7 @@ StemConditionOccurrence: Final[Select] = select(
         OmopStem.end_datetime,
         cast(OmopStem.end_date, DateTime),
         OmopStem.start_datetime,
-        cast(OmopStem.start_date, DateTime)
+        cast(OmopStem.start_date, DateTime),
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.condition_status_concept_id,

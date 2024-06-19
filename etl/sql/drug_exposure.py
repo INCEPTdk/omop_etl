@@ -25,7 +25,7 @@ StemDrugExposure: Final[Select] = select(
         OmopStem.end_datetime,
         cast(OmopStem.end_date, DateTime),
         OmopStem.start_datetime,
-        cast(OmopStem.start_date, DateTime)
+        cast(OmopStem.start_date, DateTime),
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.quantity,
@@ -44,7 +44,7 @@ StemDrugExposure: Final[Select] = select(
         or_(
             OmopStem.start_date.is_not(None),
             OmopStem.end_date.is_not(None),
-        )
+        ),
     )
 )
 
