@@ -16,14 +16,16 @@ StemConditionOccurrence: Final[Select] = select(
     func.coalesce(OmopStem.start_date, OmopStem.end_date).label("start_date"),
     func.coalesce(
         OmopStem.start_datetime,
-        cast(OmopStem.start_datetime, DateTime),
+        cast(OmopStem.start_date, DateTime),
         OmopStem.end_datetime,
+        cast(OmopStem.end_date, DateTime),
     ).label("start_datetime"),
     func.coalesce(OmopStem.end_date, OmopStem.start_date).label("end_date"),
     func.coalesce(
         OmopStem.end_datetime,
         cast(OmopStem.end_date, DateTime),
         OmopStem.start_datetime,
+        cast(OmopStem.start_date, DateTime)
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.condition_status_concept_id,
@@ -41,8 +43,6 @@ StemConditionOccurrence: Final[Select] = select(
         or_(
             OmopStem.start_date.is_not(None),
             OmopStem.end_date.is_not(None),
-            OmopStem.start_datetime.is_not(None),
-            OmopStem.end_datetime.is_not(None),
         ),
     )
 )
