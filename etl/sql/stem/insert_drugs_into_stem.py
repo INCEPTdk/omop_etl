@@ -21,7 +21,6 @@ from sqlalchemy.sql.expression import CTE, null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.omopcdm54.vocabulary import Concept
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .conversions import get_conversion_factor
@@ -66,7 +65,7 @@ def create_simple_stem_select(
 
     StemSelect = (
         select(
-            Concept.domain_id,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -125,10 +124,6 @@ def create_simple_stem_select(
                 == getattr(CtePrescriptions.c, route_source_value),
                 ConceptLookup.filter == "administration_route",
             ),
-        )
-        .outerjoin(
-            Concept,
-            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 

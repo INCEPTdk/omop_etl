@@ -22,7 +22,6 @@ from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
-from ...models.omopcdm54.vocabulary import Concept
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .utils import (
     find_unique_column_names,
@@ -49,7 +48,7 @@ def get_laboratory_stem_insert(
 
     StemSelectMeasurement = (
         select(
-            Concept.domain_id,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -111,10 +110,6 @@ def get_laboratory_stem_insert(
                 ),
                 ConceptLookup.filter == "laboratory_category",
             ),
-        )
-        .outerjoin(
-            Concept,
-            Concept.concept_id == ConceptLookupStem.mapped_standard_code,
         )
     )
 
