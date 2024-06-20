@@ -2,7 +2,7 @@
 
 from typing import Any, Callable, Optional
 
-from ..util.db import AbstractSession
+from ..util.db import AbstractSession, session_context
 from .base_operation import BaseOperation
 
 
@@ -24,4 +24,6 @@ class SessionOperation(BaseOperation):
         self.session = session
 
     def _run(self, *args, **kwargs) -> Any:
-        return self._func(self.session)
+        with session_context(self.session) as cntx:
+            r = self._func(cntx)
+        return r
