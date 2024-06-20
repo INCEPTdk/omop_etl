@@ -21,6 +21,7 @@ from .exceptions import DependencyNotFoundException
 
 logger = setup_logger("DEBUG")
 
+
 class AbstractSession(ABC):
     """A simple interface for interacting with a DB (session)"""
 
