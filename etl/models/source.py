@@ -297,6 +297,20 @@ class LprDiagnoses(RegistryModelBase, PKIdMixin):
     sks_source: Final[Column] = CharField(50)
 
 
+@register_source_model
+@freeze_instance
+class Descriptions(SourceModelBase, PKIdMixin):
+    """
+    The description table - for each file and field contains a description
+    """
+
+    __tablename__: Final[str] = "descriptions"
+    __table_args__ = {"schema": SOURCE_SCHEMA}
+
+    filename: Final[Column] = CharField(10)
+    field: Final[Column] = CharField(50)
+    description: Final[Column] = CharField(150)
+
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
