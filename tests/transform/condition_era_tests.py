@@ -7,7 +7,6 @@ from etl.models.omopcdm54.clinical import Stem as OmopStem
 from etl.models.omopcdm54.standardized_derived_elements import (
     ConditionEra as OmopConditionEra,
 )
-from etl.models.omopcdm54.vocabulary import Concept, ConceptAncestor
 from etl.transform.condition_era import (
     transform as condition_era_transformation,
 )

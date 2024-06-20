@@ -1,6 +1,8 @@
 "Condition era logic."
 
-from sqlalchemy import and_, case, cast, func, insert, or_
+from itertools import zip_longest
+
+from sqlalchemy import and_, case, cast, func, insert, or_, select
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql import Insert
 
@@ -18,7 +20,30 @@ DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
 )
 
 
-def get_condition_era_insert(session: AbstractSession = None) -> Insert:
+def get_conditions_with_data(
+    session: AbstractSession, chunk_size: int = 50
+) -> list:
+    conditions = session.scalars(
+        select(OmopStem.concept_id)
+        .where(
+            and_(
+                OmopStem.concept_id != 0,
+                OmopStem.concept_id.is_not(None),
+                OmopStem.domain_id == "Condition",
+            )
+        )
+        .distinct()
+    ).all()
+
+    chunked = list(zip_longest(*([iter(conditions)] * chunk_size)))
+    chunked[-1] = tuple(c for c in chunked[-1] if c)  # remove None padding
+
+    return chunked
+
+
+def get_condition_era_insert(
+    session: AbstractSession = None, concept_ids: tuple = None
+) -> Insert:
     lookback_interval = cast(
         func.coalesce(
             OmopStem.era_lookback_interval, DEFAULT_ERA_LOOKBACK_INTERVAL
@@ -43,8 +68,8 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
         )
         .where(
             and_(
-                OmopStem.concept_id != 0,
                 OmopStem.domain_id == "Condition",
+                OmopStem.concept_id.in_(concept_ids),
                 OmopStem.start_date.isnot(None),
                 OmopStem.end_date.isnot(None),
                 OmopStem.start_date <= OmopStem.end_date,
@@ -84,22 +109,18 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
         func.sum(CteNewEraIndicator.c.new_era_indicator).over().label("era_id"),
     ).cte("cte_era_id")
 
-    ConditionEraSelect = (
-        session.query(
-            CteEraId.c.person_id,
-            CteEraId.c.condition_concept_id,
-            func.min(CteEraId.c.condition_start_date),
-            func.max(CteEraId.c.condition_end_date),
-            func.count(CteEraId.c.condition_concept_id).label(
-                "condition_occurrence_count"
-            ),
-        )
-        .group_by(
-            CteEraId.c.era_id,
-            CteEraId.c.person_id,
-            CteEraId.c.condition_concept_id,
-        )
-        .distinct()  # collapse identical eras into one
+    ConditionEraSelect = session.query(
+        CteEraId.c.person_id,
+        CteEraId.c.condition_concept_id,
+        func.min(CteEraId.c.condition_start_date),
+        func.max(CteEraId.c.condition_end_date),
+        func.count(CteEraId.c.condition_concept_id).label(
+            "condition_occurrence_count"
+        ),
+    ).group_by(
+        CteEraId.c.era_id,
+        CteEraId.c.person_id,
+        CteEraId.c.condition_concept_id,
     )
 
     return insert(OmopConditionEra).from_select(
