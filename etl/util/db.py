@@ -19,8 +19,7 @@ from etl.util.logger import setup_logger
 from .connection import ConnectionDetails
 from .exceptions import DependencyNotFoundException
 
-logger = setup_logger("ENVIRONMENT")
-
+logger = setup_logger("DEBUG")
 
 class AbstractSession(ABC):
     """A simple interface for interacting with a DB (session)"""
