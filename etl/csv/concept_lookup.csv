@@ -27,8 +27,7 @@ GI;4132161;administration_route
 IV;4171047;administration_route
 OR;4132161;administration_route
 SC;4142048;administration_route
-nacl;46276153;drug_solvents
-water;46276153;drug_solvents
-gluc;19076324;drug_solvents
-50glucose;19076324;drug_solvents
-ringer;0;drug_solvents
+nacl;42479436;drug_solvents
+water;19010309;drug_solvents
+gluc;42479951;drug_solvents
+50glucose;42479951;drug_solvents
