@@ -311,6 +311,7 @@ class Descriptions(SourceModelBase, PKIdMixin):
     field: Final[Column] = CharField(50)
     description: Final[Column] = CharField(150)
 
+
 SOURCE_VERSION: Final[str] = "0.1"
 
 # pylint: disable=no-member
