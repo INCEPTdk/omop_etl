@@ -23,7 +23,6 @@ def transform(session: AbstractSession) -> None:
         )
         session.execute(get_ingredient_era_insert(session, concept_id))
 
-    session.execute(get_ingredient_era_insert(session, 123))
     logger.info(
         "Drug era Transformation complete! %s rows included",
         session.query(OmopDrugEra).count(),
