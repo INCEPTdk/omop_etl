@@ -9,7 +9,10 @@ from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.omopcdm54.standardized_derived_elements import (
     DrugEra as OmopDrugEra,
 )
-from ..models.omopcdm54.vocabulary import ConceptAncestor
+from ..models.omopcdm54.vocabulary import (
+    Concept as OmopConcept,
+    ConceptAncestor as OmopConceptAncestor,
+)
 from ..util.db import (
     AbstractSession,
     get_environment_variable as get_era_lookback_interval,
@@ -18,6 +21,33 @@ from ..util.db import (
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
     "DRUG_ERA_LOOKBACK", "0 hours"
 )
+
+
+def get_ingredients_with_data(session: AbstractSession) -> list:
+    return (
+        session.query(
+            OmopConceptAncestor.ancestor_concept_id,
+            OmopConcept.concept_name,
+        )
+        .join(
+            OmopStem,
+            and_(
+                OmopConceptAncestor.descendant_concept_id
+                == OmopStem.concept_id,
+                OmopStem.domain_id == "Drug",
+            ),
+        )
+        .join(
+            OmopConcept,
+            and_(
+                OmopConcept.vocabulary_id == "RxNorm",
+                OmopConcept.concept_class_id == "Ingredient",
+                OmopConceptAncestor.ancestor_concept_id
+                == OmopConcept.concept_id,
+            ),
+        )
+        .distinct()
+    ).all()
 
 
 def get_ingredient_era_insert(
@@ -52,10 +82,12 @@ def get_ingredient_era_insert(
             ).label("previous_ingredient_exposure_datetime"),
         )
         .join(
-            ConceptAncestor,
+            OmopConceptAncestor,
             and_(
-                ConceptAncestor.ancestor_concept_id == ingredient_concept_id,
-                ConceptAncestor.descendant_concept_id == OmopStem.concept_id,
+                OmopConceptAncestor.ancestor_concept_id
+                == ingredient_concept_id,
+                OmopConceptAncestor.descendant_concept_id
+                == OmopStem.concept_id,
                 or_(OmopStem.days_supply >= 0, OmopStem.days_supply.is_(None)),
             ),
         )
