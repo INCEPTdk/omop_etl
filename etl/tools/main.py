@@ -16,7 +16,6 @@ from etl.util.db import (
     make_db_session,
     make_engine_duckdb,
     make_engine_postgres,
-    session_context,
 )
 from etl.util.exceptions import DBConnectionException
 from etl.util.files import load_config_from_file
@@ -104,17 +103,13 @@ def main() -> None:
 
     try:
         session = make_db_session(engine)
-        with session_context(session) as cntx:
-            # If anything goes wrong, we will not commit the session
-            # and closing the connection without committing will
-            # constitute a rollback
-            run_etl(
-                cntx,
-                lookup_loader=CSVFileLoader(
-                    Path(csv_dir), TEMP_MODELS, delimiter=";"
-                ),
-                reload_vocab=reload_vocab,
-            )
+        run_etl(
+            session,
+            lookup_loader=CSVFileLoader(
+                Path(csv_dir), TEMP_MODELS, delimiter=";"
+            ),
+            reload_vocab=reload_vocab,
+        )
     except KeyboardInterrupt:
         print("\n")
         logger.error("KeyboardInterrupt detected, exiting.")
