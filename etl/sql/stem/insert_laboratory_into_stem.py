@@ -80,8 +80,12 @@ def get_laboratory_stem_insert(
             ),
             ConceptLookupStem.unit_source_value,
             ConceptLookupStem.unit_concept_id,
-            ConceptLookupStem.range_low,
-            ConceptLookupStem.range_high,
+            func.coalesce(
+                cast(model.ref_lower_clean, FLOAT), ConceptLookupStem.range_low
+            ).label("range_low"),
+            func.coalesce(
+                cast(model.ref_upper_clean, FLOAT), ConceptLookupStem.range_high
+            ).label("range_high"),
         )
         .select_from(model)
         .join(
