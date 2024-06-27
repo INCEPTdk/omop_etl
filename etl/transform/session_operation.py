@@ -28,7 +28,9 @@ class SessionOperation(BaseOperation):
         self.session = session
 
     def _run(self, *args, **kwargs) -> Any:
-        return self._func(self.session)
+        with session_context(self.session) as cntx:
+            r = self._func(cntx)
+        return r
 
 
 class SessionOperationDefaultMerge(BaseOperation):
@@ -55,6 +57,3 @@ class SessionOperationDefaultMerge(BaseOperation):
             f"Merge {self.key} transformation complete. %s Row(s) included.",
             self.session.query(self.cdm_table).count(),
         )
-        with session_context(self.session) as cntx:
-            r = self._func(cntx)
-        return r

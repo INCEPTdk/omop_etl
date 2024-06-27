@@ -18,7 +18,7 @@ def transform(session: AbstractSession) -> None:
     merge_cdm_table(session, ObservationPeriod)
 
     logger.info(
-        "MERGE Observation Period Transformation. Initial %s Periods(s) included ...",
+        "Merge Observation Period Transformation. Initial %s Periods(s) included ...",
         session.query(ObservationPeriod).count(),
     )
 
@@ -26,6 +26,6 @@ def transform(session: AbstractSession) -> None:
     session.execute(SQL)
 
     logger.info(
-        "MERGE Observation Period Concatenate overlapping periods. Transformation complete! %s Period(s) included",
+        "Merge Observation Period Concatenate overlapping periods. Transformation complete! %s Period(s) included",
         session.query(ObservationPeriod).count(),
     )

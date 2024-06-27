@@ -17,7 +17,7 @@ def transform(session: AbstractSession) -> None:
     merge_cdm_table(session, Death)
 
     logger.info(
-        "MERGE Death Transformation. Initial %s Death(s) included ...",
+        "Merge Death Transformation. Initial %s Death(s) included ...",
         session.query(Death).count(),
     )
 
@@ -26,6 +26,6 @@ def transform(session: AbstractSession) -> None:
     )
 
     logger.info(
-        "MERGE Death Removed duplicates. Transformation complete! %s Death(s) included",
+        "Merge Death Removed duplicates. Transformation complete! %s Death(s) included",
         session.query(Death).count(),
     )

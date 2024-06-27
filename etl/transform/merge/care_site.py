@@ -17,6 +17,6 @@ def transform(session: AbstractSession) -> None:
     merge_cdm_table(session, CareSite)
     session.execute(add_location_to_care_site())
     logger.info(
-        "MERGE Care Site Transformation complete! %s CareSite(s) included",
+        "Merge Care Site Transformation complete! %s CareSite(s) included",
         session.query(CareSite).count(),
     )
