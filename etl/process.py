@@ -38,6 +38,9 @@ from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.merge.care_site import transform as merge_care_site_transform
 from .transform.merge.death import transform as merge_death_transform
+from .transform.merge.observation_period import (
+    transform as merge_observation_period,
+)
 from .transform.merge.person import transform as merge_person_transform
 from .transform.observation import transform as observation_transform
 from .transform.observation_period import (
@@ -343,9 +346,10 @@ def run_merge(session: AbstractSession) -> None:
             session=session,
             description="Specimen transform",
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=ObservationPeriod,
+        SessionOperation(
+            key=str(ObservationPeriod.__table__),
             session=session,
+            func=merge_observation_period,
             description="Observation period transform",
         ),
         SessionOperationDefaultMerge(
