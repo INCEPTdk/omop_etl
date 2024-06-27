@@ -39,9 +39,9 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._create_tables_and_schemas(self.LOOKUPS)
+        self._create_tables_and_schemas(self.SOURCE_MODELS)
+        self._create_tables_and_schemas(self.TARGET_MODEL)
 
         self.concept_lookup = pd.read_csv(self.CONCEPT_LOOKUP_DF, index_col=False, sep=';')
         self.source_courseid_cpr_mapping = pd.read_csv(self.INPUT_SOURCE_COURSEIDCPRMAPPING, index_col=False, sep=';')
@@ -54,9 +54,9 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
+        self._drop_tables_and_schemas(self.LOOKUPS)
+        self._drop_tables_and_schemas(self.SOURCE_MODELS)
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
 
     def _insert_test_data(self, session):
 
@@ -76,6 +76,6 @@ class VisitOccurrenceTransformationTest(DuckDBBaseTest):
             result_df = pd.read_sql(result, con=session.connection().connection)
 
         result_df = enforce_dtypes(self.expected_df, result_df)
-        assert_dataframe_equality(result_df, self.expected_df, index_col='visit_occurrence_id')
+        assert_dataframe_equality(result_df, self.expected_df, index_cols='visit_occurrence_id')
 
 __all__ = ['VisitOccurrenceTransformationTest']

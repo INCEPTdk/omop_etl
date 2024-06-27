@@ -1,0 +1,18 @@
+concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concept;concept_code;valid_start_date;valid_end_date;invalid_reason
+0;No matching concept;Metadata;None;Undefined;;No matching concept;1970-01-01;2099-12-31;
+198185;Chronic renal failure;Condition;SNOMED;Clinical Finding;S;90688005;2002-01-31;2099-12-31;
+257315;Bacterial pneumonia;Condition;SNOMED;Clinical Finding;S;53084003;2002-01-31;2099-12-31;
+1124957;oxycodone;Drug;RxNorm;Ingredient;S;7804;1970-01-01;2099-12-31;
+1321341;norepinephrine;Drug;RxNorm;Ingredient;S;7512;1970-01-01;2099-12-31;
+1707687;vancomycin;Drug;RxNorm;Ingredient;S;11124;1970-01-01;2099-12-31;
+3027018;Heart rate;Measurement;LOINC;Clinical Observation;S;8867-4;1970-01-01;2099-12-31;
+3032652;Glasgow coma scale;Measurement;LOINC;Clinical Observation;S;35088-4;1970-01-01;2099-12-31;
+4000626;Plasma specimen;Specimen;SNOMED;Specimen;S;119361006;2002-01-31;2099-12-31;
+4046280;Urine specimen;Specimen;SNOMED;Specimen;S;122575003;2002-01-31;2099-12-31;
+4301600;Direct laryngoscopy;Procedure;SNOMED;Procedure;S;78121007;2002-01-31;2099-12-31;
+4340651;Percutaneous replacement of ureteric stent;Procedure;SNOMED;Procedure;S;236176001;2002-01-31;2099-12-31;
+19049105;potassium chloride;Drug;RxNorm;Ingredient;S;8591;1970-01-01;2099-12-31;
+35198096;insulin aspart;Drug;RxNorm Extension;Ingredient;S;OMOP4819461;1970-01-01;2099-12-31;
+40757478;Albumin [Moles/volume] in Serum or Plasma;Measurement;LOINC;Lab Test;S;54347-0;2008-12-18;2099-12-31;
+44807895;Acute non-infective exacerbation of chronic obstructive pulmonary disease;Condition;SNOMED;Clinical Finding;S;847091000000104;2012-10-01;2099-12-31;
+46270682;Open drainage of intraperitoneal abscess;Procedure;SNOMED;Procedure;S;708636006;2015-07-31;2099-12-31;

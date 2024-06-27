@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 from etl.models.omopcdm54.registry import OmopCdmModelBase
 from etl.sql.merge.mergeutils import merge_cdm_table
 
-from ..util.db import AbstractSession
+from ..util.db import AbstractSession, session_context
 from .base_operation import BaseOperation
 
 
@@ -55,3 +55,6 @@ class SessionOperationDefaultMerge(BaseOperation):
             f"Merge {self.key} transformation complete. %s Row(s) included.",
             self.session.query(self.cdm_table).count(),
         )
+        with session_context(self.session) as cntx:
+            r = self._func(cntx)
+        return r

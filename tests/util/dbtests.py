@@ -36,7 +36,7 @@ class DBDuckDBTests(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(models=[self.DummyTable], schema="dummy")
+        self._create_tables_and_schemas(models=[self.DummyTable])
         self._session = make_db_session(self.engine)
         self.dummy_df = pd.DataFrame(
             {
@@ -48,7 +48,7 @@ class DBDuckDBTests(DuckDBBaseTest):
         )
 
     def tearDown(self):
-        self._drop_tables_and_schema(models=[self.DummyTable], schema="dummy")
+        self._drop_tables_and_schemas(models=[self.DummyTable])
 
     def _find_precision(self, number: float = None) -> int:
         if isinstance(number, float):

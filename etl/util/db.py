@@ -19,7 +19,7 @@ from etl.util.logger import setup_logger
 from .connection import ConnectionDetails
 from .exceptions import DependencyNotFoundException
 
-logger = setup_logger("ENVIRONMENT")
+logger = setup_logger("DEBUG")
 
 
 class AbstractSession(ABC):
@@ -207,7 +207,7 @@ def _create_engine_duckdb(
 ) -> Engine:
     """Create a Duckdb database engine based on connection details"""
     url = f"duckdb:///{dbname}"
-    return create_engine(url, **kwargs)
+    return create_engine(url, connect_args={"config": kwargs})
 
 
 def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
@@ -223,7 +223,7 @@ def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
         ) from excep
 
 
-def get_schema_name(
+def get_environment_variable(
     environment_variable_name: str = None, default: str = None
 ) -> str:
     schema_name: str = os.getenv(environment_variable_name, default=None)

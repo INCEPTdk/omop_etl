@@ -95,8 +95,8 @@ class ProcessUnitTests(unittest.TestCase):
             run_transformations(
                 session,
                 transformations=[
-                    SessionOperation("test1", session, transform1),
-                    SessionOperation("test2", session, transform2),
+                    (0, SessionOperation("test1", session, transform1)),
+                    (1, SessionOperation("test2", session, transform2)),
                 ],
             )
             # expect 1 delete and 1 copy per table = 4
@@ -125,10 +125,16 @@ class ProcessUnitTests(unittest.TestCase):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation(
-                            "test1", session, transform1, description="Test 1"
+                        (
+                            0,
+                            SessionOperation(
+                                "test1",
+                                session,
+                                transform1,
+                                description="Test 1",
+                            ),
                         ),
-                        SessionOperation("test2", session, transform2),
+                        (1, SessionOperation("test2", session, transform2)),
                     ],
                 )
 
@@ -326,18 +332,24 @@ class ProcessUnitTests(unittest.TestCase):
 
         reg = TransformationRegistry()
         transformations = [
-            DummyOperation(
-                key="dummy",
-                session=self._session,
-                func=lambda _, x: x * 2,
-                initial_value=5,
+            (
+                0,
+                DummyOperation(
+                    key="dummy",
+                    session=self._session,
+                    func=lambda _, x: x * 2,
+                    initial_value=5,
+                ),
             ),
             # this takes the value from dummy to calculate post_dummy
-            PostDummyOperation(
-                key="post_dummy",
-                session=self._session,
-                func=lambda _, x: x * 3,
-                value_getter=reg.lazy_get("dummy"),
+            (
+                1,
+                PostDummyOperation(
+                    key="post_dummy",
+                    session=self._session,
+                    func=lambda _, x: x * 3,
+                    value_getter=reg.lazy_get("dummy"),
+                ),
             ),
         ]
 
@@ -378,8 +390,8 @@ class ProcessDuckDBTests(DuckDBBaseTest):
     def setUp(self):
         super().setUp()
         self._session = make_db_session(self.engine)
-        self._create_tables_and_schema(
-            models=[self.DummyTable, self.DummyTableTwo], schema="dummy"
+        self._create_tables_and_schemas(
+            models=[self.DummyTable, self.DummyTableTwo]
         )
 
         self.dummy_df = pd.DataFrame(
@@ -399,8 +411,8 @@ class ProcessDuckDBTests(DuckDBBaseTest):
         )
 
     def tearDown(self) -> None:
-        self._drop_tables_and_schema(
-            models=[self.DummyTable, self.DummyTableTwo], schema="dummy"
+        self._drop_tables_and_schemas(
+            models=[self.DummyTable, self.DummyTableTwo]
         )
         super().tearDown()
 
@@ -433,8 +445,8 @@ class ProcessDuckDBTests(DuckDBBaseTest):
             run_transformations(
                 session,
                 transformations=[
-                    SessionOperation("test1", session, transform1),
-                    SessionOperation("test2", session, transform2),
+                    (1, SessionOperation("test1", session, transform1)),
+                    (2, SessionOperation("test2", session, transform2)),
                 ],
             )
             self.assertEqual(
@@ -469,8 +481,8 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
                     ],
                 )
             self.assertEqual(len(captured.records), 4)
@@ -519,9 +531,9 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
+                        (2, SessionOperation("test3", session, transform3)),
                     ],
                 )
             self.assertEqual(len(captured.records), 1)
@@ -566,9 +578,9 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (0, SessionOperation("test1", session, transform1)),
+                        (1, SessionOperation("test2", session, transform2)),
+                        (2, SessionOperation("test3", session, transform3)),
                     ],
                 )
             self.assertEqual(len(captured.records), 1)
@@ -625,9 +637,9 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        SessionOperation("test1", session, transform1),
-                        SessionOperation("test2", session, transform2),
-                        SessionOperation("test3", session, transform3),
+                        (1, SessionOperation("test1", session, transform1)),
+                        (2, SessionOperation("test2", session, transform2)),
+                        (3, SessionOperation("test3", session, transform3)),
                     ],
                 )
 
@@ -675,5 +687,6 @@ class RunETLDuckDBTests(DuckDBBaseTest):
                     dd.append(generate_dummy_data(model))
                 self._update(model.__tablename__, pd.DataFrame(dd))
             return self
+
 
 __all__ = ["ProcessUnitTests", "ProcessDuckDBTests", "RunETLDuckDBTests"]

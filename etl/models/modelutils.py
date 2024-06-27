@@ -114,6 +114,8 @@ class _MetaModel(DeclarativeMeta):
     Meta class to protect us from adding extra fields to our models
     """
 
+    __step__: int = -1
+
     # pylint: disable=no-self-argument
     def __setattr__(cls, name: str, value: Any) -> None:
         if (
@@ -124,6 +126,7 @@ class _MetaModel(DeclarativeMeta):
                 "_sa_class_manager",
                 "_sa_declared_attr_reg",
                 "__table__",
+                "__step__",
                 "__mapper__",
                 "__frozen",
                 "_id",
@@ -153,7 +156,7 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
     drop_sql = (
         "; ".join(
             [
-                f"""DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str};
+                f"""DROP TABLE IF EXISTS {m.metadata.schema}.{m.__table__.name} {cascade_str};
                 DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
                 for m in models
             ]
@@ -295,3 +298,11 @@ NULL 'NULL';
 """
         )
     return "; ".join(sql) + ";"
+
+
+def add_etl_step(n):
+    def decorator(cls):
+        cls.__step__ = n
+        return cls
+
+    return decorator
