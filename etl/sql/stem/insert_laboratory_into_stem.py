@@ -1,4 +1,4 @@
-""" SQL logic for inserting laboratory data into the stem table"""
+"""SQL logic for inserting laboratory data into the stem table"""
 
 import os
 from typing import Any
