@@ -46,6 +46,26 @@ def get_laboratory_stem_insert(
         session, model, ConceptLookupStem, "value_as_number"
     )
 
+    value_as_number = get_case_statement(
+        value_column,
+        model,
+        FLOAT,
+        value_type="numerical",
+        lookup=ConceptLookupStem,
+    )
+
+    range_low = func.coalesce(
+        cast(model.ref_lower_clean, FLOAT),
+        ConceptLookupStem.range_low,
+    )
+
+    range_high = func.coalesce(
+        cast(model.ref_upper_clean, FLOAT),
+        ConceptLookupStem.range_high,
+    )
+
+    conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
+
     StemSelectMeasurement = (
         select(
             ConceptLookupStem.std_code_domain.label("domain_id"),
@@ -68,24 +88,14 @@ def get_laboratory_stem_insert(
             ConceptLookupStem.uid,
             literal(model.__tablename__).label("datasource"),
             ConceptLookup.concept_id.label("value_as_concept_id"),
-            get_case_statement(
-                value_column,
-                model,
-                FLOAT,
-                value_type="numerical",
-                lookup=ConceptLookupStem,
-            ).label("value_as_number"),
+            (value_as_number * conversion).label("value_as_number"),
             get_case_statement(value_column, model, VARCHAR).label(
                 "value_source_value"
             ),
             ConceptLookupStem.unit_source_value,
             ConceptLookupStem.unit_concept_id,
-            func.coalesce(
-                cast(model.ref_lower_clean, FLOAT), ConceptLookupStem.range_low
-            ).label("range_low"),
-            func.coalesce(
-                cast(model.ref_upper_clean, FLOAT), ConceptLookupStem.range_high
-            ).label("range_high"),
+            (conversion * range_low).label("range_low"),
+            (conversion * range_high).label("range_high"),
         )
         .select_from(model)
         .join(
