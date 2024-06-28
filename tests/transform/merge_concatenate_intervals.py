@@ -4,9 +4,9 @@ from sqlalchemy import select
 
 from etl.models.omopcdm54.standardized_derived_elements import DrugEra, ConditionEra
 from etl.models.omopcdm54.clinical import ObservationPeriod
-from etl.sql.merge.drug_era import concatenate_overlapping_intervals as concatenate_drugs
-from etl.sql.merge.condition_era import concatenate_overlapping_intervals as concatenate_conditions
-from etl.sql.merge.observation_period import concatenate_overlapping_intervals as concatenate_observations
+from etl.transform.merge.condition_era import concatenate_intervals as concatenate_conditions
+from etl.transform.merge.drug_era import concatenate_intervals as concatenate_drugs
+from etl.transform.merge.observation_period import concatenate_intervals as concatenate_observations
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
@@ -50,7 +50,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
         write_to_db(self.engine, self.in_drug_era, DrugEra.__tablename__, schema=DrugEra.metadata.schema)
 
         with session_context(make_db_session(self.engine)) as session:
-            session.execute(concatenate_drugs())
+            concatenate_drugs(session)
 
             result = select(self.expected_drug_cols).subquery()
             result_df = enforce_dtypes(
@@ -63,7 +63,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
 
         write_to_db(self.engine, self.in_condition_era, ConditionEra.__tablename__, schema=ConditionEra.metadata.schema)
         with session_context(make_db_session(self.engine)) as session:
-            session.execute(concatenate_conditions())
+            concatenate_conditions(session)
 
             result = select(self.expected_condition_cols).subquery()
             result_df = enforce_dtypes(
@@ -76,7 +76,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
         write_to_db(self.engine, self.in_observation_period, ObservationPeriod.__tablename__, schema=ObservationPeriod.metadata.schema)
 
         with session_context(make_db_session(self.engine)) as session:
-            session.execute(concatenate_observations())
+            concatenate_observations(session)
 
             result = select(self.expected_observation_cols).subquery()
             result_df = enforce_dtypes(
