@@ -85,6 +85,11 @@ class Session(AbstractSession):
     def execute(self, sql: Any, *args, **kwargs):
         return self._session.execute(sql, *args, **kwargs)
 
+    def connection_execute(self, sql: str, *args, **kwargs):
+        return self._session.connection().connection.execute(
+            sql, *args, **kwargs
+        )
+
 
 class FakeSession(AbstractSession):
     """A simple fake session for testing without having a real DB session"""

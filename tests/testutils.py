@@ -67,23 +67,19 @@ class DuckDBBaseTest(unittest.TestCase):
 
     def _drop_tables_and_schemas(self, models: List[str]):
         with session_context(make_db_session(self.engine)) as session:
-            # Fully-qualified table names
-            fqtn = [f"{m.metadata.schema}.{m.__table__.name}" for m in models]
-            session.execute(
-                "".join(f"DROP TABLE IF EXISTS {t} CASCADE; " for t in fqtn)
-            )
+            if schema is not None:
+                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
 
-            schemas = set(m.metadata.schema for m in models)
-            session.execute(
-                "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
-            )
+            if models:
+                sql = drop_tables_sql(models, schema=schema)
+                session.execute(sql)
 
     def _create_tables_and_schemas(self, models: List[Any]):
         with session_context(make_db_session(self.engine)) as session:
             schemas_to_create = set(m.metadata.schema for m in models)
             session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
             if models:
-                sql = create_tables_sql(models)
+                sql = create_tables_sql(models, schema=schema)
                 session.execute(sql)
 
 
