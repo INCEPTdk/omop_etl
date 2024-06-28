@@ -6,7 +6,7 @@ from etl.models.omopcdm54.clinical import Person, Measurement
 from etl.sql.merge.mergeutils import remap_person_id
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
-    DuckDBBaseTest, 
+    DuckDBBaseTest,
     base_path,
     write_to_db,
     enforce_dtypes,
@@ -16,7 +16,7 @@ from tests.testutils import (
 
 class MergeRemapTest(DuckDBBaseTest):
     MODELS = [Person, Measurement]
-    
+
     IN_MERGED_PERSON = f"{base_path()}/test_data/merge_remap/in_merged_person.csv"
     IN_SITE_PERSON = f"{base_path()}/test_data/merge_remap/in_site_person.csv"
     IN_SITE_MEASUREMENT = f"{base_path()}/test_data/merge_remap/in_site_measurement.csv"
@@ -50,6 +50,6 @@ class MergeRemapTest(DuckDBBaseTest):
             result_df = session.connection_execute(SQL).df()
             result_df = enforce_dtypes(self.expected_df, result_df)
 
-        assert_dataframe_equality(result_df, self.expected_df) 
+        assert_dataframe_equality(result_df, self.expected_df)
 
 __all__ = ["MergeRemapTest"]

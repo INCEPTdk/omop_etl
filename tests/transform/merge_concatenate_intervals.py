@@ -57,7 +57,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
                 self.expected_drugs,
                 pd.DataFrame(session.query(result).all())
             )
-        assert_dataframe_equality(result_df, self.expected_drugs) 
+        assert_dataframe_equality(result_df, self.expected_drugs)
 
     def test_conditions(self):
 

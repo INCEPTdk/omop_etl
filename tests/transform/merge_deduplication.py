@@ -15,7 +15,7 @@ from tests.testutils import (
 
 class MergeDeduplicationsTest(DuckDBBaseTest):
     MODELS = [Person]
-    
+
     INPUT_MERGED_PERSON = f"{base_path()}/test_data/merge_deduplication/in_person.csv"
     OUTPUT_DEDUPLICATED_PERSON = f"{base_path()}/test_data/merge_deduplication/out_person.csv"
 
@@ -47,6 +47,6 @@ class MergeDeduplicationsTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        pd.testing.assert_frame_equal(result_df, self.expected_df) 
+        pd.testing.assert_frame_equal(result_df, self.expected_df)
 
 __all__ = ["MergeDeduplicationsTest"]

@@ -23,7 +23,7 @@ class MergeStandardFunction(DuckDBBaseTest):
     INPUT_SITE1_MEASUREMENT = f"{base_path()}/test_data/merge/in_site1_measurement.csv"
     INPUT_SITE2_MEASUREMENT = f"{base_path()}/test_data/merge/in_site2_measurement.csv"
     OUT_MERGED_MEASUREMENT = f"{base_path()}/test_data/merge/out_merge_measurement.csv"
-    
+
     def setUp(self):
         super().setUp()
         self._create_tables_and_schemas(self.MODELS, schema='site1')
@@ -50,7 +50,7 @@ class MergeStandardFunction(DuckDBBaseTest):
         write_to_db(engine, self.in_site1_person, Person.__tablename__, schema="site1")
         write_to_db(engine, self.in_site2_person, Person.__tablename__, schema="site2")
         write_to_db(engine, self.in_site1_measurement, Measurement.__tablename__, schema="site1")
-        write_to_db(engine, self.in_site2_measurement, Measurement.__tablename__, schema="site2") 
+        write_to_db(engine, self.in_site2_measurement, Measurement.__tablename__, schema="site2")
 
     def test_transform(self):
         self._insert_test_data(self.engine)
@@ -63,6 +63,6 @@ class MergeStandardFunction(DuckDBBaseTest):
                 self.expected_df,
                 pd.DataFrame(session.query(result).all())
             )
-        pd.testing.assert_frame_equal(result_df, self.expected_df) 
+        pd.testing.assert_frame_equal(result_df, self.expected_df)
 
 __all__ = ["MergeStandardFunction"]
