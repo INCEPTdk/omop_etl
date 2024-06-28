@@ -65,19 +65,28 @@ class DuckDBBaseTest(unittest.TestCase):
         )
         self.engine = make_engine_duckdb(cxn_details)
 
-    def _drop_tables_and_schemas(self, models: List[str]):
+    def _drop_tables_and_schemas(self, models: List[str], schema: Optional[str] = None):
         with session_context(make_db_session(self.engine)) as session:
-            if schema is not None:
-                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
-
             if models:
                 sql = drop_tables_sql(models, schema=schema)
                 session.execute(sql)
 
-    def _create_tables_and_schemas(self, models: List[Any]):
+            if schema is None:
+                schemas = set(m.metadata.schema for m in models)
+                session.execute(
+                    "".join(f"DROP SCHEMA IF EXISTS {s}; " for s in schemas)
+                )
+            else:
+                session.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE;")
+
+
+    def _create_tables_and_schemas(self, models: List[Any], schema: Optional[str] = None):
         with session_context(make_db_session(self.engine)) as session:
-            schemas_to_create = set(m.metadata.schema for m in models)
-            session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
+            if schema is None:
+                schemas_to_create = set(m.metadata.schema for m in models)
+                session.execute(''.join(f"CREATE SCHEMA IF NOT EXISTS {s}; " for s in schemas_to_create))
+            else:
+                session.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
             if models:
                 sql = create_tables_sql(models, schema=schema)
                 session.execute(sql)

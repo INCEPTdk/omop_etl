@@ -24,8 +24,8 @@ class MergeRemapTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.MODELS, schema='omopcdm')
-        self._create_tables_and_schema(self.MODELS, schema='site1')
+        self._create_tables_and_schemas(self.MODELS, schema='omopcdm')
+        self._create_tables_and_schemas(self.MODELS, schema='site1')
 
         self.in_merged_person = pd.read_csv(self.IN_MERGED_PERSON, index_col=False, sep=';')
         self.in_site_person = pd.read_csv(self.IN_SITE_PERSON, index_col=False, sep=';')
@@ -34,8 +34,8 @@ class MergeRemapTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.MODELS, schema='omopcdm')
-        self._drop_tables_and_schema(self.MODELS, schema='site1')
+        self._drop_tables_and_schemas(self.MODELS, schema='omopcdm')
+        self._drop_tables_and_schemas(self.MODELS, schema='site1')
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.in_merged_person, Person.__tablename__, schema=Person.metadata.schema)
