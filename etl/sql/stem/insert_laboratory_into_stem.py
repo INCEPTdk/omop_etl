@@ -1,7 +1,7 @@
 """SQL logic for inserting laboratory data into the stem table"""
 
 import os
-from typing import Any
+from typing import Any, Final
 
 from sqlalchemy import (
     DATE,
@@ -28,6 +28,8 @@ from .utils import (
     get_case_statement,
     toggle_stem_transform,
 )
+
+CONCEPT_ID_REGISTRY: Final[int] = 32879
 
 
 @toggle_stem_transform
@@ -142,7 +144,10 @@ def get_laboratory_stem_insert(
             get_case_statement(unique_end_date, model, TIMESTAMP).label(
                 "end_datetime"
             ),
-            func.coalesce(cast(ConceptLookupStem.type_concept_id, INT), 32879),
+            func.coalesce(
+                cast(ConceptLookupStem.type_concept_id, INT),
+                CONCEPT_ID_REGISTRY,
+            ),
             model.system_clean.label("source_value"),
             null().label("source_concept_id"),
             literal(model.__tablename__).label("datasource"),
