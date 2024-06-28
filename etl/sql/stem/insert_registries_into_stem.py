@@ -1,5 +1,6 @@
 """ SQL logic for inserting registry data into the stem table"""
 
+import os
 from typing import Any
 
 from sqlalchemy import DATE, INT, TIMESTAMP, and_, cast, insert, literal, select
@@ -27,7 +28,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -52,7 +53,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 ConceptLookupStem.value_type == "categorical",
@@ -60,6 +61,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 == func.lower(model.sks_code),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
     )
 

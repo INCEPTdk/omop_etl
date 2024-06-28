@@ -1,5 +1,6 @@
 """ SQL logic for inserting laboratory data into the stem table"""
 
+import os
 from typing import Any
 
 from sqlalchemy import (
@@ -47,7 +48,7 @@ def get_laboratory_stem_insert(
 
     StemSelectMeasurement = (
         select(
-            ConceptLookupStem.std_code_domain,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             OmopPerson.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -87,13 +88,14 @@ def get_laboratory_stem_insert(
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
                 == func.lower(model.lab_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,
@@ -143,13 +145,14 @@ def get_laboratory_stem_insert(
             OmopPerson,
             OmopPerson.person_source_value == concat("cpr_enc|", model.cpr_enc),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
                 == func.lower(model.lab_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
         .outerjoin(
             ConceptLookup,

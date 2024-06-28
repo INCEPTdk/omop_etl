@@ -16,7 +16,6 @@ from etl.util.db import (
     make_db_session,
     make_engine_duckdb,
     make_engine_postgres,
-    session_context,
 )
 from etl.util.exceptions import DBConnectionException
 from etl.util.files import load_config_from_file
@@ -52,6 +51,22 @@ def process_args() -> Any:
         default="FALSE",
         help="Boolean value to turn the vocab load on or off.",
     )
+    parser.add_argument(
+        "-m",
+        "--mem_limit",
+        dest="mem_limit",
+        required=False,
+        default="150gb",
+        help="Str with the max amount of memory for the DB.",
+    )
+    parser.add_argument(
+        "-t",
+        "--threads",
+        dest="num_threads",
+        required=False,
+        default=40,
+        help="Number of threads to use for the DB.",
+    )
     args = parser.parse_args()
     return args
 
@@ -77,7 +92,9 @@ def main() -> None:
     if cnxn.dbms == "postgresql":
         engine = make_engine_postgres(cnxn, implicit_returning=False)
     elif cnxn.dbms == "duckdb":
-        engine = make_engine_duckdb(cnxn)
+        engine = make_engine_duckdb(
+            cnxn, memory_limit=args.mem_limit, threads=args.num_threads
+        )
 
     if not is_db_connected(engine):
         raise DBConnectionException(
@@ -86,17 +103,13 @@ def main() -> None:
 
     try:
         session = make_db_session(engine)
-        with session_context(session) as cntx:
-            # If anything goes wrong, we will not commit the session
-            # and closing the connection without committing will
-            # constitute a rollback
-            run_etl(
-                cntx,
-                lookup_loader=CSVFileLoader(
-                    Path(csv_dir), TEMP_MODELS, delimiter=";"
-                ),
-                reload_vocab=reload_vocab,
-            )
+        run_etl(
+            session,
+            lookup_loader=CSVFileLoader(
+                Path(csv_dir), TEMP_MODELS, delimiter=";"
+            ),
+            reload_vocab=reload_vocab,
+        )
     except KeyboardInterrupt:
         print("\n")
         logger.error("KeyboardInterrupt detected, exiting.")

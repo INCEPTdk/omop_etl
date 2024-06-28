@@ -6,7 +6,7 @@ from typing import Any, Dict, Final, List
 
 from sqlalchemy import Column, Index
 
-from ..util.db import get_schema_name
+from ..util.db import get_environment_variable as get_schema_name
 from ..util.freeze import freeze_instance
 from .modelutils import (
     BigIntField,

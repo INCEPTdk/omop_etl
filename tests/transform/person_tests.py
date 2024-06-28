@@ -24,16 +24,16 @@ class PersonTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.SOURCE_MODELS, schema='registries')
-        self._create_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
+        self._create_tables_and_schemas(self.SOURCE_MODELS)
+        self._create_tables_and_schemas([self.TARGET_MODEL])
         self.test_data_in = pd.read_csv(self.INPUT_SOURCE_PERSON, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUTPUT_OMOP_PERSON, index_col=False, sep=';', parse_dates=['birth_datetime'])
         self.expected_cols = [getattr(self.TARGET_MODEL, col) for col in self.expected_df.columns.to_list()]
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='registries')
-        self._drop_tables_and_schema([self.TARGET_MODEL], schema='omopcdm')
+        self._drop_tables_and_schemas(self.SOURCE_MODELS)
+        self._drop_tables_and_schemas([self.TARGET_MODEL])
 
     def _insert_test_data(self, session):
         write_to_db(session, self.test_data_in, SourcePerson.__tablename__, schema=SourcePerson.metadata.schema)
@@ -46,6 +46,6 @@ class PersonTransformationTest(DuckDBBaseTest):
             result_df = pd.read_sql(result, con=session.connection().connection)
 
         result_df = enforce_dtypes(self.expected_df, result_df)
-        assert_dataframe_equality(result_df, self.expected_df, index_col='person_id')
+        assert_dataframe_equality(result_df, self.expected_df, index_cols='person_id')
 
 __all__ = ["PersonTransformationTest"]

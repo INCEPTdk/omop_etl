@@ -15,7 +15,7 @@ def transform(session: AbstractSession) -> None:
 
     merge_cdm_table(session, Person)
     logger.info(
-        "MERGE Person Transformation with duplicates! %s Person(s) included",
+        "Merge Person Transformation with duplicates! %s Person(s) included",
         session.query(Person).count(),
     )
     session.execute(
@@ -24,6 +24,6 @@ def transform(session: AbstractSession) -> None:
         )
     )
     logger.info(
-        "MERGE Person Transformation complete! %s Person(s) included",
+        "Merge Person Transformation complete! %s Person(s) included",
         session.query(Person).count(),
     )
