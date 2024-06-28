@@ -4,6 +4,7 @@ import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import (
+    Concept as OmopConcept,
     Person as OmopPerson,
     Stem as OmopStem,
     VisitOccurrence as OmopVisitOccurrence,
@@ -36,10 +37,13 @@ class StemTransformationTest(DuckDBBaseTest):
     SOURCE_MODELS = [SourceCourseIdCprMapping, SourceCourseMetadata, SourceObservations, SourceAdministrations, SourcePrescriptions, SourceDiagnosesProcedures]
     REGISTRY_MODELS = [SourceLprDiagnoses, SourceLprProcedures, SourceLprOperations, SourceLabkaBccLaboratory]
     TARGET_MODEL = [OmopVisitOccurrence, OmopPerson, OmopStem]
+    VOCAB_MODELS = [OmopConcept]
     LOOKUPS = [ConceptLookup, ConceptLookupStem]
 
     CONCEPT_LOOKUP_DF = "etl/csv/concept_lookup.csv"
     CONCEPT_LOOKUP_STEM_DF = "etl/csv/concept_lookup_stem.csv"
+
+    INPUT_VOCAB_CONCEPT = f"{base_path()}/test_data/stem/in_vocab_concept.csv"
 
     INPUT_SOURCE_COURSEIDCPRMAPPING = f"{base_path()}/test_data/stem/in_source_courseid_cpr_mapping.csv"
     INPUT_SOURCE_COURSEMETADATA = f"{base_path()}/test_data/stem/in_source_course_metadata.csv"
@@ -62,13 +66,15 @@ class StemTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._create_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._create_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-        self._create_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
+        self._create_tables_and_schemas(self.LOOKUPS)
+        self._create_tables_and_schemas(self.SOURCE_MODELS)
+        self._create_tables_and_schemas(self.TARGET_MODEL)
+        self._create_tables_and_schemas(self.REGISTRY_MODELS)
+        self._create_tables_and_schemas(self.VOCAB_MODELS)
 
         self.concept_lookup = pd.read_csv(self.CONCEPT_LOOKUP_DF, index_col=False, sep=';')
         self.concept_lookup_stem = pd.read_csv(self.CONCEPT_LOOKUP_STEM_DF, index_col=False, sep=';', dtype=str)
+        self.vocab_concept = pd.read_csv(self.INPUT_VOCAB_CONCEPT, index_col=False, sep=';')
 
         self.source_courseid_cpr_mapping = pd.read_csv(self.INPUT_SOURCE_COURSEIDCPRMAPPING, index_col=False, sep=';')
         self.source_course_metadata = pd.read_csv(self.INPUT_SOURCE_COURSEMETADATA, index_col=False, sep=';')
@@ -90,14 +96,16 @@ class StemTransformationTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.LOOKUPS, schema='lookups')
-        self._drop_tables_and_schema(self.SOURCE_MODELS, schema='source')
-        self._drop_tables_and_schema(self.TARGET_MODEL, schema='omopcdm')
-        self._drop_tables_and_schema(self.REGISTRY_MODELS, schema='registries')
+        self._drop_tables_and_schemas(self.LOOKUPS)
+        self._drop_tables_and_schemas(self.SOURCE_MODELS)
+        self._drop_tables_and_schemas(self.TARGET_MODEL)
+        self._drop_tables_and_schemas(self.REGISTRY_MODELS)
+        self._drop_tables_and_schemas(self.VOCAB_MODELS)
 
     def _insert_test_data(self, engine):
         write_to_db(engine, self.concept_lookup, ConceptLookup.__tablename__, schema=ConceptLookup.metadata.schema)
         write_to_db(engine, self.concept_lookup_stem, ConceptLookupStem.__tablename__, schema=ConceptLookupStem.metadata.schema)
+        write_to_db(engine, self.vocab_concept, OmopConcept.__tablename__, schema=OmopConcept.metadata.schema)
         write_to_db(engine, self.source_courseid_cpr_mapping, SourceCourseIdCprMapping.__tablename__, schema=SourceCourseIdCprMapping.metadata.schema)
         write_to_db(engine, self.source_course_metadata, SourceCourseMetadata.__tablename__, schema=SourceCourseMetadata.metadata.schema)
         write_to_db(engine, self.source_observations, SourceObservations.__tablename__, schema=SourceObservations.metadata.schema)
@@ -122,6 +130,6 @@ class StemTransformationTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
-        assert_dataframe_equality(result_df, self.expected_df, index_col='stem_id')
+        assert_dataframe_equality(result_df, self.expected_df, index_cols=['stem_id', 'domain_id', 'source_concept_id'])
 
 __all__ = ['StemTransformationTest']

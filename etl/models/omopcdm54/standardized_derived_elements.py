@@ -14,14 +14,16 @@ from ..modelutils import (
     NumericField,
     PKIdMixin,
     PKIntField,
+    add_etl_step,
 )
-from .clinical import PersonIdMixin
+from .clinical import Person, PersonIdMixin
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
 
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(15)
 class DrugEra(ModelBase, PersonIdMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#DRUG_ERA
@@ -32,6 +34,7 @@ class DrugEra(ModelBase, PersonIdMixin):
     drug_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -43,6 +46,7 @@ class DrugEra(ModelBase, PersonIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(17)
 class DoseEra(ModelBase, PersonIdMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#DOSE_ERA
@@ -53,6 +57,7 @@ class DoseEra(ModelBase, PersonIdMixin):
     dose_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     drug_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
@@ -66,6 +71,7 @@ class DoseEra(ModelBase, PersonIdMixin):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(16)
 class ConditionEra(ModelBase, PersonIdMixin):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#CONDITION_ERA
@@ -76,6 +82,7 @@ class ConditionEra(ModelBase, PersonIdMixin):
     condition_era_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
+    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
     condition_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )

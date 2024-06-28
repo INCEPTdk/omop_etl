@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from sqlalchemy import and_, insert, select
+from sqlalchemy import DateTime, and_, cast, func, insert, or_, select
 from sqlalchemy.sql import Insert, Select
 
 from ..models.omopcdm54.clinical import (
@@ -13,10 +13,20 @@ from ..models.omopcdm54.clinical import (
 StemDrugExposure: Final[Select] = select(
     OmopStem.person_id,
     OmopStem.concept_id,
-    OmopStem.start_date,
-    OmopStem.start_datetime,
-    OmopStem.end_date,
-    OmopStem.end_datetime,
+    func.coalesce(OmopStem.start_date, OmopStem.end_date).label("start_date"),
+    func.coalesce(
+        OmopStem.start_datetime,
+        cast(OmopStem.start_date, DateTime),
+        OmopStem.end_datetime,
+        cast(OmopStem.end_date, DateTime),
+    ).label("start_datetime"),
+    func.coalesce(OmopStem.end_date, OmopStem.start_date).label("end_date"),
+    func.coalesce(
+        OmopStem.end_datetime,
+        cast(OmopStem.end_date, DateTime),
+        OmopStem.start_datetime,
+        cast(OmopStem.start_date, DateTime),
+    ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.quantity,
     OmopStem.route_concept_id,
@@ -30,6 +40,11 @@ StemDrugExposure: Final[Select] = select(
     and_(
         OmopStem.domain_id == "Drug",
         OmopStem.concept_id.is_not(None),
+        OmopStem.type_concept_id.is_not(None),
+        or_(
+            OmopStem.start_date.is_not(None),
+            OmopStem.end_date.is_not(None),
+        ),
     )
 )
 

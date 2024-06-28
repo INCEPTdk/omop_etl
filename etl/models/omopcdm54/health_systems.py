@@ -11,6 +11,7 @@ from ..modelutils import (
     IntField,
     NumericField,
     PKIntField,
+    add_etl_step,
 )
 from .registry import OmopCdmModelBase as ModelBase, register_omop_model
 from .vocabulary import Concept
@@ -18,6 +19,7 @@ from .vocabulary import Concept
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(1)
 class Location(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#LOCATION
@@ -43,6 +45,7 @@ class Location(ModelBase):
 
 @register_omop_model
 @freeze_instance
+@add_etl_step(2)
 class CareSite(ModelBase):
     """
     https://ohdsi.github.io/CommonDataModel/cdm54.html#CARE_SITE

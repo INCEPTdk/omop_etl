@@ -2,7 +2,7 @@
 
 from typing import Any, Final
 
-from etl.util.db import get_schema_name
+from etl.util.db import get_environment_variable as get_schema_name
 
 from ..modelutils import make_model_base
 

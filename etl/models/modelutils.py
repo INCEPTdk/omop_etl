@@ -20,6 +20,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Sequence,
     String,
+    Table,
     Text,
 )
 from sqlalchemy.dialects import postgresql
@@ -114,6 +115,8 @@ class _MetaModel(DeclarativeMeta):
     Meta class to protect us from adding extra fields to our models
     """
 
+    __step__: int = -1
+
     # pylint: disable=no-self-argument
     def __setattr__(cls, name: str, value: Any) -> None:
         if (
@@ -124,6 +127,7 @@ class _MetaModel(DeclarativeMeta):
                 "_sa_class_manager",
                 "_sa_declared_attr_reg",
                 "__table__",
+                "__step__",
                 "__mapper__",
                 "__frozen",
                 "_id",
@@ -146,16 +150,40 @@ def make_model_base(schema: Optional[str] = None) -> Any:
 
 
 @clean_sql
-def drop_tables_sql(models: List[Any], cascade=True) -> str:
+def drop_tables_sql(models: List[Any], cascade=True, schema: str = None) -> str:
+
+    if schema and all(schema != m.metadata.schema for m in models):
+        tables = [
+            Table(
+                m.__tablename__,
+                m.metadata,
+                *[
+                    Column(
+                        c.name,
+                        c.type,
+                        primary_key=c.primary_key,
+                        default=c.default,
+                        server_default=c.server_default,
+                    )
+                    for c in m.__table__.columns
+                ],
+                schema=schema,
+                extend_existing=True,
+            )
+            for m in models
+        ]
+    else:
+        tables = [m.__table__ for m in models]
+
     cascade_str = ""
     if cascade:
         cascade_str = "CASCADE"
     drop_sql = (
         "; ".join(
             [
-                f"""DROP TABLE IF EXISTS {str(m.__table__)} {cascade_str};
-                DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
-                for m in models
+                f"""DROP TABLE IF EXISTS {t} {cascade_str};
+                DROP SEQUENCE IF EXISTS {str(t.schema + '_' + t.name + '_id_seq')} {cascade_str}"""
+                for t in tables
             ]
         )
         + ";"
@@ -164,18 +192,50 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
 
 
 @clean_sql
-def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
+def create_tables_sql(
+    models: List[Any], dialect=DIALECT_POSTGRES, schema: str = None
+) -> str:
+
+    tables = []
+    for m in models:
+        if schema and schema != m.metadata.schema:
+            # define a table from a model but overriding the schema/sequence/defaults
+            columns = []
+            for c in m.__table__.columns:
+                if hasattr(c.default, "name") and "id_seq" in c.default.name:
+                    # override the sequence name
+                    c.default = Sequence(
+                        schema + "_" + m.__tablename__ + "_id_seq"
+                    )
+                columns.append(
+                    Column(
+                        c.name,
+                        c.type,
+                        primary_key=c.primary_key,
+                        default=c.default,
+                        server_default=(
+                            c.default.next_value() if c.default else None
+                        ),
+                    )
+                )
+
+            tables.append(
+                Table(
+                    m.__tablename__,
+                    m.metadata,
+                    *columns,
+                    schema=schema,
+                )
+            )
+        else:
+            tables.append(m.__table__)
+
     sql = []
-    for model in models:
+    for table in tables:
         sql.append(
             str(
                 CreateSequence(
-                    Sequence(
-                        model.metadata.schema
-                        + "_"
-                        + model.__table__.name
-                        + "_id_seq"
-                    ),
+                    Sequence(table.schema + "_" + table.name + "_id_seq"),
                     if_not_exists=True,
                 ).compile(dialect=dialect)
             )
@@ -183,7 +243,7 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
         sql.append(
             str(
                 CreateTable(
-                    model.__table__,
+                    table,
                     include_foreign_key_constraints=[],
                     if_not_exists=True,
                 ).compile(dialect=dialect)
@@ -295,3 +355,11 @@ NULL 'NULL';
 """
         )
     return "; ".join(sql) + ";"
+
+
+def add_etl_step(n):
+    def decorator(cls):
+        cls.__step__ = n
+        return cls
+
+    return decorator
