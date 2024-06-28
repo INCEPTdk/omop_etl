@@ -41,8 +41,9 @@ from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.merge.care_site import transform as merge_care_site_transform
 from .transform.merge.death import transform as merge_death_transform
+from .transform.merge.drug_era import transform as merge_drug_era_transform
 from .transform.merge.observation_period import (
-    transform as merge_observation_period,
+    transform as merge_observation_period_transform,
 )
 from .transform.merge.person import transform as merge_person_transform
 from .transform.observation import transform as observation_transform
@@ -458,16 +459,17 @@ def run_merge(session: AbstractSession) -> None:
             SessionOperation(
                 key=str(ObservationPeriod.__table__),
                 session=session,
-                func=merge_observation_period,
+                func=merge_observation_period_transform,
                 description="Observation period transform",
             ),
         ),
         (
             DrugEra.__step__,
-            SessionOperationDefaultMerge(
-                cdm_table=DrugEra,
+            SessionOperation(
+                key=str(DrugEra.__table__),
                 session=session,
-                description="Drug Era transform",
+                func=merge_drug_era_transform,
+                description="Drug era transform",
             ),
         ),
         (

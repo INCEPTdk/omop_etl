@@ -12,7 +12,7 @@ logger = logging.getLogger("ETL.Merge.ObservationPeriod")
 
 
 def transform(session: AbstractSession) -> None:
-    """Run the Merge location transformation"""
+    """Run the Merge Observation period transformation"""
     logger.info("Starting the Observation Period merge transformation... ")
 
     merge_cdm_table(session, ObservationPeriod)
