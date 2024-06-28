@@ -45,14 +45,18 @@ def concatenate_overlapping_intervals():
         SELECT
             *,
             Sum(d) OVER (
-            ORDER BY a) - d AS c
+            ORDER BY {ObservationPeriod.person_id.key}, 
+                {ObservationPeriod.period_type_concept_id.key},
+                a) - d AS c
         FROM
             weighted_endpoints),
     equivalence_classes AS (
         SELECT
             *,
             COUNT(CASE WHEN c = 0 THEN 1 END) OVER (
-            ORDER BY a) AS class
+            ORDER BY {ObservationPeriod.person_id.key}, 
+                {ObservationPeriod.period_type_concept_id.key},
+                a) AS class
         FROM
             endpoints_with_coverage)
     INSERT INTO {ObservationPeriod.__table__} (
