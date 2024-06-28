@@ -142,9 +142,9 @@ def get_laboratory_stem_insert(
             get_case_statement(unique_end_date, model, TIMESTAMP).label(
                 "end_datetime"
             ),
-            cast(ConceptLookupStem.type_concept_id, INT),
-            model.lab_id.label("source_value"),
-            ConceptLookupStem.uid,
+            func.coalesce(cast(ConceptLookupStem.type_concept_id, INT), 32879),
+            model.system_clean.label("source_value"),
+            null().label("source_concept_id"),
             literal(model.__tablename__).label("datasource"),
             null().label("value_as_concept_id"),
             null().label("value_as_number"),
@@ -175,6 +175,7 @@ def get_laboratory_stem_insert(
                 ConceptLookup.filter == "laboratory_system",
             ),
         )
+        .distinct()
     )
 
     return insert(OmopStem).from_select(
