@@ -40,6 +40,9 @@ from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.merge.care_site import transform as merge_care_site_transform
+from .transform.merge.condition_era import (
+    transform as merge_condition_era_transform,
+)
 from .transform.merge.death import transform as merge_death_transform
 from .transform.merge.drug_era import transform as merge_drug_era_transform
 from .transform.merge.observation_period import (
@@ -474,10 +477,11 @@ def run_merge(session: AbstractSession) -> None:
         ),
         (
             ConditionEra.__step__,
-            SessionOperationDefaultMerge(
-                cdm_table=ConditionEra,
+            SessionOperation(
+                key=str(ConditionEra.__table__),
                 session=session,
-                description="Condition Era transform",
+                func=merge_condition_era_transform,
+                description="Condition era period transform",
             ),
         ),
     ]
