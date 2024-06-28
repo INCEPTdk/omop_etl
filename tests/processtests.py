@@ -126,7 +126,7 @@ class ProcessUnitTests(unittest.TestCase):
                     session,
                     transformations=[
                         (
-                            0,
+                            1,
                             SessionOperation(
                                 "test1",
                                 session,
@@ -134,7 +134,7 @@ class ProcessUnitTests(unittest.TestCase):
                                 description="Test 1",
                             ),
                         ),
-                        (1, SessionOperation("test2", session, transform2)),
+                        (2, SessionOperation("test2", session, transform2)),
                     ],
                 )
 
