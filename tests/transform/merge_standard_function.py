@@ -2,8 +2,7 @@
 import pandas as pd
 from sqlalchemy import select
 
-from etl.models.omopcdm54.clinical import Person
-from etl.models.omopcdm54.clinical import Measurement
+from etl.models.omopcdm54.clinical import Measurement, Person
 from etl.sql.merge.mergeutils import _sql_merge_cdm_table
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (

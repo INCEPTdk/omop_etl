@@ -18,7 +18,7 @@ def concatenate_intervals(session: AbstractSession):
     SQL: str = concatenate_overlapping_intervals(
         ObservationPeriod,
         key_columns=[
-            ObservationPeriod.person_id.key,
+            ObservationPeriod.person_id.key,  # pylint: disable=no-member
             ObservationPeriod.period_type_concept_id.key,
         ],
         start_date_column=ObservationPeriod.observation_period_start_date.key,

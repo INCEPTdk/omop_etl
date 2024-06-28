@@ -2,15 +2,15 @@
 import pandas as pd
 from sqlalchemy import select, text
 
-from etl.models.omopcdm54.clinical import Person, Measurement
+from etl.models.omopcdm54.clinical import Measurement, Person
 from etl.sql.merge.mergeutils import remap_person_id
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
+    assert_dataframe_equality,
     base_path,
-    write_to_db,
     enforce_dtypes,
-    assert_dataframe_equality
+    write_to_db,
 )
 
 

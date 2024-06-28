@@ -134,7 +134,7 @@ class ProcessUnitTests(unittest.TestCase):
                                 description="Test 1",
                             ),
                         ),
-                        (2, SessionOperation("test2", session, transform2)),
+                       (2, SessionOperation("test2", session, transform2)),
                     ],
                 )
 

@@ -22,7 +22,9 @@ def transform(session: AbstractSession) -> None:
     )
 
     session.execute(
-        drop_duplicated_rows(Death, Death.person_id.key, Death.death_id.key)
+        drop_duplicated_rows(
+            Death, Death.person_id.key, Death.death_id.key
+        )  # pylint: disable=no-member
     )
 
     logger.info(

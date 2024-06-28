@@ -2,11 +2,20 @@
 import pandas as pd
 from sqlalchemy import select
 
-from etl.models.omopcdm54.standardized_derived_elements import DrugEra, ConditionEra
 from etl.models.omopcdm54.clinical import ObservationPeriod
-from etl.transform.merge.condition_era import concatenate_intervals as concatenate_conditions
-from etl.transform.merge.drug_era import concatenate_intervals as concatenate_drugs
-from etl.transform.merge.observation_period import concatenate_intervals as concatenate_observations
+from etl.models.omopcdm54.standardized_derived_elements import (
+    ConditionEra,
+    DrugEra,
+)
+from etl.transform.merge.condition_era import (
+    concatenate_intervals as concatenate_conditions,
+)
+from etl.transform.merge.drug_era import (
+    concatenate_intervals as concatenate_drugs,
+)
+from etl.transform.merge.observation_period import (
+    concatenate_intervals as concatenate_observations,
+)
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,

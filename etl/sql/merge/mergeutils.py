@@ -33,7 +33,9 @@ def _sql_merge_cdm_table(
             if c.key not in cdm_table.__table__.primary_key.columns
         ]
 
-    cdm_columns = move_to_end(cdm_columns, VisitOccurrence.care_site_id.key)
+    cdm_columns = move_to_end(
+        cdm_columns, VisitOccurrence.care_site_id.key
+    )  # pylint: disable=no-member
     cdm_columns = move_to_end(cdm_columns, Person.person_id.key)
 
     select_statements = []
