@@ -13,8 +13,7 @@ class CareSiteTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._drop_tables_and_schema(self.MODELS, schema="omopcdm")
-        self._create_tables_and_schema(self.MODELS, schema="omopcdm")
+        self._create_tables_and_schemas(self.MODELS)
         self.in_empty_location = pd.read_csv(
             f"{base_path()}/test_data/care_site/in_empty_location.csv"
         )
@@ -24,7 +23,7 @@ class CareSiteTransformationTest(DuckDBBaseTest):
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.MODELS, schema="omopcdm")
+        self._drop_tables_and_schemas(self.MODELS)
 
     def _run_care_site_transformation(self, session, shak_code):
 

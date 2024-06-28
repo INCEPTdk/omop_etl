@@ -18,8 +18,11 @@ from .metadata import *
 # Module utils
 from .registry import OmopCdmModelBase, OmopCdmModelRegistry
 
+# Results Tables
+from .results import *
+
 # Standardized Derived Elements
-from .standarized_derived_elements import *
+from .standardized_derived_elements import *
 
 # Vocabulary Tables
 from .vocabulary import *

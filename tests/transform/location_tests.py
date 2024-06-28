@@ -11,11 +11,11 @@ class LocationTransformationTest(DuckDBBaseTest):
 
     def setUp(self):
         super().setUp()
-        self._create_tables_and_schema(self.MODELS, schema='omopcdm')
+        self._create_tables_and_schemas(self.MODELS)
 
     def tearDown(self) -> None:
         super().tearDown()
-        self._drop_tables_and_schema(self.MODELS, schema='omopcdm')
+        self._drop_tables_and_schemas(self.MODELS)
 
     def _run_location_transformation(self, session, shak_code):
 

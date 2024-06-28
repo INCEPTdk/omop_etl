@@ -82,6 +82,12 @@ def find_unique_column_names(
 
 
 def toggle_stem_transform(transform_function):
+    """
+    Decorator to toggle the execution of a transform function
+    based on the environment variable STEM_TRANSFORMS. If the env var is not set,
+    the decorated stem transforms will be executed.
+    """
+
     caller_module = inspect.getmodule(inspect.stack()[1][0])
     # pylint: disable=unused-variable
     transform_name, suffix = os.path.splitext(
