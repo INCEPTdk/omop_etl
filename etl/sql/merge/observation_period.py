@@ -45,7 +45,7 @@ def concatenate_overlapping_intervals():
         SELECT
             *,
             Sum(d) OVER (
-            ORDER BY {ObservationPeriod.person_id.key}, 
+            ORDER BY {ObservationPeriod.person_id.key},
                 {ObservationPeriod.period_type_concept_id.key},
                 a) - d AS c
         FROM
@@ -54,7 +54,7 @@ def concatenate_overlapping_intervals():
         SELECT
             *,
             COUNT(CASE WHEN c = 0 THEN 1 END) OVER (
-            ORDER BY {ObservationPeriod.person_id.key}, 
+            ORDER BY {ObservationPeriod.person_id.key},
                 {ObservationPeriod.period_type_concept_id.key},
                 a) AS class
         FROM

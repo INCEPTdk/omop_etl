@@ -1,4 +1,4 @@
-"""Deduplication tests tests"""
+"""Merge standard function tests. This function simply takes CDM and merge them together (remapping the person_id)"""
 import pandas as pd
 from sqlalchemy import select
 

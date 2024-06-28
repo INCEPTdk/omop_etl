@@ -45,8 +45,8 @@ def concatenate_overlapping_intervals():
         SELECT
             *,
             Sum(d) OVER (
-            ORDER BY {DrugEra.person_id.key}, 
-                {DrugEra.drug_concept_id.key}, 
+            ORDER BY {DrugEra.person_id.key},
+                {DrugEra.drug_concept_id.key},
                 a) - d AS c
         FROM
             weighted_endpoints),
@@ -54,8 +54,8 @@ def concatenate_overlapping_intervals():
         SELECT
             *,
             COUNT(CASE WHEN c = 0 THEN 1 END) OVER (
-            ORDER BY {DrugEra.person_id.key}, 
-                {DrugEra.drug_concept_id.key}, 
+            ORDER BY {DrugEra.person_id.key},
+                {DrugEra.drug_concept_id.key},
                 a) AS class
         FROM
             endpoints_with_coverage),
