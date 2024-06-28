@@ -195,27 +195,40 @@ def drop_tables_sql(models: List[Any], cascade=True, schema: str = None) -> str:
 def create_tables_sql(
     models: List[Any], dialect=DIALECT_POSTGRES, schema: str = None
 ) -> str:
-    if schema and all(schema != m.metadata.schema for m in models):
-        tables = [
-            Table(
-                m.__tablename__,
-                m.metadata,
-                *[
+
+    tables = []
+    for m in models:
+        if schema and schema != m.metadata.schema:
+            # define a table from a model but overriding the schema/sequence/defaults
+            columns = []
+            for c in m.__table__.columns:
+                if hasattr(c.default, "name") and "id_seq" in c.default.name:
+                    # override the sequence name
+                    c.default = Sequence(
+                        schema + "_" + m.__tablename__ + "_id_seq"
+                    )
+                columns.append(
                     Column(
                         c.name,
                         c.type,
                         primary_key=c.primary_key,
                         default=c.default,
-                        server_default=c.server_default,
+                        server_default=(
+                            c.default.next_value() if c.default else None
+                        ),
                     )
-                    for c in m.__table__.columns
-                ],
-                schema=schema,
+                )
+
+            tables.append(
+                Table(
+                    m.__tablename__,
+                    m.metadata,
+                    *columns,
+                    schema=schema,
+                )
             )
-            for m in models
-        ]
-    else:
-        tables = [m.__table__ for m in models]
+        else:
+            tables.append(m.__table__)
 
     sql = []
     for table in tables:
