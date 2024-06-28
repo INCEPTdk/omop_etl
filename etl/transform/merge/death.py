@@ -17,15 +17,16 @@ def transform(session: AbstractSession) -> None:
     merge_cdm_table(session, Death)
 
     logger.info(
-        "MERGE Death Transformation. Initial %s Death(s) included ...",
+        "Merge Death Transformation. Initial %s Death(s) included ...",
         session.query(Death).count(),
     )
 
+    # pylint: disable=no-member
     session.execute(
         drop_duplicated_rows(Death, Death.person_id.key, Death.death_id.key)
     )
 
     logger.info(
-        "MERGE Death Removed duplicates. Transformation complete! %s Death(s) included",
+        "Merge Death Removed duplicates. Transformation complete! %s Death(s) included",
         session.query(Death).count(),
     )

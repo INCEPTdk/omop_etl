@@ -1,0 +1,6 @@
+person_id;observation_period_start_date;observation_period_end_date;period_type_concept_id
+1;1815-05-05;1899-01-01;32817
+2;1800-01-01;1811-04-23;32817
+2;1810-01-01;1813-04-23;32817
+3;1812-12-12;1813-12-31;32817
+3;1977-01-01;2018-04-01;32879

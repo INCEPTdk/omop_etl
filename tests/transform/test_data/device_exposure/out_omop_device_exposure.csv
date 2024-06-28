@@ -1,3 +1,5 @@
 device_exposure_id;person_id;device_concept_id;device_exposure_start_date;device_exposure_start_datetime;device_exposure_end_date;device_exposure_end_datetime;device_type_concept_id;unique_device_id;production_id;quantity;provider_id;visit_occurrence_id;visit_detail_id;device_source_value;device_source_concept_id;unit_concept_id;unit_source_value;unit_source_concept_id
 1;3;4155961;1812-12-15;1812-12-15 13:30:30;1812-12-15;1812-12-15 13:30:30;32817;;;;;1;;piccoktt__true;2000000095;;;;
 2;3;4155961;1813-12-17;1813-12-17 09:09:09;1813-12-17;1813-12-17 09:09:09;32817;;;;;2;;piccoktt__true;2000000095;;;;
+3;3;0;1813-12-17;1813-12-17 09:09:39;1813-12-17;1813-12-17 09:09:39;32817;;;;;2;;piccokttunmappable__true;2000000096;;;;
+4;4;4155961;1813-12-17;1813-12-17 09:14:59;1813-12-17;1813-12-17 09:14:59;32817;;;;;3;;piccoktt__true;2000000095;;;;

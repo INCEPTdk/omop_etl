@@ -1,7 +1,8 @@
 """Run the ETL and supporting classes for transformations"""
 
 import logging
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union
+import os
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 from .loader import Loader
 from .models.omopcdm54 import (
@@ -26,6 +27,7 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.condition_era import transform as condition_era_transform
 from .transform.condition_occurrence import (
     transform as condition_occurrence_transform,
 )
@@ -33,11 +35,19 @@ from .transform.create_lookup_tables import transform as create_lookup_tables
 from .transform.create_omopcdm_tables import transform as create_omop_tables
 from .transform.death import transform as death_transform
 from .transform.device_exposure import transform as device_exposure_transform
+from .transform.drug_era import transform as drug_era_transform
 from .transform.drug_exposure import transform as drug_exposure_transform
 from .transform.location import transform as location_transform
 from .transform.measurement import transform as measurement_transform
 from .transform.merge.care_site import transform as merge_care_site_transform
+from .transform.merge.condition_era import (
+    transform as merge_condition_era_transform,
+)
 from .transform.merge.death import transform as merge_death_transform
+from .transform.merge.drug_era import transform as merge_drug_era_transform
+from .transform.merge.observation_period import (
+    transform as merge_observation_period_transform,
+)
 from .transform.merge.person import transform as merge_person_transform
 from .transform.observation import transform as observation_transform
 from .transform.observation_period import (
@@ -61,6 +71,7 @@ from .util.logger import ErrorHandler
 from .util.preprocessing import validate_concept_ids
 
 logger = logging.getLogger("ETL.Core")
+ETL_RUN_STEP = int(os.getenv("ETL_RUN_STEP", "0"))
 
 
 class TransformationRegistry:
@@ -92,7 +103,7 @@ class TransformationRegistry:
 
 def run_transformations(
     session: AbstractSession,
-    transformations: Iterable[SessionOperation],
+    transformations: Iterable[Tuple[int, SessionOperation]],
     registry: Optional[TransformationRegistry] = None,
 ) -> None:
     """
@@ -109,15 +120,16 @@ def run_transformations(
     def log_and_call(j: int, trans: SessionOperation) -> Any:
         logger.info(
             "Step %s: Performing transformation %s",
-            j + 1,
+            j,
             trans.description if trans.description else trans.key,
         )
         return trans(session)
 
-    for i, operation in enumerate(transformations):
-        result = log_and_call(i, operation)
-        if registry is not None:
-            registry.add_or_update(operation.key, result)
+    for step, operation in transformations:
+        if step == -1 or ETL_RUN_STEP <= step:
+            result = log_and_call(step, operation)
+            if registry is not None:
+                registry.add_or_update(operation.key, result)
 
     # check errors after all transformations have run
     # Raise an exception at the end
@@ -151,95 +163,158 @@ def run_etl(
     registry = TransformationRegistry()
 
     transformations = [
-        SessionOperation(
-            key="create_omop",
-            session=session,
-            func=create_omop_tables,
-            description="Create OMOP tables",
+        (
+            -1,
+            SessionOperation(
+                key="create_omop",
+                session=session,
+                func=create_omop_tables,
+                description="Create OMOP tables",
+            ),
         ),
-        SessionOperation(
-            key=str(Location.__table__),
-            session=session,
-            func=location_transform,
-            description="Location transform",
+        (
+            Location.__step__,
+            SessionOperation(
+                key=str(Location.__table__),
+                session=session,
+                func=location_transform,
+                description="Location transform",
+            ),
         ),
-        SessionOperation(
-            key=str(CareSite.__table__),
-            session=session,
-            func=care_site_transform,
-            description="Care site transform",
+        (
+            CareSite.__step__,
+            SessionOperation(
+                key=str(CareSite.__table__),
+                session=session,
+                func=care_site_transform,
+                description="Care site transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Person.__table__),
-            session=session,
-            func=person_transform,
-            description="Person transform",
+        (
+            Person.__step__,
+            SessionOperation(
+                key=str(Person.__table__),
+                session=session,
+                func=person_transform,
+                description="Person transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Death.__table__),
-            session=session,
-            func=death_transform,
-            description="Death transform",
+        (
+            Death.__step__,
+            SessionOperation(
+                key=str(Death.__table__),
+                session=session,
+                func=death_transform,
+                description="Death transform",
+            ),
         ),
-        SessionOperation(
-            key=str(VisitOccurrence.__table__),
-            session=session,
-            func=visit_occurrence_transform,
-            description="Visit occurrence transform",
+        (
+            VisitOccurrence.__step__,
+            SessionOperation(
+                key=str(VisitOccurrence.__table__),
+                session=session,
+                func=visit_occurrence_transform,
+                description="Visit occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Stem.__table__),
-            session=session,
-            func=stem_transform,
-            description="Stem transform",
+        (
+            Stem.__step__,
+            SessionOperation(
+                key=str(Stem.__table__),
+                session=session,
+                func=stem_transform,
+                description="Stem transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ConditionOccurrence.__table__),
-            session=session,
-            func=condition_occurrence_transform,
-            description="Condition Occurrence transform",
+        (
+            ConditionOccurrence.__step__,
+            SessionOperation(
+                key=str(ConditionOccurrence.__table__),
+                session=session,
+                func=condition_occurrence_transform,
+                description="Condition Occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ProcedureOccurrence.__table__),
-            session=session,
-            func=procedure_occurrence_transform,
-            description="Procedure occurrence transform",
+        (
+            ProcedureOccurrence.__step__,
+            SessionOperation(
+                key=str(ProcedureOccurrence.__table__),
+                session=session,
+                func=procedure_occurrence_transform,
+                description="Procedure occurrence transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Measurement.__table__),
-            session=session,
-            func=measurement_transform,
-            description="Measurement transform",
+        (
+            Measurement.__step__,
+            SessionOperation(
+                key=str(Measurement.__table__),
+                session=session,
+                func=measurement_transform,
+                description="Measurement transform",
+            ),
         ),
-        SessionOperation(
-            key=str(DrugExposure.__table__),
-            session=session,
-            func=drug_exposure_transform,
-            description="Drug exposure transform",
+        (
+            DrugExposure.__step__,
+            SessionOperation(
+                key=str(DrugExposure.__table__),
+                session=session,
+                func=drug_exposure_transform,
+                description="Drug exposure transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Observation.__table__),
-            session=session,
-            func=observation_transform,
-            description="Observation transform",
+        (
+            Observation.__step__,
+            SessionOperation(
+                key=str(Observation.__table__),
+                session=session,
+                func=observation_transform,
+                description="Observation transform",
+            ),
         ),
-        SessionOperation(
-            key=str(DeviceExposure.__table__),
-            session=session,
-            func=device_exposure_transform,
-            description="Device Exposure transform",
+        (
+            DeviceExposure.__step__,
+            SessionOperation(
+                key=str(DeviceExposure.__table__),
+                session=session,
+                func=device_exposure_transform,
+                description="Device Exposure transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Specimen.__table__),
-            session=session,
-            func=specimen_transform,
-            description="Specimen transform",
+        (
+            Specimen.__step__,
+            SessionOperation(
+                key=str(Specimen.__table__),
+                session=session,
+                func=specimen_transform,
+                description="Specimen transform",
+            ),
         ),
-        SessionOperation(
-            key=str(ObservationPeriod.__table__),
-            session=session,
-            func=observation_period_transform,
-            description="Observation period transform",
+        (
+            ObservationPeriod.__step__,
+            SessionOperation(
+                key=str(ObservationPeriod.__table__),
+                session=session,
+                func=observation_period_transform,
+                description="Observation period transform",
+            ),
+        ),
+        (
+            DrugEra.__step__,
+            SessionOperation(
+                key=str(DrugEra.__table__),
+                session=session,
+                func=drug_era_transform,
+                description="Drug era transform",
+            ),
+        ),
+        (
+            ConditionEra.__step__,
+            SessionOperation(
+                key=str(ConditionEra.__table__),
+                session=session,
+                func=condition_era_transform,
+                description="Condition era period transform",
+            ),
         ),
     ]
 
@@ -274,89 +349,140 @@ def run_merge(session: AbstractSession) -> None:
     """Run the merge ETL"""
     registry = TransformationRegistry()
     transformations = [
-        SessionOperation(
-            key="create_omop",
-            session=session,
-            func=create_omop_tables,
-            description="Create OMOP tables",
+        (
+            -1,
+            SessionOperation(
+                key="create_omop",
+                session=session,
+                func=create_omop_tables,
+                description="Create OMOP tables",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=Location,
-            session=session,
-            description="Merge Location transform",
+        (
+            Location.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=Location,
+                session=session,
+                description="Merge Location transform",
+            ),
         ),
-        SessionOperation(
-            key=str(CareSite.__table__),
-            session=session,
-            func=merge_care_site_transform,
-            description="Merge Care site transform",
+        (
+            CareSite.__step__,
+            SessionOperation(
+                key=str(CareSite.__table__),
+                session=session,
+                func=merge_care_site_transform,
+                description="Merge Care site transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Person.__table__),
-            session=session,
-            func=merge_person_transform,
-            description="Merge Person transform",
+        (
+            Person.__step__,
+            SessionOperation(
+                key=str(Person.__table__),
+                session=session,
+                func=merge_person_transform,
+                description="Merge Person transform",
+            ),
         ),
-        SessionOperation(
-            key=str(Death.__table__),
-            session=session,
-            func=merge_death_transform,
-            description="Merge Death transform",
+        (
+            Death.__step__,
+            SessionOperation(
+                key=str(Death.__table__),
+                session=session,
+                func=merge_death_transform,
+                description="Merge Death transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=VisitOccurrence,
-            session=session,
-            description="Merge Visit Occurrence transform",
+        (
+            VisitOccurrence.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=VisitOccurrence,
+                session=session,
+                description="Merge Visit Occurrence transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=ConditionOccurrence,
-            session=session,
-            description="Condition Occurrence transform",
+        (
+            ConditionOccurrence.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=ConditionOccurrence,
+                session=session,
+                description="Condition Occurrence transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=DrugExposure,
-            session=session,
-            description="Measurement transform",
+        (
+            ProcedureOccurrence.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=ProcedureOccurrence,
+                session=session,
+                description="Procedure occurrence transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=Observation,
-            session=session,
-            description="Observation transform",
+        (
+            Measurement.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=Measurement,
+                session=session,
+                description="Measurement transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=ProcedureOccurrence,
-            session=session,
-            description="Procedure occurrence transform",
+        (
+            DrugExposure.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=DrugExposure,
+                session=session,
+                description="Measurement transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=Measurement,
-            session=session,
-            description="Measurement transform",
+        (
+            Observation.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=Observation,
+                session=session,
+                description="Observation transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=DeviceExposure,
-            session=session,
-            description="Device Exposure transform",
+        (
+            DeviceExposure.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=DeviceExposure,
+                session=session,
+                description="Device Exposure transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=Specimen,
-            session=session,
-            description="Specimen transform",
+        (
+            Specimen.__step__,
+            SessionOperationDefaultMerge(
+                cdm_table=Specimen,
+                session=session,
+                description="Specimen transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=ObservationPeriod,
-            session=session,
-            description="Observation period transform",
+        (
+            ObservationPeriod.__step__,
+            SessionOperation(
+                key=str(ObservationPeriod.__table__),
+                session=session,
+                func=merge_observation_period_transform,
+                description="Observation period transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=DrugEra,
-            session=session,
-            description="Drug Era transform",
+        (
+            DrugEra.__step__,
+            SessionOperation(
+                key=str(DrugEra.__table__),
+                session=session,
+                func=merge_drug_era_transform,
+                description="Drug era transform",
+            ),
         ),
-        SessionOperationDefaultMerge(
-            cdm_table=ConditionEra,
-            session=session,
-            description="Condition Era transform",
+        (
+            ConditionEra.__step__,
+            SessionOperation(
+                key=str(ConditionEra.__table__),
+                session=session,
+                func=merge_condition_era_transform,
+                description="Condition era period transform",
+            ),
         ),
     ]
     run_transformations(session, transformations, registry)

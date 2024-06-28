@@ -17,7 +17,7 @@ def get_bolus_recipes(
     """
 
     RECIPES: Final[Dict[str, Any]] = {
-        "recipe__noradrenalinsad": func.coalesce(
+        "recipe__noradrenalinsad__bolus": func.coalesce(
             CteAdministrations.c.value0,
             CteAdministrations.c.value
             * case(
@@ -33,7 +33,7 @@ def get_bolus_recipes(
                 / CtePrescriptions.c.epaspresmixamount,
             ),
         ),
-        "recipe__solumdr": func.coalesce(
+        "recipe__solumdr__bolus": func.coalesce(
             CteAdministrations.c.value0, CteAdministrations.c.value
         ),
     }
@@ -53,12 +53,12 @@ def get_continuous_recipes(
     """
 
     RECIPES: Final[Dict[str, Any]] = {
-        "recipe__metaoxedrinsad": CteAdministrations.c.value
+        "recipe__metaoxedrinsad__continuous": CteAdministrations.c.value
         * func.coalesce(
             CteAdministrations.c.value / CteAdministrations.c.value1,
             CtePrescriptions.c.epaspresconc,
         ),
-        "recipe__noradrenalinsad": func.coalesce(
+        "recipe__noradrenalinsad__continuous": func.coalesce(
             CteAdministrations.c.value0,
             CteAdministrations.c.value
             * case(
@@ -74,10 +74,10 @@ def get_continuous_recipes(
                 / CtePrescriptions.c.epaspresmixamount,
             ),
         ),
-        "recipe__solumdr": func.coalesce(
+        "recipe__solumdr__continuous": func.coalesce(
             CteAdministrations.c.value0, CteAdministrations.c.value
         ),
-        "recipe__vancomycin1g": (
+        "recipe__vancomycin1g__continuous": (
             CteAdministrations.c.value
             * case(
                 (CtePrescriptions.c.epaspresdose == 0, 1000),
@@ -88,7 +88,7 @@ def get_continuous_recipes(
                 else_=CtePrescriptions.c.epaspresmixamount,
             )
         ),
-        "recipe__privigeniv": CteAdministrations.c.value * 100,
+        "recipe__privigeniv__continuous": CteAdministrations.c.value * 100,
     }
 
     return RECIPES

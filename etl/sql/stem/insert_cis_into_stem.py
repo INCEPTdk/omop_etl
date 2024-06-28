@@ -1,5 +1,6 @@
 """ SQL query string definition for the stem functions"""
 
+import os
 from typing import Any
 
 from sqlalchemy import (
@@ -36,7 +37,7 @@ def create_simple_stem_insert(
 ) -> Insert:
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain,
+            ConceptLookupStem.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
@@ -87,7 +88,7 @@ def create_simple_stem_insert(
             VisitOccurrence.visit_source_value
             == concat("courseid|", model.courseid),
         )
-        .outerjoin(
+        .join(
             ConceptLookupStem,
             or_(
                 and_(
@@ -103,6 +104,7 @@ def create_simple_stem_insert(
                     ConceptLookupStem.datasource == model.__tablename__,
                 ),
             ),
+            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
     )
 

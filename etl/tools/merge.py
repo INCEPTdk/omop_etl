@@ -12,7 +12,6 @@ from etl.util.db import (
     make_db_session,
     make_engine_duckdb,
     make_engine_postgres,
-    session_context,
 )
 from etl.util.exceptions import DBConnectionException
 from etl.util.files import load_config_from_file
@@ -46,7 +45,7 @@ def process_args() -> Any:
 
 def main() -> None:
     """
-    Main entrypoint for running the MERGE.
+    Main entrypoint for running the merge.
     """
     args = process_args()
 
@@ -55,7 +54,7 @@ def main() -> None:
 
     cnxn = get_connection_details(load_config_from_file(conn_file))
 
-    logger = logging.getLogger("MERGE")
+    logger = logging.getLogger("ETL")
     set_logger_verbosity(logger, verbosity)
 
     logger.info("Connecting to database...")
@@ -76,11 +75,7 @@ def main() -> None:
 
     try:
         session = make_db_session(engine)
-        with session_context(session) as cntx:
-            # If anything goes wrong, we will not commit the session
-            # and closing the connection without committing will
-            # constitute a rollback
-            run_merge(cntx)
+        run_merge(session)
     except KeyboardInterrupt:
         print("\n")
         logger.error("KeyboardInterrupt detected, exiting.")
