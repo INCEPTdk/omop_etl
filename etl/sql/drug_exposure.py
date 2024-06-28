@@ -28,7 +28,7 @@ StemDrugExposure: Final[Select] = select(
         cast(OmopStem.start_date, DateTime),
     ).label("end_datetime"),
     OmopStem.type_concept_id,
-    OmopStem.quantity,
+    OmopStem.value_as_number.label("quantity"),
     OmopStem.route_concept_id,
     OmopStem.route_source_value,
     OmopStem.provider_id,
