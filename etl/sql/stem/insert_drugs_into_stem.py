@@ -151,7 +151,7 @@ def get_drug_stem_select(
         start_datetime_offsets.get(administration_type, "0 seconds"),
         drug_mapping["end_date"],
         drug_mapping["conversion"],
-        drug_mapping["quantity"],
+        drug_mapping["value_as_number"],
         drug_mapping["route_source_value"],
         logger,
     )
