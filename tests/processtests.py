@@ -648,6 +648,7 @@ class ProcessDuckDBTests(DuckDBBaseTest):
 
         called = False
         with session_context(self._session) as session:
+            breakpoint()
             self.assertEqual(
                 0,
                 session.query(self.DummyTable).count(),

@@ -93,7 +93,6 @@ class ConceptLookupStem(TempModelBase):
     unit_concept_id: Final[Column] = IntField()
     drug_exposure_type: Final[Column] = CharField(255)
     conversion: Final[Column] = CharField(255)
-    quantity: Final[Column] = CharField(255)
     era_lookback_interval: Final[Column] = CharField(255)
     modifier_concept_id: Final[Column] = FloatField()
     anatomic_site_concept_id: Final[Column] = FloatField()
