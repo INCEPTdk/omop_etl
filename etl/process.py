@@ -430,7 +430,7 @@ def run_merge(session: AbstractSession) -> None:
             SessionOperationDefaultMerge(
                 cdm_table=DrugExposure,
                 session=session,
-                description="Measurement transform",
+                description="Drug transform",
             ),
         ),
         (
@@ -481,7 +481,7 @@ def run_merge(session: AbstractSession) -> None:
                 key=str(ConditionEra.__table__),
                 session=session,
                 func=merge_condition_era_transform,
-                description="Condition era period transform",
+                description="Condition era transform",
             ),
         ),
     ]

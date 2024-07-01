@@ -9,12 +9,14 @@ from etl.util.db import AbstractSession, get_source_cdm_schemas
 from etl.util.sql import clean_sql
 
 
-def move_to_end(lst, elem):
+def move_to_end(source_lst, elements):
     """
     Moves an element to the end of the list if it exists in the list.
     """
-    if elem in lst:
-        lst.append(lst.pop(lst.index(elem)))
+    lst = source_lst.copy()
+    for elem in elements:
+        if elem in lst:
+            lst.append(lst.pop(lst.index(elem)))
     return lst
 
 
@@ -33,12 +35,13 @@ def _sql_merge_cdm_table(
             if c.key not in cdm_table.__table__.primary_key.columns
         ]
     # pylint: disable=no-member
-    cdm_columns = move_to_end(cdm_columns, VisitOccurrence.care_site_id.key)
-    cdm_columns = move_to_end(cdm_columns, Person.person_id.key)
+    cdm_columns = move_to_end(
+        cdm_columns, [VisitOccurrence.care_site_id.key, Person.person_id.key]
+    )
 
-    select_statements = []
+    query_single_table = []
     for schema in schemas:
-        selects = ", ".join(
+        selected_cols = ", ".join(
             [c for c in cdm_columns if c != Person.person_id.key]
         )
         inner_joins = ""
@@ -46,28 +49,28 @@ def _sql_merge_cdm_table(
             Person.person_id.key in cdm_columns
             and cdm_table.__tablename__ != Person.__tablename__
         ):
-            selects += ", person_mapping.merge_person_id as person_id"
+            selected_cols += ", person_mapping.merge_person_id as person_id"
             inner_joins += f""" INNER JOIN ({remap_person_id(schema, cdm_table, Person)}) AS person_mapping
             ON source.person_id = person_mapping.site_person_id"""
 
         if cdm_table.__tablename__ == VisitOccurrence.__tablename__:
-            selects.replace(
+            selected_cols.replace(
                 " care_site_id,",
                 " care_site_mapping.merge_care_site_id as care_site_id, ",
             )
             inner_joins += f""" INNER JOIN ({remap_care_site_id(schema, CareSite)}) AS care_site_mapping
             ON source.care_site_id = care_site_mapping.site_care_site_id"""
 
-        statement = f""" SELECT {selects}
+        query_single_table.append(
+            f""" SELECT {selected_cols}
             FROM {schema}.{cdm_table.__tablename__} as source
             {inner_joins}
         """
-
-        select_statements.append(statement)
+        )
 
     return f"""INSERT INTO {cdm_table.__table__}
     ({', '.join(cdm_columns)})
-    {' UNION ALL '.join(select_statements)};"""
+    {' UNION ALL '.join(query_single_table)};"""
 
 
 def merge_cdm_table(
@@ -82,7 +85,7 @@ def merge_cdm_table(
 
 
 @clean_sql
-def drop_duplicated_rows(
+def drop_duplicate_rows(
     cdm_table: OmopCdmModelBase, cdm_column: str, id_column: str
 ) -> str:
     """Remove duplicate rows from a CDM table based on a column."""
@@ -124,32 +127,42 @@ def remap_care_site_id(schema: str, care_site_table: OmopCdmModelBase):
 
 
 def build_aggregate_sql(
-    agg_sum_columns: Union[str, List[str]]
+    agg_columns: Union[str, List[str]], agg_function: str = "SUM"
 ) -> Tuple[str, str]:
-    if not agg_sum_columns:
+
+    assert agg_function in [
+        "SUM",
+        "AVG",
+        "COUNT",
+        "MIN",
+        "MAX",
+    ], "Invalid aggregation function. {agg_function} is not supported."
+
+    if not agg_columns:
         select_stmt = ""
         insert_stmt = ""
     else:
-        if isinstance(agg_sum_columns, str):
-            agg_sum_columns = [agg_sum_columns]
+        if isinstance(agg_columns, str):
+            agg_columns = [agg_columns]
 
         select_stmt = "," + ", ".join(
-            [f"SUM(d.{col}) AS {col}" for col in agg_sum_columns]
+            [f"{agg_function}(d.{col}) AS {col}" for col in agg_columns]
         )
-        insert_stmt = "," + ", ".join(agg_sum_columns)
+        insert_stmt = "," + ", ".join(agg_columns)
     return insert_stmt, select_stmt
 
 
 @clean_sql
-def concatenate_overlapping_intervals(
+def _unite_intervals_sql(
     cdm_table: OmopCdmModelBase,
     key_columns: List[str],
-    start_date_column: str,
-    end_date_column: str,
-    agg_sum_columns: Optional[Union[str, List[str]]] = "",
+    interval_start_column: str,
+    interval_end_column: str,
+    agg_columns: Optional[Union[str, List[str]]] = "",
+    agg_function: str = "SUM",
 ) -> str:
     """
-    SQL code to concatenate overlapping intervals in observation periods.
+    SQL code to unite overlapping intervals in observation periods.
     """
     key_cols = ", ".join(key_columns)
 
@@ -157,18 +170,17 @@ def concatenate_overlapping_intervals(
         [f"i.{col} = d.{col}" for col in key_columns]
     )
     join_condition_start_date = (
-        f"i.{start_date_column} <= d.{start_date_column}"
+        f"i.{interval_start_column} <= d.{interval_start_column}"
     )
-    join_condition_end_date = f"i.{end_date_column} >= d.{end_date_column}"
+    join_condition_end_date = (
+        f"i.{interval_end_column} >= d.{interval_end_column}"
+    )
     group_by_cols = ", ".join(
-        [
-            f"i.{c}"
-            for c in key_columns + [start_date_column] + [end_date_column]
-        ]
+        f"i.{c}"
+        for c in key_columns + [interval_start_column] + [interval_end_column]
     )
-
     agg_sum_cols_insert, agg_sum_cols_select = build_aggregate_sql(
-        agg_sum_columns
+        agg_columns, agg_function
     )
 
     return f"""
@@ -184,14 +196,14 @@ def concatenate_overlapping_intervals(
             (
             SELECT
                 {key_cols},
-                {start_date_column} AS a,
+                {interval_start_column} AS a,
                 1 AS d
             FROM
             {cdm_table.__tablename__}_tmp
         UNION ALL
             SELECT
                 {key_cols},
-                {end_date_column} AS a,
+                {interval_end_column} AS a,
                 -1 AS d
             FROM
             {cdm_table.__tablename__}_tmp
@@ -217,15 +229,15 @@ def concatenate_overlapping_intervals(
             endpoints_with_coverage),
     final_intervals AS (
         SELECT {key_cols},
-               min(a) AS {start_date_column},
-               max(a) AS {end_date_column},
+               min(a) AS {interval_start_column},
+               max(a) AS {interval_end_column},
         FROM equivalence_classes
         GROUP BY {key_cols}, class
     )
     INSERT INTO {cdm_table.__table__} (
         {key_cols},
-        {start_date_column},
-        {end_date_column}
+        {interval_start_column},
+        {interval_end_column}
         {agg_sum_cols_insert}
     ) SELECT DISTINCT i.* {agg_sum_cols_select}
     FROM final_intervals i

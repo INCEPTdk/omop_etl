@@ -453,10 +453,11 @@ def get_source_cdm_schemas(
     """
 
     query = """SELECT table_schema
-FROM information_schema.tables
-WHERE table_name IN ('person', 'death', 'measurement', 'location', 'care_site')
-GROUP BY table_schema
-HAVING COUNT(table_name) = 5;"""
+    FROM information_schema.tables
+    WHERE table_name IN ('person', 'death', 'measurement', 'location', 'care_site')
+    GROUP BY table_schema
+    HAVING COUNT(table_name) = 5;
+    """
     result = session.execute(query)
     TARGET_SCHEMA = get_environment_variable("TARGET_SCHEMA", "omopcdm")
     return [row[0] for row in result if row[0] != TARGET_SCHEMA]

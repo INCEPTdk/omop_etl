@@ -1,4 +1,4 @@
-"""Merge tests for concatenation of intervals."""
+"""Merge tests for union of intervals."""
 import pandas as pd
 from sqlalchemy import select
 
@@ -8,13 +8,13 @@ from etl.models.omopcdm54.standardized_derived_elements import (
     DrugEra,
 )
 from etl.transform.merge.condition_era import (
-    concatenate_intervals as concatenate_conditions,
+    unite_intervals as unite_conditions,
 )
 from etl.transform.merge.drug_era import (
-    concatenate_intervals as concatenate_drugs,
+    unite_intervals as unite_drugs,
 )
 from etl.transform.merge.observation_period import (
-    concatenate_intervals as concatenate_observations,
+    unite_intervals as unite_observations,
 )
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
@@ -26,15 +26,15 @@ from tests.testutils import (
 )
 
 
-class MergeConcatenateIntervals(DuckDBBaseTest):
+class MergeUniteIntervals(DuckDBBaseTest):
     MODELS = [DrugEra, ConditionEra, ObservationPeriod]
 
-    IN_DRUG_ERA = f"{base_path()}/test_data/merge_concatenate_intervals/in_drug_era.csv"
-    OUT_DRUG_ERA = f"{base_path()}/test_data/merge_concatenate_intervals/out_drug_era.csv"
-    IN_CONDITION_ERA = f"{base_path()}/test_data/merge_concatenate_intervals/in_condition_era.csv"
-    OUT_CONDITION_ERA = f"{base_path()}/test_data/merge_concatenate_intervals/out_condition_era.csv"
-    IN_OBSERVATION_PERIOD = f"{base_path()}/test_data/merge_concatenate_intervals/in_observation_period.csv"
-    OUT_OBSERVATION_PERIOD = f"{base_path()}/test_data/merge_concatenate_intervals/out_observation_period.csv"
+    IN_DRUG_ERA = f"{base_path()}/test_data/merge_unite_intervals/in_drug_era.csv"
+    OUT_DRUG_ERA = f"{base_path()}/test_data/merge_unite_intervals/out_drug_era.csv"
+    IN_CONDITION_ERA = f"{base_path()}/test_data/merge_unite_intervals/in_condition_era.csv"
+    OUT_CONDITION_ERA = f"{base_path()}/test_data/merge_unite_intervals/out_condition_era.csv"
+    IN_OBSERVATION_PERIOD = f"{base_path()}/test_data/merge_unite_intervals/in_observation_period.csv"
+    OUT_OBSERVATION_PERIOD = f"{base_path()}/test_data/merge_unite_intervals/out_observation_period.csv"
 
     def setUp(self):
         super().setUp()
@@ -59,7 +59,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
         write_to_db(self.engine, self.in_drug_era, DrugEra.__tablename__, schema=DrugEra.metadata.schema)
 
         with session_context(make_db_session(self.engine)) as session:
-            concatenate_drugs(session)
+            unite_drugs(session)
 
             result = select(self.expected_drug_cols).subquery()
             result_df = enforce_dtypes(
@@ -72,7 +72,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
 
         write_to_db(self.engine, self.in_condition_era, ConditionEra.__tablename__, schema=ConditionEra.metadata.schema)
         with session_context(make_db_session(self.engine)) as session:
-            concatenate_conditions(session)
+            unite_conditions(session)
 
             result = select(self.expected_condition_cols).subquery()
             result_df = enforce_dtypes(
@@ -85,7 +85,7 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
         write_to_db(self.engine, self.in_observation_period, ObservationPeriod.__tablename__, schema=ObservationPeriod.metadata.schema)
 
         with session_context(make_db_session(self.engine)) as session:
-            concatenate_observations(session)
+            unite_observations(session)
 
             result = select(self.expected_observation_cols).subquery()
             result_df = enforce_dtypes(
@@ -94,4 +94,4 @@ class MergeConcatenateIntervals(DuckDBBaseTest):
             )
         assert_dataframe_equality(result_df, self.expected_observations)
 
-__all__ = ["MergeConcatenateIntervals"]
+__all__ = ["MergeUniteIntervals"]

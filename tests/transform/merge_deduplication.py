@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import Person
-from etl.sql.merge.mergeutils import drop_duplicated_rows
+from etl.sql.merge.mergeutils import drop_duplicate_rows
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
@@ -39,7 +39,7 @@ class MergeDeduplicationsTest(DuckDBBaseTest):
         self._insert_test_data(self.engine)
 
         with session_context(make_db_session(self.engine)) as session:
-            session.execute(drop_duplicated_rows(Person, Person.person_id.key, Person.person_id.key))
+            session.execute(drop_duplicate_rows(Person, Person.person_id.key, Person.person_id.key))
 
             result = select(self.expected_cols).subquery()
             result_df = enforce_dtypes(

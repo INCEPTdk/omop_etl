@@ -149,31 +149,50 @@ def make_model_base(schema: Optional[str] = None) -> Any:
     )
 
 
+def extract_table_from_model(model: Any, schema: str = "") -> Table:
+    """
+    This function extract a table from a sqlalchemy Model
+    In same cases like the schema is different from the model's schema
+    For example when running a merge ETL, the schema of the model is the target schema but
+    we may still need to get the tables for the different sites. In this case we need to
+    override the schema of the model to get the correct table
+    """
+    if schema and schema != model.metadata.schema:
+        columns = []
+        for c in model.__table__.columns:
+            if hasattr(c.default, "name") and "id_seq" in c.default.name:
+                # override the sequence name
+                c.default = Sequence(
+                    schema + "_" + model.__tablename__ + "_id_seq"
+                )
+
+            columns.append(
+                Column(
+                    c.name,
+                    c.type,
+                    primary_key=c.primary_key,
+                    default=c.default,
+                    server_default=(
+                        c.default.next_value() if c.default else None
+                    ),
+                )
+            )
+        table = Table(
+            model.__tablename__,
+            model.metadata,
+            *columns,
+            schema=schema,
+            extend_existing=True,
+        )
+    else:
+        table = model.__table__
+    return table
+
+
 @clean_sql
 def drop_tables_sql(models: List[Any], cascade=True, schema: str = None) -> str:
 
-    if schema and all(schema != m.metadata.schema for m in models):
-        tables = [
-            Table(
-                m.__tablename__,
-                m.metadata,
-                *[
-                    Column(
-                        c.name,
-                        c.type,
-                        primary_key=c.primary_key,
-                        default=c.default,
-                        server_default=c.server_default,
-                    )
-                    for c in m.__table__.columns
-                ],
-                schema=schema,
-                extend_existing=True,
-            )
-            for m in models
-        ]
-    else:
-        tables = [m.__table__ for m in models]
+    tables = [extract_table_from_model(m, schema) for m in models]
 
     cascade_str = ""
     if cascade:
@@ -196,39 +215,7 @@ def create_tables_sql(
     models: List[Any], dialect=DIALECT_POSTGRES, schema: str = None
 ) -> str:
 
-    tables = []
-    for m in models:
-        if schema and schema != m.metadata.schema:
-            # define a table from a model but overriding the schema/sequence/defaults
-            columns = []
-            for c in m.__table__.columns:
-                if hasattr(c.default, "name") and "id_seq" in c.default.name:
-                    # override the sequence name
-                    c.default = Sequence(
-                        schema + "_" + m.__tablename__ + "_id_seq"
-                    )
-                columns.append(
-                    Column(
-                        c.name,
-                        c.type,
-                        primary_key=c.primary_key,
-                        default=c.default,
-                        server_default=(
-                            c.default.next_value() if c.default else None
-                        ),
-                    )
-                )
-
-            tables.append(
-                Table(
-                    m.__tablename__,
-                    m.metadata,
-                    *columns,
-                    schema=schema,
-                )
-            )
-        else:
-            tables.append(m.__table__)
+    tables = [extract_table_from_model(m, schema) for m in models]
 
     sql = []
     for table in tables:

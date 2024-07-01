@@ -3,7 +3,7 @@
 import logging
 
 from ...models.omopcdm54.clinical import Person
-from ...sql.merge.mergeutils import drop_duplicated_rows, merge_cdm_table
+from ...sql.merge.mergeutils import drop_duplicate_rows, merge_cdm_table
 from ...util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Merge.Person")
@@ -19,7 +19,7 @@ def transform(session: AbstractSession) -> None:
         session.query(Person).count(),
     )
     session.execute(
-        drop_duplicated_rows(
+        drop_duplicate_rows(
             Person, Person.person_source_value.key, Person.person_id.key
         )
     )

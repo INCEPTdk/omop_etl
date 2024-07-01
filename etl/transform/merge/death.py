@@ -2,7 +2,7 @@
 
 import logging
 
-from etl.sql.merge.mergeutils import drop_duplicated_rows, merge_cdm_table
+from etl.sql.merge.mergeutils import drop_duplicate_rows, merge_cdm_table
 
 from ...models.omopcdm54.clinical import Death
 from ...util.db import AbstractSession
@@ -23,7 +23,7 @@ def transform(session: AbstractSession) -> None:
 
     # pylint: disable=no-member
     session.execute(
-        drop_duplicated_rows(Death, Death.person_id.key, Death.death_id.key)
+        drop_duplicate_rows(Death, Death.person_id.key, Death.death_id.key)
     )
 
     logger.info(

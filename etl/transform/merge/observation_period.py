@@ -2,10 +2,7 @@
 
 import logging
 
-from etl.sql.merge.mergeutils import (
-    concatenate_overlapping_intervals,
-    merge_cdm_table,
-)
+from etl.sql.merge.mergeutils import _unite_intervals_sql, merge_cdm_table
 
 from ...models.omopcdm54.clinical import ObservationPeriod
 from ...util.db import AbstractSession
@@ -13,16 +10,16 @@ from ...util.db import AbstractSession
 logger = logging.getLogger("ETL.Merge.ObservationPeriod")
 
 
-def concatenate_intervals(session: AbstractSession):
+def unite_intervals(session: AbstractSession):
 
-    SQL: str = concatenate_overlapping_intervals(
+    SQL: str = _unite_intervals_sql(
         ObservationPeriod,
         key_columns=[
             ObservationPeriod.person_id.key,  # pylint: disable=no-member
             ObservationPeriod.period_type_concept_id.key,
         ],
-        start_date_column=ObservationPeriod.observation_period_start_date.key,
-        end_date_column=ObservationPeriod.observation_period_end_date.key,
+        interval_start_column=ObservationPeriod.observation_period_start_date.key,
+        interval_end_column=ObservationPeriod.observation_period_end_date.key,
     )
 
     session.execute(SQL)
@@ -39,9 +36,9 @@ def transform(session: AbstractSession) -> None:
         session.query(ObservationPeriod).count(),
     )
 
-    concatenate_intervals(session)
+    unite_intervals(session)
 
     logger.info(
-        "Merge Observation Period Concatenate overlapping periods. Transformation complete! %s Period(s) included",
+        "Merge Observation Period unite overlapping periods. Transformation complete! %s Period(s) included",
         session.query(ObservationPeriod).count(),
     )
