@@ -86,7 +86,7 @@ def get_laboratory_stem_insert(
                 "end_datetime"
             ),
             cast(ConceptLookupStem.type_concept_id, INT),
-            model.lab_id.label("source_value"),
+            model.lab_test_id.label("source_value"),
             ConceptLookupStem.uid,
             literal(model.__tablename__).label("datasource"),
             ConceptLookup.concept_id.label("value_as_concept_id"),
@@ -108,7 +108,7 @@ def get_laboratory_stem_insert(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
-                == func.lower(model.lab_id),
+                == func.lower(model.lab_test_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
@@ -168,7 +168,7 @@ def get_laboratory_stem_insert(
             ConceptLookupStem,
             and_(
                 func.lower(ConceptLookupStem.source_variable)
-                == func.lower(model.lab_id),
+                == func.lower(model.lab_test_id),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
