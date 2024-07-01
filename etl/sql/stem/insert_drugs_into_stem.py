@@ -88,7 +88,7 @@ def create_simple_stem_select(
                 cast(CteAdministrations.c.value, TEXT),
             ).label("source_value"),
             ConceptLookupStem.uid.label("source_concept_id"),
-            (conversion_factor * quantity_column).label("quantity"),
+            (conversion_factor * quantity_column).label("value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             getattr(CtePrescriptions.c, route_source_value).label(
                 "route_source_value"
@@ -153,7 +153,7 @@ def get_drug_stem_select(
         start_datetime_offsets.get(administration_type, "0 seconds"),
         drug_mapping["end_date"],
         drug_mapping["conversion"],
-        drug_mapping["quantity"],
+        drug_mapping["value_as_number"],
         drug_mapping["route_source_value"],
         logger,
     )
@@ -256,7 +256,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
             null().label("source_concept_id"),
-            null().label("quantity"),
+            null().label("value_as_number"),
             null().label("route_concept_id"),
             null().label("route_source_value"),
             null().label("era_lookback_interval"),
@@ -298,7 +298,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.visit_occurrence_id,
             OmopStem.source_value,
             OmopStem.source_concept_id,
-            OmopStem.quantity,
+            OmopStem.value_as_number,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
             OmopStem.era_lookback_interval,

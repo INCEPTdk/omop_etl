@@ -29,7 +29,7 @@ StemProcedureOccurrence: Final[Select] = select(
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.modifier_concept_id,
-    OmopStem.quantity,
+    OmopStem.value_as_number.label("quantity"),
     OmopStem.provider_id,
     OmopStem.visit_occurrence_id,
     OmopStem.source_value,
