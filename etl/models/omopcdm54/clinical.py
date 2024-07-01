@@ -8,6 +8,7 @@ from sqlalchemy.orm import declarative_mixin, declared_attr
 from ...util.freeze import freeze_instance
 from ..modelutils import (
     FK,
+    BigIntField,
     CharField,
     Column,
     DateField,
@@ -235,7 +236,7 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     )
     stop_reason: Final[Column] = CharField(20)
     condition_source_value: Final[Column] = CharField(50)
-    condition_source_concept_id: Final[Column] = IntField(
+    condition_source_concept_id: Final[Column] = BigIntField(
         FK(Concept.concept_id)
     )
     condition_status_source_value: Final[Column] = CharField(50)
@@ -271,7 +272,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     route_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     lot_number: Final[Column] = CharField(50)
     drug_source_value: Final[Column] = CharField(50)
-    drug_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    drug_source_concept_id: Final[Column] = BigIntField(FK(Concept.concept_id))
     route_source_value: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
 
@@ -300,7 +301,7 @@ class ProcedureOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     modifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     quantity: Final[Column] = IntField()
     procedure_source_value: Final[Column] = CharField(50)
-    procedure_source_concept_id: Final[Column] = IntField(
+    procedure_source_concept_id: Final[Column] = BigIntField(
         FK(Concept.concept_id)
     )
     modifier_source_value: Final[Column] = CharField(50)
@@ -331,10 +332,12 @@ class DeviceExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     production_id: Final[Column] = CharField(255)
     quantity: Final[Column] = IntField()
     device_source_value: Final[Column] = CharField(50)
-    device_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    device_source_concept_id: Final[Column] = BigIntField(
+        FK(Concept.concept_id)
+    )
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_source_value: Final[Column] = CharField(50)
-    unit_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    unit_source_concept_id: Final[Column] = BigIntField(FK(Concept.concept_id))
 
 
 @register_omop_model
@@ -364,11 +367,11 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()
     measurement_source_value: Final[Column] = CharField(50)
-    measurement_source_concept_id: Final[Column] = IntField(
+    measurement_source_concept_id: Final[Column] = BigIntField(
         FK(Concept.concept_id)
     )
     unit_source_value: Final[Column] = CharField(50)
-    unit_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    unit_source_concept_id: Final[Column] = BigIntField(FK(Concept.concept_id))
     value_source_value: Final[Column] = CharField(50)
     measurement_event_id: Final[Column] = IntField()
     meas_event_field_concept_id: Final[Column] = IntField(
@@ -403,7 +406,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     qualifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     observation_source_value: Final[Column] = CharField(50)
-    observation_source_concept_id: Final[Column] = IntField(
+    observation_source_concept_id: Final[Column] = BigIntField(
         FK(Concept.concept_id)
     )
     unit_source_value: Final[Column] = CharField(50)
@@ -429,7 +432,7 @@ class Death(ModelBase, PersonIdMixin):
     death_type_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     cause_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     cause_source_value: Final[Column] = CharField(50)
-    cause_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    cause_source_concept_id: Final[Column] = BigIntField(FK(Concept.concept_id))
 
 
 @register_omop_model
@@ -481,7 +484,9 @@ class NoteNlp(ModelBase):
     offset: Final[Column] = CharField(250, key='"offset"')
     lexical_variant: Final[Column] = CharField(250, nullable=False)
     note_nlp_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    note_nlp_source_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
+    note_nlp_source_concept_id: Final[Column] = BigIntField(
+        FK(Concept.concept_id)
+    )
     nlp_system: Final[Column] = CharField(250)
     nlp_date: Final[Column] = DateField(nullable=False)
     nlp_datetime: Final[Column] = DateTimeField()
@@ -577,7 +582,7 @@ class Stem(ModelBase):
     source_value: Final[Column] = CharField(
         600
     )  # this may be too small for some sources
-    source_concept_id: Final[Column] = IntField()
+    source_concept_id: Final[Column] = BigIntField()
     value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(
@@ -587,7 +592,7 @@ class Stem(ModelBase):
         FK(Concept.concept_id), nullable=True, index=True
     )
     value_source_value: Final[Column] = CharField(150)
-    unit_source_concept_id: Final[Column] = IntField()
+    unit_source_concept_id: Final[Column] = BigIntField()
     unit_source_value: Final[Column] = CharField(50)
     verbatim_end_date: Final[Column] = CharField(50)
     days_supply: Final[Column] = IntField()
@@ -600,7 +605,6 @@ class Stem(ModelBase):
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
-    quantity: Final[Column] = FloatField()
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(50)

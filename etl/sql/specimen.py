@@ -21,7 +21,7 @@ StemSpecimen: Final[Select] = select(
         OmopStem.end_datetime,
         cast(OmopStem.end_date, DateTime),
     ).label("start_datetime"),
-    OmopStem.quantity,
+    OmopStem.value_as_number.label("quantity"),
     OmopStem.unit_concept_id,
     OmopStem.anatomic_site_concept_id,
     OmopStem.disease_status_concept_id,

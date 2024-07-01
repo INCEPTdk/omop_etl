@@ -10,3 +10,5 @@ courseid;timestamp;variable;value;from_file
 4;1813-12-17 09:19:09;gcs;19;0-1.csv
 4;1813-12-17 09:24:09;hf;80;0-1.csv
 4;1813-12-17 09:25:09;hco3bkr;21;0-1.csv
+4;1813-12-17 08:00:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;1200;0-2.csv
+2;1891-12-12 14:15:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;700;0-2.csv
