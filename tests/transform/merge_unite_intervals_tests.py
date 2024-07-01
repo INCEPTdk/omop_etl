@@ -10,9 +10,7 @@ from etl.models.omopcdm54.standardized_derived_elements import (
 from etl.transform.merge.condition_era import (
     unite_intervals as unite_conditions,
 )
-from etl.transform.merge.drug_era import (
-    unite_intervals as unite_drugs,
-)
+from etl.transform.merge.drug_era import unite_intervals as unite_drugs
 from etl.transform.merge.observation_period import (
     unite_intervals as unite_observations,
 )
