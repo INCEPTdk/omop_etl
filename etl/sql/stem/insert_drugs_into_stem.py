@@ -27,6 +27,8 @@ from .conversions import get_conversion_factor
 from .recipes import get_quantity_recipe
 from .utils import get_case_statement, toggle_stem_transform
 
+INCLUDE_UNMAPPED_CODES = os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE"
+
 
 # pylint: disable=too-many-arguments
 def create_simple_stem_select(
@@ -115,7 +117,7 @@ def create_simple_stem_select(
                 ConceptLookupStem.datasource == "administrations",
                 ConceptLookupStem.drug_exposure_type == administration_type,
             ),
-            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
+            isouter=INCLUDE_UNMAPPED_CODES,
         )
         .outerjoin(
             ConceptLookup,
@@ -178,11 +180,15 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .cte("cte_prescriptions")
     )
 
-    drug_mappings = (
-        session.query(ConceptLookupStem)
-        .where(ConceptLookupStem.datasource == "administrations")
-        .all()
-    )
+    if INCLUDE_UNMAPPED_CODES:
+        criterion = and_(
+            ConceptLookupStem.datasource == "administrations",
+            ConceptLookupStem.drug_exposure_type.isnot(None),
+        )
+    else:
+        criterion = ConceptLookupStem.datasource == "administrations"
+
+    drug_mappings = session.query(ConceptLookupStem).where(criterion).all()
     drug_mappings = [row.__dict__ for row in drug_mappings]
 
     drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
@@ -274,7 +280,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .where(CteConceptLookupStemForAntijoin.c.std_code_domain.is_(None))
     )
 
-    if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
+    if INCLUDE_UNMAPPED_CODES:
         StemSelect = union_all(MappedSelectSql, UnmappedSelectSql)
     else:
         StemSelect = MappedSelectSql
