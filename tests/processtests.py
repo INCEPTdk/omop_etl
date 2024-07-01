@@ -481,8 +481,8 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                 run_transformations(
                     session,
                     transformations=[
-                        (0, SessionOperation("test1", session, transform1)),
-                        (1, SessionOperation("test2", session, transform2)),
+                        (1, SessionOperation("test1", session, transform1)),
+                        (2, SessionOperation("test2", session, transform2)),
                     ],
                 )
             self.assertEqual(len(captured.records), 4)
@@ -620,7 +620,6 @@ class ProcessDuckDBTests(DuckDBBaseTest):
 
         for _, v in trans_called.items():
             self.assertFalse(v)
-
         called = False
         with self.assertRaises(ETLFatalErrorException):
             with session_context(self._session) as session:
@@ -634,12 +633,13 @@ class ProcessDuckDBTests(DuckDBBaseTest):
                     session.query(self.DummyTableTwo).count(),
                     "assert dummy table 2",
                 )
+
                 run_transformations(
-                    session,
+                    self._session,
                     transformations=[
-                        (1, SessionOperation("test1", session, transform1)),
-                        (2, SessionOperation("test2", session, transform2)),
-                        (3, SessionOperation("test3", session, transform3)),
+                        (1, SessionOperation("test1", self._session, transform1)),
+                        (2, SessionOperation("test2", self._session, transform2)),
+                        (3, SessionOperation("test3", self._session, transform3)),
                     ],
                 )
 
@@ -649,12 +649,12 @@ class ProcessDuckDBTests(DuckDBBaseTest):
         called = False
         with session_context(self._session) as session:
             self.assertEqual(
-                0,
+                3,
                 session.query(self.DummyTable).count(),
                 "assert dummy table",
             )
             self.assertEqual(
-                0,
+                2,
                 session.query(self.DummyTableTwo).count(),
                 "assert dummy table two",
             )
