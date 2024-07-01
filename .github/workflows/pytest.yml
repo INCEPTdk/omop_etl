@@ -34,6 +34,7 @@ jobs:
       - name: Test with pytest
         run: |
           export PYTHONPATH=$PWD
+          export ETL_RUN_INTEGRATION_TESTS=ON
           pytest tests/testsuite.py -v
 
       - name: Coverage with pytest
