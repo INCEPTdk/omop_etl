@@ -406,7 +406,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     qualifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     observation_source_value: Final[Column] = CharField(50)
-    observation_source_concept_id: Final[Column] = IntField(
+    observation_source_concept_id: Final[Column] = BigIntField(
         FK(Concept.concept_id)
     )
     unit_source_value: Final[Column] = CharField(50)
@@ -605,7 +605,6 @@ class Stem(ModelBase):
     operator_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
-    quantity: Final[Column] = FloatField()
     range_low: Final[Column] = FloatField()
     range_high: Final[Column] = FloatField()
     stop_reason: Final[Column] = CharField(50)

@@ -35,6 +35,16 @@ def create_simple_stem_insert(
     value_as_number_column_name: str = None,
     value_as_string_column_name: str = None,
 ) -> Insert:
+    value_as_number = get_case_statement(
+        value_as_number_column_name,
+        model,
+        FLOAT,
+        "numerical",
+        ConceptLookupStem,
+    )
+
+    conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
+
     StemSelect = (
         select(
             ConceptLookupStem.std_code_domain.label("domain_id"),
@@ -56,13 +66,7 @@ def create_simple_stem_insert(
             VisitOccurrence.visit_occurrence_id,
             concat(model.variable, "__", cast(model.value, TEXT)),
             ConceptLookupStem.uid,
-            get_case_statement(
-                value_as_number_column_name,
-                model,
-                FLOAT,
-                "numerical",
-                ConceptLookupStem,
-            ).label("value_as_number"),
+            (conversion * value_as_number).label("value_as_number"),
             get_case_statement(
                 value_as_string_column_name,
                 model,
@@ -75,8 +79,8 @@ def create_simple_stem_insert(
             ConceptLookupStem.unit_source_value,
             cast(ConceptLookupStem.modifier_concept_id, INT),
             cast(ConceptLookupStem.operator_concept_id, INT),
-            ConceptLookupStem.range_low,
-            ConceptLookupStem.range_high,
+            (conversion * ConceptLookupStem.range_low).label("range_low"),
+            (conversion * ConceptLookupStem.range_high).label("range_high"),
             ConceptLookupStem.stop_reason,
             cast(ConceptLookupStem.route_concept_id, INT),
             ConceptLookupStem.route_source_value,
