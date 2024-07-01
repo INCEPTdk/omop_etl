@@ -47,3 +47,39 @@ def validate_concept_ids(
         axis=1,
     ).astype(int)
     return input_df
+
+
+def _validate_domain_id(
+    concept_id: int, domain_id: str, session: AbstractSession
+) -> str:
+    with session_context(session):
+        valid_domain = (
+            session.query(Concept.domain_id)
+            .where(Concept.concept_id == concept_id)
+            .scalar()
+        )
+        if valid_domain != domain_id and concept_id != 0:
+            logger.debug(
+                """Domain id %s is not valid for concept id %s. It has been set to %s.""",
+                domain_id,
+                concept_id,
+                valid_domain,
+            )
+            return valid_domain
+    return domain_id
+
+
+def validate_domain_ids(
+    input_df: pd.DataFrame,
+    session: AbstractSession,
+    concept_column: str,
+    domain_column: str,
+) -> pd.DataFrame:
+
+    input_df[domain_column] = input_df.apply(
+        lambda x: _validate_domain_id(
+            x[concept_column], x[domain_column], session
+        ),
+        axis=1,
+    ).astype(str)
+    return input_df
