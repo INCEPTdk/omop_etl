@@ -1,6 +1,7 @@
 """Utilities specific for the data models"""
 
 # pylint: disable=invalid-name
+import copy
 from typing import Any, Callable, Final, List, Optional
 
 from sqlalchemy import (
@@ -162,18 +163,20 @@ def extract_table_from_model(model: Any, schema: str = "") -> Table:
         for c in model.__table__.columns:
             if hasattr(c.default, "name") and "id_seq" in c.default.name:
                 # override the sequence name
-                c.default = Sequence(
+                new_default = Sequence(
                     schema + "_" + model.__tablename__ + "_id_seq"
                 )
+            else:
+                new_default = copy.copy(c.default)
 
             columns.append(
                 Column(
                     c.name,
                     c.type,
                     primary_key=c.primary_key,
-                    default=c.default,
+                    default=new_default,
                     server_default=(
-                        c.default.next_value() if c.default else None
+                        new_default.next_value() if new_default else None
                     ),
                 )
             )
