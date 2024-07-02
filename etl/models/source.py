@@ -231,7 +231,7 @@ class LabkaBccLaboratory(RegistryModelBase, PKIdMixin):
     __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
-    lab_id: Final[Column] = CharField(75)
+    lab_test_id: Final[Column] = CharField(75)
     timestamp: Final[Column] = TimeStampField()
     component_simple_lookup: Final[Column] = CharField(255)
     clean_quantity_id: Final[Column] = CharField(50)
