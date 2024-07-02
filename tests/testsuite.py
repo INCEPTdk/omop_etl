@@ -11,12 +11,20 @@ from tests.util.sqltests import *
 # only run regression tests if explicitly set ETL_RUN_INTEGRATION_TESTS variable
 if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.processtests import ProcessDuckDBTests, RunETLDuckDBTests
+    from tests.transform.care_site_tests import *
+    from tests.transform.condition_era_tests import *
     from tests.transform.condition_occurrence_tests import *
     from tests.transform.create_omopcdm_tables_tests import *
+    from tests.transform.death_tests import *
     from tests.transform.device_exposure_tests import *
+    from tests.transform.drug_era_tests import *
     from tests.transform.drug_exposure_tests import *
     from tests.transform.location_tests import *
     from tests.transform.measurement_tests import *
+    from tests.transform.merge_deduplication_tests import *
+    from tests.transform.merge_remap_tests import *
+    from tests.transform.merge_standard_function_tests import *
+    from tests.transform.merge_unite_intervals_tests import *
     from tests.transform.observation_period_tests import *
     from tests.transform.observation_tests import *
     from tests.transform.person_tests import *

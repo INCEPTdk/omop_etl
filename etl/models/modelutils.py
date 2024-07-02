@@ -1,6 +1,7 @@
 """Utilities specific for the data models"""
 
 # pylint: disable=invalid-name
+import copy
 from typing import Any, Callable, Final, List, Optional
 
 from sqlalchemy import (
@@ -20,6 +21,7 @@ from sqlalchemy import (
     PrimaryKeyConstraint,
     Sequence,
     String,
+    Table,
     Text,
 )
 from sqlalchemy.dialects import postgresql
@@ -148,17 +150,62 @@ def make_model_base(schema: Optional[str] = None) -> Any:
     )
 
 
+def extract_table_from_model(model: Any, schema: str = "") -> Table:
+    """
+    This function extract a table from a sqlalchemy Model
+    In same cases like the schema is different from the model's schema
+    For example when running a merge ETL, the schema of the model is the target schema but
+    we may still need to get the tables for the different sites. In this case we need to
+    override the schema of the model to get the correct table
+    """
+    if schema and schema != model.metadata.schema:
+        columns = []
+        for c in model.__table__.columns:
+            if hasattr(c.default, "name") and "id_seq" in c.default.name:
+                # override the sequence name
+                new_default = Sequence(
+                    schema + "_" + model.__tablename__ + "_id_seq"
+                )
+            else:
+                new_default = copy.copy(c.default)
+
+            columns.append(
+                Column(
+                    c.name,
+                    c.type,
+                    primary_key=c.primary_key,
+                    default=new_default,
+                    server_default=(
+                        new_default.next_value() if new_default else None
+                    ),
+                )
+            )
+        table = Table(
+            model.__tablename__,
+            model.metadata,
+            *columns,
+            schema=schema,
+            extend_existing=True,
+        )
+    else:
+        table = model.__table__
+    return table
+
+
 @clean_sql
-def drop_tables_sql(models: List[Any], cascade=True) -> str:
+def drop_tables_sql(models: List[Any], cascade=True, schema: str = None) -> str:
+
+    tables = [extract_table_from_model(m, schema) for m in models]
+
     cascade_str = ""
     if cascade:
         cascade_str = "CASCADE"
     drop_sql = (
         "; ".join(
             [
-                f"""DROP TABLE IF EXISTS {m.metadata.schema}.{m.__table__.name} {cascade_str};
-                DROP SEQUENCE IF EXISTS {str(m.metadata.schema + '_' + m.__table__.name + '_id_seq')}"""
-                for m in models
+                f"""DROP TABLE IF EXISTS {t} {cascade_str};
+                DROP SEQUENCE IF EXISTS {str(t.schema + '_' + t.name + '_id_seq')} {cascade_str}"""
+                for t in tables
             ]
         )
         + ";"
@@ -167,18 +214,18 @@ def drop_tables_sql(models: List[Any], cascade=True) -> str:
 
 
 @clean_sql
-def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
+def create_tables_sql(
+    models: List[Any], dialect=DIALECT_POSTGRES, schema: str = None
+) -> str:
+
+    tables = [extract_table_from_model(m, schema) for m in models]
+
     sql = []
-    for model in models:
+    for table in tables:
         sql.append(
             str(
                 CreateSequence(
-                    Sequence(
-                        model.metadata.schema
-                        + "_"
-                        + model.__table__.name
-                        + "_id_seq"
-                    ),
+                    Sequence(table.schema + "_" + table.name + "_id_seq"),
                     if_not_exists=True,
                 ).compile(dialect=dialect)
             )
@@ -186,7 +233,7 @@ def create_tables_sql(models: List[Any], dialect=DIALECT_POSTGRES) -> str:
         sql.append(
             str(
                 CreateTable(
-                    model.__table__,
+                    table,
                     include_foreign_key_constraints=[],
                     if_not_exists=True,
                 ).compile(dialect=dialect)

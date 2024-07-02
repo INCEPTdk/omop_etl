@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           cache: 'pip'  # caching pip dependencies
-          python-version: '3.11'
+          python-version: '3.9.19'
 
       - name: Install dependencies
         run: |
@@ -34,6 +34,7 @@ jobs:
       - name: Test with pytest
         run: |
           export PYTHONPATH=$PWD
+          export ETL_RUN_INTEGRATION_TESTS=ON
           pytest tests/testsuite.py -v
 
       - name: Coverage with pytest

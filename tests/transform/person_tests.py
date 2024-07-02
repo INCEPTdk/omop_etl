@@ -44,7 +44,6 @@ class PersonTransformationTest(DuckDBBaseTest):
             transform(session)
             result = str(select(self.expected_cols).compile(self.engine, compile_kwargs={"literal_binds": True}))
             result_df = pd.read_sql(result, con=session.connection().connection)
-
         result_df = enforce_dtypes(self.expected_df, result_df)
         assert_dataframe_equality(result_df, self.expected_df, index_cols='person_id')
 
