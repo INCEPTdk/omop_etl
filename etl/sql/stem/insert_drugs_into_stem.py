@@ -37,25 +37,6 @@ INCLUDE_UNMAPPED_CODES = os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE"
 
 @toggle_stem_transform
 def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
-    CtePrescriptions = (
-        select(
-            Prescriptions.courseid,
-            Prescriptions.epaspresbaseid,
-            Prescriptions.epaspresid,
-            Prescriptions.epaspresdrugatc,
-            Prescriptions.epaspresadmroute,
-            Prescriptions.epaspresdose,
-            Prescriptions.epaspresconc,
-            Prescriptions.epaspresdrugunit,
-            Prescriptions.epaspresdrugunitact,
-            Prescriptions.epaspresmixamount,
-            Prescriptions.epaspresweight,
-            Prescriptions.epaspresdrugname,
-        )
-        .where(Prescriptions.epaspresbaseid == Prescriptions.epaspresid)
-        .cte("cte_prescriptions")
-    )
-
     if INCLUDE_UNMAPPED_CODES:
         criterion = and_(
             ConceptLookupStem.datasource == "administrations",
@@ -73,29 +54,17 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         dm for dm in drug_mappings if dm["source_variable"] in drugs_with_data
     ]
 
-    CteAdministrations = session.query(
-        Administrations.courseid,
-        Administrations.timestamp,
-        Administrations.epaspresbaseid,
-        Administrations.drug_name,
-        Administrations.administration_type,
-        Administrations.value,
-        Administrations.value0,
-        Administrations.value1,
-    ).cte("cte_administrations")
-
     quantity = []
     for dmwd in drug_mappings_with_data:
         criterion = and_(
-            CteAdministrations.c.drug_name == dmwd["source_variable"],
-            CteAdministrations.c.administration_type
-            == dmwd["drug_exposure_type"],
+            Administrations.drug_name == dmwd["source_variable"],
+            Administrations.administration_type == dmwd["drug_exposure_type"],
         )
 
         if str(dmwd["value_as_number"]).startswith("recipe__"):
             this_quantity = get_quantity_recipe(
-                CteAdministrations,
-                CtePrescriptions,
+                Administrations,
+                Prescriptions,
                 dmwd["drug_exposure_type"],
                 dmwd["value_as_number"],
                 logger,
@@ -103,12 +72,12 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         else:
             this_quantity = get_case_statement(
                 dmwd["value_as_number"],
-                CteAdministrations,
+                Administrations,
                 FLOAT,
             )
 
         this_conversion_factor = get_conversion_factor(
-            CteAdministrations, CtePrescriptions, dmwd["conversion"], logger
+            Administrations, Prescriptions, dmwd["conversion"], logger
         )
 
         quantity.append((criterion, this_quantity * this_conversion_factor))
@@ -118,10 +87,10 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     )
 
     start_datetime = get_case_statement(
-        unique_end_datetime, CteAdministrations, TIMESTAMP
+        unique_end_datetime, Administrations, TIMESTAMP
     ) - case(
         (
-            CteAdministrations.c.administration_type == "continuous",
+            Administrations.administration_type == "continuous",
             text("INTERVAL 59 seconds"),
         ),
         else_=text("INTERVAL 0 seconds"),
@@ -131,7 +100,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         session, Administrations, ConceptLookupStem, "route_source_value"
     )
     route_source_value = get_case_statement(
-        unique_route_source_value, CtePrescriptions, TEXT
+        unique_route_source_value, Prescriptions, TEXT
     )
 
     MappedSelectSql = (
@@ -144,17 +113,17 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             cast(start_datetime, DATE).label("start_date"),
             cast(start_datetime, TIMESTAMP).label("start_datetime"),
             get_case_statement(
-                unique_end_datetime, CteAdministrations, DATE
+                unique_end_datetime, Administrations, DATE
             ).label("end_date"),
             get_case_statement(
-                unique_end_datetime, CteAdministrations, TIMESTAMP
+                unique_end_datetime, Administrations, TIMESTAMP
             ).label("end_datetime"),
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(
-                CteAdministrations.c.drug_name,
+                Administrations.drug_name,
                 "__",
-                cast(CteAdministrations.c.value, TEXT),
+                cast(Administrations.value, TEXT),
             ).label("source_value"),
             ConceptLookupStem.uid.label("source_concept_id"),
             case(*quantity, else_=null()).label("value_as_number"),
@@ -162,28 +131,29 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             route_source_value,
             ConceptLookupStem.era_lookback_interval,
             concat(
-                CteAdministrations.c.administration_type, "_administrations"
+                Administrations.administration_type, "_administrations"
             ).label("datasource"),
         )
-        .select_from(CteAdministrations)
+        .select_from(Administrations)
         .join(
-            CtePrescriptions,
-            CtePrescriptions.c.epaspresbaseid
-            == CteAdministrations.c.epaspresbaseid,
+            Prescriptions,
+            and_(
+                Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
+                Prescriptions.epaspresbaseid == Administrations.epaspresbaseid,
+            ),
         )
         .join(
             VisitOccurrence,
             VisitOccurrence.visit_source_value
-            == concat("courseid|", CteAdministrations.c.courseid),
+            == concat("courseid|", Administrations.courseid),
         )
         .join(
             ConceptLookupStem,
             and_(
-                ConceptLookupStem.source_variable
-                == CteAdministrations.c.drug_name,
                 ConceptLookupStem.datasource == "administrations",
+                ConceptLookupStem.source_variable == Administrations.drug_name,
                 ConceptLookupStem.drug_exposure_type
-                == CteAdministrations.c.administration_type,
+                == Administrations.administration_type,
             ),
             isouter=INCLUDE_UNMAPPED_CODES,
         )
@@ -195,8 +165,6 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ),
         )
     )
-
-    ########################################
 
     CteConceptLookupStemForAntijoin = (
         select(

@@ -6,8 +6,8 @@ from sqlalchemy import case, func, null
 
 
 def get_bolus_recipes(
-    CteAdministrations: Any = None,
-    CtePrescriptions: Any = None,
+    Administrations: Any = None,
+    Prescriptions: Any = None,
 ) -> Any:
     """
     Takes CTEs of administrations and prescriptions plus an administration type
@@ -18,23 +18,23 @@ def get_bolus_recipes(
 
     RECIPES: Final[Dict[str, Any]] = {
         "recipe__noradrenalinsad__bolus": func.coalesce(
-            CteAdministrations.c.value0,
-            CteAdministrations.c.value
+            Administrations.value0,
+            Administrations.value
             * case(
                 (  # weight-based dose
-                    CtePrescriptions.c.epaspresdose == 0.0,
-                    0.6 * CtePrescriptions.c.epaspresweight / 1000,
+                    Prescriptions.epaspresdose == 0.0,
+                    0.6 * Prescriptions.epaspresweight / 1000,
                 ),
                 (  # assume disolved in 100 mL
-                    CtePrescriptions.c.epaspresmixamount == 0.0,
-                    CtePrescriptions.c.epaspresdose / 100,
+                    Prescriptions.epaspresmixamount == 0.0,
+                    Prescriptions.epaspresdose / 100,
                 ),
-                else_=CtePrescriptions.c.epaspresdose
-                / CtePrescriptions.c.epaspresmixamount,
+                else_=Prescriptions.epaspresdose
+                / Prescriptions.epaspresmixamount,
             ),
         ),
         "recipe__solumdr__bolus": func.coalesce(
-            CteAdministrations.c.value0, CteAdministrations.c.value
+            Administrations.value0, Administrations.value
         ),
     }
 
@@ -42,8 +42,8 @@ def get_bolus_recipes(
 
 
 def get_continuous_recipes(
-    CteAdministrations: Any = None,
-    CtePrescriptions: Any = None,
+    Administrations: Any = None,
+    Prescriptions: Any = None,
 ) -> Any:
     """
     Takes CTEs of administrations and prescriptions plus an administration type
@@ -53,50 +53,50 @@ def get_continuous_recipes(
     """
 
     RECIPES: Final[Dict[str, Any]] = {
-        "recipe__metaoxedrinsad__continuous": CteAdministrations.c.value
+        "recipe__metaoxedrinsad__continuous": Administrations.value
         * func.coalesce(
-            CteAdministrations.c.value / CteAdministrations.c.value1,
-            CtePrescriptions.c.epaspresconc,
+            Administrations.value / Administrations.value1,
+            Prescriptions.epaspresconc,
         ),
         "recipe__noradrenalinsad__continuous": func.coalesce(
-            CteAdministrations.c.value0,
-            CteAdministrations.c.value
+            Administrations.value0,
+            Administrations.value
             * case(
                 (
-                    CtePrescriptions.c.epaspresdose == 0.0,
-                    0.6 * CtePrescriptions.c.epaspresweight / 1000,
+                    Prescriptions.epaspresdose == 0.0,
+                    0.6 * Prescriptions.epaspresweight / 1000,
                 ),
                 (
-                    CtePrescriptions.c.epaspresmixamount == 0.0,
-                    CtePrescriptions.c.epaspresdose / 100,
+                    Prescriptions.epaspresmixamount == 0.0,
+                    Prescriptions.epaspresdose / 100,
                 ),
-                else_=CtePrescriptions.c.epaspresdose
-                / CtePrescriptions.c.epaspresmixamount,
+                else_=Prescriptions.epaspresdose
+                / Prescriptions.epaspresmixamount,
             ),
         ),
         "recipe__solumdr__continuous": func.coalesce(
-            CteAdministrations.c.value0, CteAdministrations.c.value
+            Administrations.value0, Administrations.value
         ),
         "recipe__vancomycin1g__continuous": (
-            CteAdministrations.c.value
+            Administrations.value
             * case(
-                (CtePrescriptions.c.epaspresdose == 0, 1000),
-                else_=CtePrescriptions.c.epaspresdose,
+                (Prescriptions.epaspresdose == 0, 1000),
+                else_=Prescriptions.epaspresdose,
             )
             / case(
-                (CtePrescriptions.c.epaspresmixamount == 0, 100),
-                else_=CtePrescriptions.c.epaspresmixamount,
+                (Prescriptions.epaspresmixamount == 0, 100),
+                else_=Prescriptions.epaspresmixamount,
             )
         ),
-        "recipe__privigeniv__continuous": CteAdministrations.c.value * 100,
+        "recipe__privigeniv__continuous": Administrations.value * 100,
     }
 
     return RECIPES
 
 
 def get_quantity_recipe(
-    CteAdministrations: Any = None,
-    CtePrescriptions: Any = None,
+    Administrations: Any = None,
+    Prescriptions: Any = None,
     administration_type: str = None,
     recipe_name: str = None,
     logger: Any = None,
@@ -110,11 +110,11 @@ def get_quantity_recipe(
 
     if administration_type == "bolus":
         RECIPES: Final[Dict[str, Any]] = get_bolus_recipes(
-            CteAdministrations, CtePrescriptions
+            Administrations, Prescriptions
         )
     elif administration_type == "continuous":
         RECIPES: Final[Dict[str, Any]] = get_continuous_recipes(
-            CteAdministrations, CtePrescriptions
+            Administrations, Prescriptions
         )
     else:
         raise NotImplementedError(
