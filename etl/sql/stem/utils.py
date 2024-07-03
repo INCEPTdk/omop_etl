@@ -5,9 +5,9 @@ import os
 from itertools import chain
 from typing import Any
 
-from sqlalchemy import case, cast
+from sqlalchemy import case, cast, func, not_
 from sqlalchemy.sql import expression
-from sqlalchemy.sql.expression import CTE
+from sqlalchemy.sql.expression import CTE, Case
 
 
 def get_case_statement(
@@ -18,10 +18,17 @@ def get_case_statement(
     lookup: Any = None,
 ) -> Any:
     """
-    This is a general function that given a column it returns:
-        None if the name of that column has not been specified in the lookup.
-        The columns with the specific casts.
-        If value type is specified, allows to case on the value_type in the lookup.
+    This function will cast to 'cast_as' all the values of 'column_name' from 'model'
+    that have a value_type equal to 'value_type' in the lookup.
+    If value type is None it will simply cast to 'cast_as' all the values of 'column_name'.
+
+    The last statement accounts for the cases when you want to cast those
+    variables in the lookup labelled as numerical but the column_name in model contains some
+    non-numerical values. In this case, the function will return a case statement that
+    will return null for those values that are not numerical.
+    An example is a lab test that normally contains numerical values but sometimes
+    the results is simply "not detected". In this case only the lab results that are actually
+    numerical will be casted to FLOAT and the rest will be null.
     """
 
     if isinstance(model, CTE):
@@ -45,6 +52,20 @@ def get_case_statement(
         )
     else:
         exp = cast(getattr(model, column_name), cast_as)
+
+    if value_type == "numerical" and isinstance(exp, Case):
+        regex_pattern = r"(\d+(\.\d+)?)|(^\.\d+)"
+        exp.whens.insert(
+            0,
+            (
+                not_(
+                    func.regexp_matches(
+                        getattr(model, column_name), regex_pattern
+                    )
+                ),
+                expression.null(),
+            ),
+        )
     return exp
 
 
