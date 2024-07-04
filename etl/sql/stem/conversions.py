@@ -6,36 +6,36 @@ from sqlalchemy import and_, case, null
 
 
 def get_conversion_factor(
-    CteAdministrations: Any = None,
-    CtePrescriptions: Any = None,
+    Administrations: Any = None,
+    Prescriptions: Any = None,
     recipe_name: str = None,
     logger: Any = None,
 ) -> Any:
     RECIPES: Final[Dict[str, Any]] = {
         "recipe__noradrenalinsad": case(
-            (CtePrescriptions.c.epaspresdrugunit == "ug", 0.001),
+            (Prescriptions.epaspresdrugunit == "ug", 0.001),
             else_=1,
         ),
         "recipe__g_to_mg": case(
-            (CtePrescriptions.c.epaspresdrugunit == "g", 1000),
+            (Prescriptions.epaspresdrugunit == "g", 1000),
             else_=1,
         ),
         "recipe__vancomycin1g": case(
             (
                 and_(
-                    CtePrescriptions.c.epaspresdrugunit == "g",
-                    CtePrescriptions.c.epaspresdose == 0.0,
-                    CteAdministrations.c.administration_type == "discrete",
+                    Prescriptions.epaspresdrugunit == "g",
+                    Prescriptions.epaspresdose == 0.0,
+                    Administrations.administration_type == "discrete",
                 ),
                 1000,
             ),
             else_=1,
         ),
         "recipe__metaoxedrinsad": case(
-            (CtePrescriptions.c.epaspresdrugunit == "ug", 0.001),
+            (Prescriptions.epaspresdrugunit == "ug", 0.001),
             (
-                CtePrescriptions.c.epaspresdrugunit == "ml",
-                CtePrescriptions.c.epaspresconc,
+                Prescriptions.epaspresdrugunit == "ml",
+                Prescriptions.epaspresconc,
             ),
             else_=1,
         ),
