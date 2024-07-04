@@ -5,9 +5,32 @@ import os
 from itertools import chain
 from typing import Any
 
-from sqlalchemy import case, cast, func, not_
+from sqlalchemy import FLOAT, case, cast, func, not_
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
+
+
+def try_cast_to_float(
+    column: Any,
+) -> Case:
+    """
+    Args:
+    column: column to be casted to float (usually passed as attribute of a model)
+    Returns:
+    stmt: case statement that will cast to float when the regexp pattern is matched
+          and return null otherwise
+    """
+    regex_pattern = (
+        r"^[+-]?([0-9]*\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][+-]?[0-9]+)?$"
+    )
+    stmt = case(
+        (
+            not_(func.regexp_matches(column, regex_pattern)),
+            expression.null(),
+        ),
+        else_=cast(column, FLOAT),
+    )
+    return stmt
 
 
 def get_case_statement(
@@ -53,19 +76,9 @@ def get_case_statement(
     else:
         exp = cast(getattr(model, column_name), cast_as)
 
-    if value_type == "numerical" and isinstance(exp, Case):
-        regex_pattern = r"(\d+(\.\d+)?)|(^\.\d+)"
-        exp.whens.insert(
-            0,
-            (
-                not_(
-                    func.regexp_matches(
-                        getattr(model, column_name), regex_pattern
-                    )
-                ),
-                expression.null(),
-            ),
-        )
+    if cast_as == FLOAT and isinstance(exp, Case):
+        try_cast_stmt = try_cast_to_float(getattr(model, column_name))
+        exp.whens.insert(0, try_cast_stmt.whens[0])
     return exp
 
 
