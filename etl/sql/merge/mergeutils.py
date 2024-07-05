@@ -62,15 +62,14 @@ def _sql_merge_cdm_table(
             ON source.care_site_id = care_site_mapping.site_care_site_id"""
 
         query_single_table.append(
-            f""" SELECT {selected_cols}
+            f"""INSERT INTO {cdm_table.__table__}
+            ({', '.join(cdm_columns)})
+            SELECT {selected_cols}
             FROM {schema}.{cdm_table.__tablename__} as source
-            {inner_joins}
+            {inner_joins};
         """
         )
-
-    return f"""INSERT INTO {cdm_table.__table__}
-    ({', '.join(cdm_columns)})
-    {' UNION ALL '.join(query_single_table)};"""
+    return ";".join(query_single_table)
 
 
 def merge_cdm_table(
@@ -129,7 +128,6 @@ def remap_care_site_id(schema: str, care_site_table: OmopCdmModelBase):
 def build_aggregate_sql(
     agg_columns: Union[str, List[str]], agg_function: str = "SUM"
 ) -> Tuple[str, str]:
-
     assert agg_function in [
         "SUM",
         "AVG",
