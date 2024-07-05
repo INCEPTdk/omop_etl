@@ -27,6 +27,7 @@ from .utils import (
     find_unique_column_names,
     get_case_statement,
     toggle_stem_transform,
+    try_cast_to_float,
 )
 
 CONCEPT_ID_REGISTRY: Final[int] = 32879
@@ -57,12 +58,12 @@ def get_laboratory_stem_insert(
     )
 
     range_low = func.coalesce(
-        cast(model.ref_lower_clean, FLOAT),
+        try_cast_to_float(model.ref_lower_clean),
         ConceptLookupStem.range_low,
     )
 
     range_high = func.coalesce(
-        cast(model.ref_upper_clean, FLOAT),
+        try_cast_to_float(model.ref_upper_clean),
         ConceptLookupStem.range_high,
     )
 
