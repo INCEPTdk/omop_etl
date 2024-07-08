@@ -14,7 +14,10 @@ def transform(session: AbstractSession) -> None:
     """Run the Merge location transformation"""
     logger.info("Starting the Death merge transformation... ")
 
-    merge_cdm_table(session, Death)
+    merge_cdm_table(
+        session,
+        Death,
+    )
 
     logger.info(
         "Merge Death Transformation. Initial %s Death(s) included ...",

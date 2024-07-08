@@ -13,7 +13,10 @@ def transform(session: AbstractSession) -> None:
     """Run the Merge Person transformation"""
     logger.info("Starting the Person transformation... ")
 
-    merge_cdm_table(session, Person)
+    merge_cdm_table(
+        session,
+        Person,
+    )
     logger.info(
         "Merge Person Transformation with duplicates! %s Person(s) included",
         session.query(Person).count(),

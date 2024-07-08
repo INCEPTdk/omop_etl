@@ -233,7 +233,7 @@ def get_environment_variable(
 ) -> str:
     schema_name: str = os.getenv(environment_variable_name, default=None)
     if not schema_name:
-        logger.warning(
+        logger.debug(
             "Environment variable %s not set, defaults to '%s'",
             environment_variable_name,
             default,
