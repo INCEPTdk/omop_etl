@@ -55,8 +55,14 @@ class MergeStandardFunction(DuckDBBaseTest):
         self._insert_test_data(self.engine)
 
         with session_context(make_db_session(self.engine)) as session:
-            session.execute(_sql_merge_cdm_table(schemas=['site1', 'site2'], cdm_table=Measurement))
+            SQL = _sql_merge_cdm_table(
+                schemas=['site1', 'site2'],
+                cdm_table=Measurement,
+                cdm_columns=[c for c in Measurement.__table__.columns
+                             if c.key not in Measurement.__table__.primary_key.columns],
+            )
 
+            session.execute(SQL)
             result = select(self.expected_cols).subquery()
             result_df = enforce_dtypes(
                 self.expected_df,

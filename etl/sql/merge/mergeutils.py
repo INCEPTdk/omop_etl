@@ -2,6 +2,8 @@
 
 from typing import List, Optional, Tuple, Union
 
+from sqlalchemy.sql.schema import Column
+
 from etl.models.omopcdm54.clinical import Death, Person, VisitOccurrence
 from etl.models.omopcdm54.health_systems import CareSite
 from etl.models.omopcdm54.registry import OmopCdmModelBase
@@ -28,22 +30,19 @@ def move_to_end(source_lst, elements):
 def _sql_merge_cdm_table(
     schemas: List[str],
     cdm_table: OmopCdmModelBase,
-    cdm_columns: List[str] = None,
+    cdm_columns: List[Column],
     skip_person_remap: bool = False,
 ):
     """Generate SQL for merge (union) a CDM table based on a list of columns."""
 
     query_single_table = []
     for schema in schemas:
-        selected_cols = ", ".join(
-            [f"{schema}.{c}" for c in cdm_columns]
-        )
+        selected_cols = ", ".join([f"{schema}.{c}" for c in cdm_columns])
         joins = ""
-
         if (
             not skip_person_remap
             and cdm_table.__table__.name != Person.__table__.name
-            and Person.person_id.key in cdm_columns
+            and any(c.name == "person_id" for c in cdm_columns)
         ):
             remapped_col = f"{schema}.{cdm_table.person_id.expression}"
             s, j = remap_person_id(schema, remapped_col, Person)
