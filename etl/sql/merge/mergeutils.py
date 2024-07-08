@@ -56,14 +56,15 @@ def _sql_merge_cdm_table(
             joins += j
 
         query_single_table.append(
-            f""" SELECT {selected_cols}
+            f""" INSERT INTO {cdm_table.__table__}
+            ({', '.join([c.key for c in cdm_columns])})
+            SELECT {selected_cols}
             FROM {schema}.{cdm_table.__tablename__}
             {joins}
         """
         )
-    return f"""INSERT INTO {cdm_table.__table__}
-    ({', '.join([c.key for c in cdm_columns])})
-    {' UNION ALL '.join(query_single_table)};"""
+
+    return ";".join(query_single_table)
 
 
 def merge_cdm_table(
@@ -149,7 +150,6 @@ def remap_care_site_id(
 def build_aggregate_sql(
     agg_columns: Union[str, List[str]], agg_function: str = "SUM"
 ) -> Tuple[str, str]:
-
     assert agg_function in [
         "SUM",
         "AVG",
