@@ -12,7 +12,7 @@ from etl.util.db import (
     get_environment_variable,
     get_source_cdm_schemas,
 )
-from etl.util.logger import Logger
+from etl.util.logger import Logger, getLogger
 from etl.util.sql import clean_sql
 
 
@@ -89,7 +89,7 @@ def _sql_merge_cdm_table(
 def merge_cdm_table(
     session: AbstractSession,
     cdm_table: OmopCdmModelBase,
-    logger: Logger,
+    logger: Logger = getLogger(),
     cdm_columns: List[str] = None,
 ) -> None:
     """
