@@ -29,7 +29,7 @@ def transform(session: AbstractSession) -> None:
     """Run the Merge Observation period transformation"""
     logger.info("Starting the Observation Period merge transformation... ")
 
-    merge_cdm_table(session, ObservationPeriod)
+    merge_cdm_table(session, ObservationPeriod, logger)
 
     logger.info(
         "Merge Observation Period Transformation. Initial %s Periods(s) included ...",

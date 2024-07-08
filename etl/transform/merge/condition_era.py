@@ -29,7 +29,7 @@ def transform(session: AbstractSession) -> None:
     """Run the Merge Condition era transformation"""
     logger.info("Starting the Condition Era merge transformation... ")
 
-    merge_cdm_table(session, ConditionEra)
+    merge_cdm_table(session, ConditionEra, logger)
 
     logger.info(
         "Merge Condition Era Transformation. Initial %s Era(s) included ...",

@@ -12,6 +12,7 @@ from etl.util.db import (
     get_environment_variable,
     get_source_cdm_schemas,
 )
+from etl.util.logger import Logger
 from etl.util.sql import clean_sql
 
 
@@ -28,48 +29,45 @@ def move_to_end(source_lst, elements):
 
 @clean_sql
 def _sql_merge_cdm_table(
-    schemas: List[str],
+    schema: str,
     cdm_table: OmopCdmModelBase,
     cdm_columns: List[Column],
     skip_person_remap: bool = False,
 ):
     """Generate SQL for merge (union) a CDM table based on a list of columns."""
 
-    query_single_table = []
-    for schema in schemas:
-        selected_cols = ", ".join([f"{schema}.{c}" for c in cdm_columns])
-        joins = ""
-        if (
-            not skip_person_remap
-            and cdm_table.__table__.name != Person.__table__.name
-            and any(c.name == "person_id" for c in cdm_columns)
-        ):
-            remapped_col = f"{schema}.{cdm_table.person_id.expression}"
-            s, j = remap_person_id(schema, remapped_col, Person)
-            selected_cols = selected_cols.replace(remapped_col, s)
-            joins += j
+    selected_cols = ", ".join([f"{schema}.{c}" for c in cdm_columns])
+    joins = ""
+    if (
+        not skip_person_remap
+        and cdm_table.__table__.name != Person.__table__.name
+        and any(c.name == "person_id" for c in cdm_columns)
+    ):
+        remapped_col = f"{schema}.{cdm_table.person_id.expression}"
+        s, j = remap_person_id(schema, remapped_col, Person)
+        selected_cols = selected_cols.replace(remapped_col, s)
+        joins += j
 
-        if cdm_table.__table__.name == VisitOccurrence.__table__.name:
-            remapped_col = f"{schema}.{VisitOccurrence.care_site_id.expression}"
-            s, j = remap_care_site_id(schema, remapped_col, CareSite)
-            selected_cols = selected_cols.replace(remapped_col, s)
-            joins += j
+    if cdm_table.__table__.name == VisitOccurrence.__table__.name:
+        remapped_col = f"{schema}.{VisitOccurrence.care_site_id.expression}"
+        s, j = remap_care_site_id(schema, remapped_col, CareSite)
+        selected_cols = selected_cols.replace(remapped_col, s)
+        joins += j
 
-        query_single_table.append(
-            f""" INSERT INTO {cdm_table.__table__}
-            ({', '.join([c.key for c in cdm_columns])})
-            SELECT {selected_cols}
-            FROM {schema}.{cdm_table.__tablename__}
-            {joins}
-        """
-        )
+    insert_stmt: str = f""" INSERT INTO {cdm_table.__table__}
+        ({', '.join([c.key for c in cdm_columns])})
+        SELECT {selected_cols}
+        FROM {schema}.{cdm_table.__tablename__}
+        {joins}
+    """
 
-    return ";".join(query_single_table)
+    return insert_stmt
 
 
 def merge_cdm_table(
     session: AbstractSession,
     cdm_table: OmopCdmModelBase,
+    logger: Logger,
     cdm_columns: List[str] = None,
 ) -> None:
     """
@@ -98,10 +96,16 @@ def merge_cdm_table(
     if skip_person_remap and cdm_table.__table__.name == Death.__table__.name:
         schemas = schemas[0:1]
 
-    merge_sql = _sql_merge_cdm_table(
-        schemas, cdm_table, cdm_columns, skip_person_remap
-    )
-    session.execute(merge_sql)
+    for schema in schemas:
+        merge_sql = _sql_merge_cdm_table(
+            schema, cdm_table, cdm_columns, skip_person_remap
+        )
+        session.execute(merge_sql)
+        logger.debug(
+            "Intermediate merge step. Merged %s records into %s",
+            session.query(cdm_table).count(),
+            cdm_table.__table__,
+        )
 
 
 @clean_sql

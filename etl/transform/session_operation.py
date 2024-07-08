@@ -52,7 +52,7 @@ class SessionOperationDefaultMerge(BaseOperation):
 
     def _run(self, *args, **kwargs) -> Any:
         self.logger.info("Starting the %s merge transformation... ", self.key)
-        merge_cdm_table(self.session, self.cdm_table)
+        merge_cdm_table(self.session, self.cdm_table, self.logger)
         self.logger.info(
             f"Merge {self.key} transformation complete. %s Row(s) included.",
             self.session.query(self.cdm_table).count(),

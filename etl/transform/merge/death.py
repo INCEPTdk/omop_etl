@@ -17,6 +17,7 @@ def transform(session: AbstractSession) -> None:
     merge_cdm_table(
         session,
         Death,
+        logger,
     )
 
     logger.info(
