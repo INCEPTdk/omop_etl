@@ -15,6 +15,7 @@ from etl.util.db import (
 from etl.util.logger import Logger, getLogger
 from etl.util.sql import clean_sql
 
+
 @clean_sql
 def _sql_merge_cdm_table(
     schema: str,
