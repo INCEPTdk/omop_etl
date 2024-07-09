@@ -1,11 +1,17 @@
 """Merge standard function tests. This function simply takes CDM and merge them together (remapping the person_id)"""
+from logging import getLogger
+
 import pandas as pd
 from sqlalchemy import select
 
-from etl.models.omopcdm54.clinical import Measurement, Person, CareSite, VisitOccurrence
-from etl.sql.merge.mergeutils import _sql_merge_cdm_table, _sql_get_care_site
+from etl.models.omopcdm54.clinical import (
+    CareSite,
+    Measurement,
+    Person,
+    VisitOccurrence,
+)
+from etl.sql.merge.mergeutils import _sql_get_care_site, _sql_merge_cdm_table
 from etl.util.db import make_db_session, session_context
-from logging import getLogger
 from tests.testutils import (
     DuckDBBaseTest,
     base_path,
@@ -74,7 +80,7 @@ class MergeStandardFunction(DuckDBBaseTest):
         write_to_db(engine, self.in_site1_visit_occurrence, "visit_occurrence", schema="site1")
         write_to_db(engine, self.in_site2_visit_occurrence, "visit_occurrence", schema="site2")
         write_to_db(engine, self.in_merged_visit_occurrence, "visit_occurrence", schema=VisitOccurrence.metadata.schema)
-    
+
     def test_get_correct_care_site(self):
         with session_context(make_db_session(self.engine)) as session:
             care_site_site1 = session.execute(_sql_get_care_site("site1")).fetchone()
@@ -87,7 +93,7 @@ class MergeStandardFunction(DuckDBBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             session.execute(
                 _sql_merge_cdm_table(
-                    "site1", Measurement, 
+                    "site1", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
                     skip_person_remap=False,
                     care_site_id=1
@@ -96,7 +102,7 @@ class MergeStandardFunction(DuckDBBaseTest):
 
             session.execute(
                 _sql_merge_cdm_table(
-                    "site2", Measurement, 
+                    "site2", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
                     skip_person_remap=False,
                     care_site_id=2
@@ -115,7 +121,7 @@ class MergeStandardFunction(DuckDBBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             session.execute(
                 _sql_merge_cdm_table(
-                    "site1", Measurement, 
+                    "site1", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
                     skip_person_remap=True,
                     care_site_id=1
@@ -124,7 +130,7 @@ class MergeStandardFunction(DuckDBBaseTest):
 
             session.execute(
                 _sql_merge_cdm_table(
-                    "site2", Measurement, 
+                    "site2", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
                     skip_person_remap=True,
                     care_site_id=2
