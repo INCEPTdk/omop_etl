@@ -5,6 +5,8 @@ concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concep
 1124957;oxycodone;Drug;RxNorm;Ingredient;S;7804;1970-01-01;2099-12-31;
 1321341;norepinephrine;Drug;RxNorm;Ingredient;S;7512;1970-01-01;2099-12-31;
 1707687;vancomycin;Drug;RxNorm;Ingredient;S;11124;1970-01-01;2099-12-31;
+21602732;"methylprednisolone; systemic";Drug;ATC;ATC 5th;C;H02AB04;1970-01-01;2099-12-31;
+21603043;"vancomycin; parenteral";Drug;ATC;ATC 5th;C;J01XA01;1970-01-01;2099-12-31;
 3027018;Heart rate;Measurement;LOINC;Clinical Observation;S;8867-4;1970-01-01;2099-12-31;
 3032652;Glasgow coma scale;Measurement;LOINC;Clinical Observation;S;35088-4;1970-01-01;2099-12-31;
 4000626;Plasma specimen;Specimen;SNOMED;Specimen;S;119361006;2002-01-31;2099-12-31;
@@ -16,3 +18,4 @@ concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concep
 40757478;Albumin [Moles/volume] in Serum or Plasma;Measurement;LOINC;Lab Test;S;54347-0;2008-12-18;2099-12-31;
 44807895;Acute non-infective exacerbation of chronic obstructive pulmonary disease;Condition;SNOMED;Clinical Finding;S;847091000000104;2012-10-01;2099-12-31;
 46270682;Open drainage of intraperitoneal abscess;Procedure;SNOMED;Procedure;S;708636006;2015-07-31;2099-12-31;
+1506270;methylprednisolone;Drug;RxNorm;Ingredient;S;6902;1970-01-01;2099-12-31;
