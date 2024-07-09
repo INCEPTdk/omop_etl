@@ -30,7 +30,7 @@ def transform(session: AbstractSession) -> None:
     """Run the Merge Drug era transformation"""
     logger.info("Starting the Drug Era merge transformation... ")
 
-    merge_cdm_table(session, DrugEra)
+    merge_cdm_table(session, DrugEra, logger)
 
     logger.info(
         "Merge Drug Era Transformation. Initial %s Era(s) included ...",

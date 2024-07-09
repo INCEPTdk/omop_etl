@@ -12,9 +12,9 @@ logger = logging.getLogger("ETL.Merge.CareSite")
 
 def transform(session: AbstractSession) -> None:
     """Run the Merge location transformation"""
-    logger.info("Starting the location transformation... ")
+    logger.info("Starting the care site transformation... ")
 
-    merge_cdm_table(session, CareSite)
+    merge_cdm_table(session, CareSite, logger)
     session.execute(add_location_to_care_site())
     logger.info(
         "Merge Care Site Transformation complete! %s CareSite(s) included",

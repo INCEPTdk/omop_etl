@@ -21,10 +21,7 @@ if os.getenv("ETL_RUN_INTEGRATION_TESTS", None) == "ON":
     from tests.transform.drug_exposure_tests import *
     from tests.transform.location_tests import *
     from tests.transform.measurement_tests import *
-    from tests.transform.merge_deduplication_tests import *
-    from tests.transform.merge_remap_tests import *
-    from tests.transform.merge_standard_function_tests import *
-    from tests.transform.merge_unite_intervals_tests import *
+    from tests.transform.merge import *
     from tests.transform.observation_period_tests import *
     from tests.transform.observation_tests import *
     from tests.transform.person_tests import *

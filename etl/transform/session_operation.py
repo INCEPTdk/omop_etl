@@ -51,9 +51,12 @@ class SessionOperationDefaultMerge(BaseOperation):
         self.logger = logging.getLogger(f"ETL.Merge.{cdm_table.__name__}")
 
     def _run(self, *args, **kwargs) -> Any:
-        self.logger.info("Starting the %s merge transformation... ", self.key)
-        merge_cdm_table(self.session, self.cdm_table)
-        self.logger.info(
-            f"Merge {self.key} transformation complete. %s Row(s) included.",
-            self.session.query(self.cdm_table).count(),
-        )
+        with session_context(self.session) as cntx:
+            self.logger.info(
+                "Starting the %s merge transformation... ", self.key
+            )
+            merge_cdm_table(cntx, self.cdm_table, self.logger)
+            self.logger.info(
+                f"Merge {self.key} transformation complete. %s Row(s) included.",
+                self.session.query(self.cdm_table).count(),
+            )

@@ -5,6 +5,7 @@ from sqlalchemy import select, text
 from etl.models.omopcdm54.clinical import Measurement, Person
 from etl.sql.merge.mergeutils import remap_person_id
 from etl.util.db import make_db_session, session_context
+from etl.util.sql import clean_sql
 from tests.testutils import (
     DuckDBBaseTest,
     assert_dataframe_equality,
@@ -42,12 +43,24 @@ class MergeRemapTest(DuckDBBaseTest):
         write_to_db(engine, self.in_site_person, Person.__tablename__, schema='site1')
         write_to_db(engine, self.in_site_measurement, Measurement.__tablename__, schema='site1')
 
+    @clean_sql
+    def get_clean_sql(self) -> str:
+        remapped_col = f"site1.{Measurement.person_id.expression}"
+        selects, joins = remap_person_id('site1', remapped_col, Person)
+
+        SQL = f"""select distinct site_person.person_id as site_person_id,
+        {selects} from site1.{Measurement.__tablename__}
+        {joins}"""
+
+        return SQL
+
+
     def test_transform(self):
         self._insert_test_data(self.engine)
 
         with session_context(make_db_session(self.engine)) as session:
-            SQL = remap_person_id('site1', Measurement, Person)
-            result_df = session.connection_execute(SQL).df()
+
+            result_df = session.connection_execute(self.get_clean_sql()).df()
             result_df = enforce_dtypes(self.expected_df, result_df)
 
         assert_dataframe_equality(result_df, self.expected_df)
