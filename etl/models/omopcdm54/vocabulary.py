@@ -202,7 +202,7 @@ class ConceptClass(VocabularyModelBase):
 # do not register vocab models
 # @register_analytical_model
 @freeze_instance
-class ConceptRelationship(VocabularyModelBase):
+class ConceptRelationship(VocabularyModelBase, PKIdMixin):
     """
     The CONCEPT_RELATIONSHIP table contains records that define direct
     relationships between any two Concepts and the nature or type of the relationship.
@@ -213,18 +213,17 @@ class ConceptRelationship(VocabularyModelBase):
 
     __tablename__: Final[str] = "concept_relationship"
 
-    concept_id_1: Final[Column] = PKIntField(
-        "concept_id_1", FK(Concept.concept_id), nullable=False
+    concept_id_1: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=False
     )
-    concept_id_2: Final[Column] = PKIntField(
-        "concept_id_2", FK(Concept.concept_id), nullable=False
+    concept_id_2: Final[Column] = IntField(
+        FK(Concept.concept_id), nullable=False
     )
 
     # The relationship between CONCEPT_ID_1 and CONCEPT_ID_2.
     # Please see the Vocabulary Conventions. for more information.
-    relationship_id: Final[Column] = PKCharField(
+    relationship_id: Final[Column] = CharField(
         20,
-        "relationship_id_seq",
         FK("relationship.relationship_id"),
         nullable=False,
     )

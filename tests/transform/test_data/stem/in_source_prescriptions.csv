@@ -12,3 +12,5 @@ courseid;epaspresbaseid;epaspresid;epaspresdrugatc;epaspresadmroute;epaspresdose
 4;84222;84252;N02AA05;GA;0.0;0.0;mg;mg;0.0;;Oxynorm
 1;84624;84624;A10AB05;IV;0.5;1.0;iu;iu/hour;0.0;;Novorapid
 5;118057;118057;C01CA03;IV;4.2;0.0;mg;mg;0.0;84000;Noradrenaline Skanderborg
+4;800000;800000;H02AB04;IV;9999;0.0;mg;mg;0.0;;Solu-medrol
+4;800001;800001;invalid_ATC;IV;9999;0.0;mg;mg;0.0;;Some drug without a valid ATC code

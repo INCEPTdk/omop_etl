@@ -19,7 +19,7 @@ from ..util.db import (
 )
 
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
-    "DRUG_ERA_LOOKBACK", "0 hours"
+    "DRUG_ERA_LOOKBACK", "1 hour"
 )
 
 
