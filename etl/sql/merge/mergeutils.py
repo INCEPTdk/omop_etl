@@ -62,7 +62,9 @@ def _sql_merge_cdm_table(
         joins += j
 
     if run_care_site_id_remap:
-        remapped_col = f"{schema}.{VisitOccurrence.care_site_id.expression}"
+        remapped_col = (
+            f"{schema}.{getattr(VisitOccurrence.care_site_id, 'expression')}"
+        )
         s, j = remap_care_site_id(schema, remapped_col, CareSite)
         selected_cols = selected_cols.replace(remapped_col, s)
         joins += j
