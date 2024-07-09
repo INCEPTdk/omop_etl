@@ -15,18 +15,6 @@ from etl.util.db import (
 from etl.util.logger import Logger, getLogger
 from etl.util.sql import clean_sql
 
-
-def move_to_end(source_lst, elements):
-    """
-    Moves an element to the end of the list if it exists in the list.
-    """
-    lst = source_lst.copy()
-    for elem in elements:
-        if elem in lst:
-            lst.append(lst.pop(lst.index(elem)))
-    return lst
-
-
 @clean_sql
 def _sql_merge_cdm_table(
     schema: str,
