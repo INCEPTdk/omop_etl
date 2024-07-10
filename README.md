@@ -31,7 +31,7 @@ NUM_THREADS=30
 MAX_MEMORY_LIMIT=120gb
 ```
 
-The source data is expected to have this structure:
+The path to the database (which will be binded later to /users ) must have this structure:
 ```
 .rigs-etl.duckdb
 .output
@@ -67,8 +67,8 @@ The source data is expected to have this structure:
 ├── opr.parquet
 ├── ube.parquet
 ├── laboratory.parquet
-
 ```
+
 ### Load the source data into the database
 In order to load the souce data into the database you can run the following command (you need to bind the right folder to /users):
 ```bash
