@@ -13,7 +13,7 @@ Put these in a directory on your machine somewhere which will need to specified 
 The singularity container has to be build on the host machine (currently using bitbucket pipelines to build the singularity container directly pulling the github package from this repository). There are no entrypoints available with singularity, so everything has to run through bash commands.
 
 ### Step 1. Check files
-Check that rigs-etl.latest.sif is in the correct location (following examples assume it is at /users/singularity/rigs-etl.latest.sif)
+Check that `rigs-etl.latest.sif` is in the correct location (following examples assume it is at `/users/singularity/rigs-etl.latest.sif`)
 Check that a file with all the env variables is in the same location as where the singularity is executed. This file would look like:
 
 ```bash
