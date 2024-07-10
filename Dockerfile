@@ -6,6 +6,7 @@ RUN set -eux; \
   $AG update; \
   $AG install \
     build-essential \
+    wget \
   ; \
   $AG autoremove; \
   $AG clean; \
