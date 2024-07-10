@@ -82,7 +82,7 @@ In order to load the vocab into the database you can run the following command (
 singularity exec --bind /path/to/database:/users --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/stage_vocab_to_duckdb.sh
 ```
 
-### Run the main ETL 
+### Run the main ETL
 In order to run the main ETL you can run the following command (you need to bind the right folder to /users):
 
 ```bash
