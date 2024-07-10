@@ -54,7 +54,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     drug_mappings = session.query(ConceptLookupStem).where(criterion).all()
     drug_mappings = [row.__dict__ for row in drug_mappings]
 
-    drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
+    drugs_with_data = set(
+        session.scalars(select(Administrations.drug_name).distinct())
+    )
     drugs_with_mappings = set(d["source_variable"] for d in drug_mappings)
     drugs_without_mappings = set(
         d for d in drugs_with_data if d not in drugs_with_mappings
