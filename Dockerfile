@@ -41,4 +41,8 @@ ENV COMMIT_SHA="${COMMIT_SHA}" GITHUB_TAG="${GITHUB_TAG}"
 WORKDIR /etl
 COPY . .
 
+RUN mkdir /users
+RUN mkdir /data
+RUN mkdir /vocab
+
 ENTRYPOINT ["./docker/entrypoint.sh"]
