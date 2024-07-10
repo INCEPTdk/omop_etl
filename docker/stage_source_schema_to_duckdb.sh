@@ -17,7 +17,7 @@ create table $SOURCE_SCHEMA.diagnoses_procedures as \
   on tb1.from_file=tb2.filename and tb1.variable=tb2.field; \
 create table $SOURCE_SCHEMA.administrations as \
   select ROW_NUMBER() OVER() AS id, tb1.*, tb2.description \
-  from read_parquet('output/$SOURCE_SCHEMA/drugs/administrations.parquet') as tb1 \
+  from read_parquet('/users/output/$SOURCE_SCHEMA/drugs/administrations.parquet') as tb1 \
   inner join (select * from read_parquet('/users/output/$SOURCE_SCHEMA/descriptions.parquet')) as tb2 \
   on tb1.from_file=tb2.filename and tb1.drug_name=tb2.field; \
 create table $SOURCE_SCHEMA.prescriptions as \
