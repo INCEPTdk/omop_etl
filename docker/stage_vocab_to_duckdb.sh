@@ -12,14 +12,14 @@ drop table if exists $VOCAB_SCHEMA.drug_strength; \
 drop table if exists $VOCAB_SCHEMA.relationship; \
 drop table if exists $VOCAB_SCHEMA.vocabulary; \
 
-create table $VOCAB_SCHEMA.concept as select * from '/vocab/CONCEPT.csv'; \
-create table $VOCAB_SCHEMA.concept_ancestor as select * from '/vocab/CONCEPT_ANCESTOR.csv'; \
-create table $VOCAB_SCHEMA.concept_class as select * from '/vocab/CONCEPT_CLASS.csv'; \
-create table $VOCAB_SCHEMA.concept_relationship as select * from '/vocab/CONCEPT_RELATIONSHIP.csv'; \
-create table $VOCAB_SCHEMA.concept_synonym as select * from '/vocab/CONCEPT_SYNONYM.csv' ; \
-create table $VOCAB_SCHEMA.domain as select * from '/vocab/DOMAIN.csv'; \
-create table $VOCAB_SCHEMA.drug_strength as select * from '/vocab/DRUG_STRENGTH.csv'; \
-create table $VOCAB_SCHEMA.relationship as select * from '/vocab/RELATIONSHIP.csv'; \
-create table $VOCAB_SCHEMA.vocabulary as select * from '/vocab/VOCABULARY. csv'; "
+create table $VOCAB_SCHEMA.concept as select * from read_csv_auto('/vocab/CONCEPT.csv', quote=''); \
+create table $VOCAB_SCHEMA.concept_ancestor as select * from read_csv_auto('/vocab/CONCEPT_ANCESTOR.csv', quote=''); \
+create table $VOCAB_SCHEMA.concept_class as select * from read_csv_auto('/vocab/CONCEPT_CLASS.csv', quote=''); \
+create table $VOCAB_SCHEMA.concept_relationship as select * from read_csv_auto('/vocab/CONCEPT_RELATIONSHIP.csv', quote=''); \
+create table $VOCAB_SCHEMA.concept_synonym as select * from read_csv_auto('/vocab/CONCEPT_SYNONYM.csv', quote=''); \
+create table $VOCAB_SCHEMA.domain as select * from read_csv_auto('/vocab/DOMAIN.csv', quote=''); \
+create table $VOCAB_SCHEMA.drug_strength as select * from read_csv_auto('/vocab/DRUG_STRENGTH.csv', quote=''); \
+create table $VOCAB_SCHEMA.relationship as select * from read_csv_auto('/vocab/RELATIONSHIP.csv', quote=''); \
+create table $VOCAB_SCHEMA.vocabulary as select * from read_csv_auto('/vocab/VOCABULARY.csv', quote=''); "
 
 duckdb $DB_DBNAME -c "$exec_command"
