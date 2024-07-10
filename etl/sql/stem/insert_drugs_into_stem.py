@@ -14,6 +14,7 @@ from sqlalchemy import (
     cast,
     insert,
     literal,
+    or_,
     select,
     union_all,
 )
@@ -177,7 +178,25 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 ConceptLookup.filter == "administration_route",
             ),
         )
-        .where(Administrations.drug_name.in_(drugs_with_mappings))
+        .where(
+            and_(
+                Administrations.drug_name.in_(drugs_with_mappings),
+                or_(
+                    and_(
+                        Administrations.from_file.like("3%"),
+                        Administrations.administration_type == "discrete",
+                    ),
+                    and_(
+                        Administrations.from_file.like("8%"),
+                        Administrations.administration_type == "continuous",
+                    ),
+                    and_(
+                        Administrations.from_file.like("9%"),
+                        Administrations.administration_type == "bolus",
+                    ),
+                ),
+            )
+        )
     )
 
     # Create SELECT statement for drugs without custom mappings
@@ -263,7 +282,23 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             isouter=INCLUDE_UNMAPPED_CODES,
         )
         .where(
-            Administrations.drug_name.in_(drugs_without_mappings),
+            and_(
+                Administrations.drug_name.in_(drugs_without_mappings),
+                or_(
+                    and_(
+                        Administrations.from_file.like("3%"),
+                        Administrations.administration_type == "discrete",
+                    ),
+                    and_(
+                        Administrations.from_file.like("8%"),
+                        Administrations.administration_type == "continuous",
+                    ),
+                    and_(
+                        Administrations.from_file.like("9%"),
+                        Administrations.administration_type == "bolus",
+                    ),
+                ),
+            )
         )
     )
 
