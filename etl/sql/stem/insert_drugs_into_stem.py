@@ -206,7 +206,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ).label("source_value"),
             null().label("source_concept_id"),
             null().label("value_as_number"),
-            ConceptLookup.concept_id.label("source_concept_id"),
+            ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             null().label("era_lookback_interval"),
             case(
