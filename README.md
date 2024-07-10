@@ -9,7 +9,95 @@ In order to run the ETL, you will need some input (dummy) data or source databas
 
 Put these in a directory on your machine somewhere which will need to specified in the input (either in the docker-compose.override.yml or as a command line argument).
 
-## Option 1 - Running with Docker
+## Option 1 - Running on the host with Singularity
+The singularity container has to be build on the host machine (currently using bitbucket pipelines to build the singularity container directly pulling the github package from this repository). There are no entrypoints available with singularity, so everything has to run through bash commands.
+
+### Step 1. Check files
+Check that rigs-etl.latest.sif is in the correct location (following examples assume it is at /users/singularity/rigs-etl.latest.sif)
+Check that a file with all the env variables is in the same location as where the singularity is executed. This file would look like:
+
+```bash
+DB_DBMS=duckdb
+DB_PORT=none
+DB_SERVER=/users/rigs-etl.duckdb
+DB_DBNAME=/users/rigs-etl.duckdb
+DB_USER=none
+DB_PASSWORD=none
+VERBOSITY_LEVEL=DEBUG
+SOURCE_SCHEMA=source
+TARGET_SCHEMA=omopcdm
+INCLUDE_UNMAPPED_CODES=FALSE
+NUM_THREADS=30
+MAX_MEMORY_LIMIT=120gb
+```
+
+The source data is expected to have this structure:
+```
+.rigs-etl.duckdb
+.output
+├── site1
+│   ├── course_metadata
+│   │   └─ course_metadata.parquet
+│   ├── diagnoses_procedures
+│   │   └── diagnoses_procedures.parquet
+│   ├── drugs
+│   │   ├── administrations.parquet
+│   │   └── prescriptions.parquet
+│   ├── observations
+│   │   ├── observations-1.parquet
+│   │   ├           .
+│   │   └── observations-N.parquet
+│   ├── descriptions.parquet
+│   └── course_id_cpr_mapping.txt
+├── site2
+│   ├── course_metadata
+│   │   └─ course_metadata.parquet
+│   ├── diagnoses_procedures
+│   │   └── diagnoses_procedures.parquet
+│   ├── drugs
+│   │   ├── administrations.parquet
+│   │   └── prescriptions.parquet
+│   ├── observations
+│   │   ├── observations-1.parquet
+│   │   ├           .
+│   │   └── observations-N.parquet
+│   ├── descriptions.parquet
+│   └── course_id_cpr_mapping.txt
+├── diag.parquet
+├── opr.parquet
+├── ube.parquet
+├── laboratory.parquet
+
+```
+### Load the source data into the database
+In order to load the souce data into the database you can run the following command (you need to bind the right folder to /users):
+```bash
+singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/stage_source_to_duckdb.sh
+```
+
+### Load vocab into the database
+In order to load the vocab into the database you can run the following command (you need to bind the right folder to /users and /vocab):
+
+```bash
+singularity exec --bind /path/to/database:/users --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/stage_vocab_to_duckdb.sh
+```
+
+### Run the main ETL 
+In order to run the main ETL you can run the following command (you need to bind the right folder to /users):
+
+```bash
+singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.sh
+```
+If you want to run the tests or add new env vars you can either add them to the env files or passing the --env parameter in the command above.
+
+### Run the merge ETL
+In order to run the merge ETL you can run the following command (you need to bind the right folder to /users):
+
+```bash
+singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.merge.sh
+```
+
+## Option 2 - Running with Docker
 It assumes that your database is running on the `rigs-net`.
 ```bash
 docker network create rigs-net
@@ -88,7 +176,7 @@ The merge docker service uses a different entrypoint - a better approach may be 
 docker-compose run --rm -e TARGET_SCHEMA=merge_etl merge
 ```
 
-## Option 2 - Running in a Virtual Environment
+## Option 3 - Running in a Virtual Environment
 
 ### Step 1. Setup a virtual environment
 To setup a virtual environment for development you can do:
