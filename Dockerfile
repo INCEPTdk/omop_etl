@@ -43,5 +43,6 @@ COPY . .
 
 RUN mkdir /data
 RUN mkdir /vocab
+RUN mkdir /users
 
 ENTRYPOINT ["./docker/entrypoint.sh"]
