@@ -13,14 +13,14 @@ Put these in a directory on your machine somewhere which will need to specified 
 The singularity container has to be build on the host machine (currently using bitbucket pipelines to build the singularity container directly pulling the github package from this repository). There are no entrypoints available with singularity, so everything has to run through bash commands.
 
 ### Step 1. Check files
-Check that `rigs-etl.latest.sif` is in the correct location (following examples assume it is at `/users/singularity/rigs-etl.latest.sif`)
+Check that `rigs-etl.latest.sif` is in the correct location (following examples assume it is at `/data/singularity/rigs-etl.latest.sif`)
 Check that a file with all the env variables is in the same location as where the singularity is executed. This file would look like:
 
 ```bash
 DB_DBMS=duckdb
 DB_PORT=none
-DB_SERVER=/users/rigs-etl.duckdb
-DB_DBNAME=/users/rigs-etl.duckdb
+DB_SERVER=/data/rigs-etl.duckdb
+DB_DBNAME=/data/rigs-etl.duckdb
 DB_USER=none
 DB_PASSWORD=none
 VERBOSITY_LEVEL=DEBUG
@@ -31,7 +31,7 @@ NUM_THREADS=30
 MAX_MEMORY_LIMIT=120gb
 ```
 
-The path to the database (which will be binded later to /users ) must have this structure:
+The path to the database (which will be binded later to /data ) must have this structure:
 ```
 .rigs-etl.duckdb
 .output
@@ -70,31 +70,31 @@ The path to the database (which will be binded later to /users ) must have this 
 ```
 
 ### Load the source data into the database
-In order to load the souce data into the database you can run the following command (you need to bind the right folder to /users):
+In order to load the souce data into the database you can run the following command (you need to bind the right folder to /data):
 ```bash
-singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/stage_source_to_duckdb.sh
+singularity exec --bind /path/to/database:/data --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/stage_source_to_duckdb.sh
 ```
 
 ### Load vocab into the database
-In order to load the vocab into the database you can run the following command (you need to bind the right folder to /users and /vocab):
+In order to load the vocab into the database you can run the following command (you need to bind the right folder to /data and /vocab):
 
 ```bash
-singularity exec --bind /path/to/database:/users --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/stage_vocab_to_duckdb.sh
+singularity exec --bind /path/to/database:/data --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/stage_vocab_to_duckdb.sh
 ```
 
 ### Run the main ETL
-In order to run the main ETL you can run the following command (you need to bind the right folder to /users):
+In order to run the main ETL you can run the following command (you need to bind the right folder to /data):
 
 ```bash
-singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.sh
+singularity exec --bind /path/to/database:/data --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.sh
 ```
 If you want to run the tests or add new env vars you can either add them to the env files or passing the --env parameter in the command above.
 
 ### Run the merge ETL
-In order to run the merge ETL you can run the following command (you need to bind the right folder to /users):
+In order to run the merge ETL you can run the following command (you need to bind the right folder to /data):
 
 ```bash
-singularity exec --bind /path/to/database:/users --env-file rigs-etl-duckdb.env --pwd /etl --writable /users/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.merge.sh
+singularity exec --bind /path/to/database:/data --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/entrypoint.merge.sh
 ```
 
 ## Option 2 - Running with Docker
