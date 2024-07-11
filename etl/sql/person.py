@@ -31,6 +31,7 @@ PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
         OmopPerson.ethnicity_concept_id,
         OmopPerson.person_source_value,
         OmopPerson.gender_source_value,
+        OmopPerson.person_id,
     ],
     select=select(
         [
@@ -43,6 +44,7 @@ PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
             0,
             concat(SourcePerson.cpr_enc.key, "|", SourcePerson.cpr_enc),
             concat(SourcePerson.c_kon.key, "|", SourcePerson.c_kon),
+            func.floor(func.hash(SourcePerson.cpr_enc) / 2),
         ],
     )
     .select_from(SourcePerson)

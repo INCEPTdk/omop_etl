@@ -145,6 +145,7 @@ def get_visit_occurrence_select(shak_code: str) -> Select:
             concat("transfromid|", CourseIdMapped.c.transfromid),
             cl2.concept_id,
             concat("chkouttoid|", CourseIdMapped.c.chkouttoid),
+            func.floor(func.hash(CourseIdMapped.c.courseid) / 2),
         )
         .select_from(CourseIdMapped)
         .join(
@@ -241,6 +242,7 @@ def get_visit_occurrence_insert(shak_code: str) -> Insert:
             OmopVisitOccurrence.admitted_from_source_value,
             OmopVisitOccurrence.discharged_to_concept_id,
             OmopVisitOccurrence.discharged_to_source_value,
+            OmopVisitOccurrence.visit_occurrence_id,
         ],
         select=VisitOccurrenceSelectionFiltered,
     )
