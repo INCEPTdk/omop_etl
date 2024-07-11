@@ -28,6 +28,9 @@ create table $SOURCE_SCHEMA. observations as \
   replace(concat(tb1.variable, '-', tb2.description) as variable) \
   from read_parquet('/data/output/$SOURCE_SCHEMA/observations/observations-*.parquet') as tb1 \
   inner join (select * from read_parquet('/data/output/$SOURCE_SCHEMA/descriptions.parquet')) as tb2 \
-  on tb1.from_file=tb2.filename and tb1.variable=tb2.field;"
+  on tb1.from_file=tb2.filename and tb1.variable=tb2.field; \
+ALTER TABLE $SOURCE_SCHEMA.administrations alter value type double; \
+ALTER TABLE $SOURCE_SCHEMA.administrations alter value0 type double; \
+ALTER TABLE $SOURCE_SCHEMA.administrations alter value1 type double; \"
 
 duckdb $DB_DBNAME -c "$exec_command"
