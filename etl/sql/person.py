@@ -10,6 +10,8 @@ from sqlalchemy.sql.functions import concat
 from etl.csv.lookups import generate_lookup_case, get_concept_lookup_dict
 from etl.models.omopcdm54.clinical import Person as OmopPerson
 from etl.models.source import Person as SourcePerson
+from etl.sql import DEPARTMENT_SHAK_CODE
+from etl.util.db import get_environment_variable
 
 GENDER_CONCEPT_ID_LOOKUP: Final[Dict[str, int]] = get_concept_lookup_dict(
     OmopPerson.__tablename__
@@ -19,6 +21,18 @@ GENDER_CONCEPT_ID_CASE: Final[Case] = generate_lookup_case(
     GENDER_CONCEPT_ID_LOOKUP, SourcePerson.c_kon
 )
 
+
+is_person_from_registry = (
+    get_environment_variable("PERSON_FROM_REGISTRY", default="TRUE") == "TRUE"
+)
+
+hash_person_id_func = (
+    func.floor(func.hash(SourcePerson.cpr_enc) / 2)
+    if is_person_from_registry
+    else func.floor(
+        func.hash(concat(DEPARTMENT_SHAK_CODE, "|", SourcePerson.cpr_enc)) / 2
+    )
+)
 
 PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
     names=[
@@ -44,7 +58,7 @@ PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
             0,
             concat(SourcePerson.cpr_enc.key, "|", SourcePerson.cpr_enc),
             concat(SourcePerson.c_kon.key, "|", SourcePerson.c_kon),
-            func.floor(func.hash(SourcePerson.cpr_enc) / 2),
+            hash_person_id_func,
         ],
     )
     .select_from(SourcePerson)

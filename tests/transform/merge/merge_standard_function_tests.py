@@ -35,7 +35,6 @@ class MergeStandardFunction(DuckDBBaseTest):
     INPUT_SITE2_VISIT_OCCURRENCE = f"{base_path()}/test_data/merge/in_site2_visit_occurrence.csv"
     INPUT_MERGED_VISIT_OCCURRENCE = f"{base_path()}/test_data/merge/in_merge_visit_occurrence.csv"
     OUT_MERGED_MEASUREMENT = f"{base_path()}/test_data/merge/out_merge_measurement.csv"
-    OUT_MERGED_MEASUREMENT_NO_REMAP = f"{base_path()}/test_data/merge/out_merge_measurement_no_remap.csv"
 
     def setUp(self):
         super().setUp()
@@ -55,10 +54,8 @@ class MergeStandardFunction(DuckDBBaseTest):
         self.in_site1_measurement = pd.read_csv(self.INPUT_SITE1_MEASUREMENT, index_col=False, sep=';')
         self.in_site2_measurement = pd.read_csv(self.INPUT_SITE2_MEASUREMENT, index_col=False, sep=';')
         self.expected_df = pd.read_csv(self.OUT_MERGED_MEASUREMENT, index_col=False, sep=';', parse_dates=['measurement_date', 'measurement_datetime'])
-        self.expected_df_no_remap = pd.read_csv(self.OUT_MERGED_MEASUREMENT_NO_REMAP, index_col=False, sep=';', parse_dates=['measurement_date', 'measurement_datetime'])
 
         self.expected_cols = [getattr(self.MODELS[-1], col) for col in self.expected_df.columns.to_list() if col not in {"_id"}]
-        self.expected_cols_no_remap = [getattr(self.MODELS[-1], col) for col in self.expected_df_no_remap.columns.to_list() if col not in {"_id"}]
         self._insert_test_data(self.engine)
 
 
@@ -88,15 +85,13 @@ class MergeStandardFunction(DuckDBBaseTest):
             care_site_site2 = session.execute(_sql_get_care_site("site2")).fetchone()
             self.assertEqual(care_site_site2[0], 2)
 
-    def test_transform_with_remapping(self):
+    def test_merge_when_person_is_from_registry(self):
 
         with session_context(make_db_session(self.engine)) as session:
             session.execute(
                 _sql_merge_cdm_table(
                     "site1", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
-                    skip_person_remap=False,
-                    care_site_id=1
                 )
             )
 
@@ -104,8 +99,6 @@ class MergeStandardFunction(DuckDBBaseTest):
                 _sql_merge_cdm_table(
                     "site2", Measurement,
                     cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
-                    skip_person_remap=False,
-                    care_site_id=2
                 )
             )
 
@@ -115,34 +108,6 @@ class MergeStandardFunction(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
         pd.testing.assert_frame_equal(result_df, self.expected_df)
-
-    def test_transform_without_remapping(self):
-
-        with session_context(make_db_session(self.engine)) as session:
-            session.execute(
-                _sql_merge_cdm_table(
-                    "site1", Measurement,
-                    cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
-                    skip_person_remap=True,
-                    care_site_id=1
-                )
-            )
-
-            session.execute(
-                _sql_merge_cdm_table(
-                    "site2", Measurement,
-                    cdm_columns=[c for c in Measurement.__table__.columns if c.key not in Measurement.__table__.primary_key.columns],
-                    skip_person_remap=True,
-                    care_site_id=2
-                )
-            )
-
-            result = select(self.expected_cols_no_remap).subquery()
-            result_df = enforce_dtypes(
-                self.expected_df_no_remap,
-                pd.DataFrame(session.query(result).all())
-            )
-        pd.testing.assert_frame_equal(result_df, self.expected_df_no_remap)
 
 
 __all__ = ["MergeStandardFunction"]

@@ -21,49 +21,17 @@ def _sql_merge_cdm_table(
     schema: str,
     cdm_table: OmopCdmModelBase,
     cdm_columns: List[Column],
-    skip_person_remap: bool = False,
-    care_site_id: int = None,
 ):
     """Generate SQL for merge (union) a CDM table based on a list of columns."""
 
     selected_cols = ", ".join([f"{schema}.{c}" for c in cdm_columns])
     joins = ""
 
-    run_person_remap = (
-        not skip_person_remap
-        and cdm_table.__table__.name != Person.__table__.name
-        and any(c.name == "person_id" for c in cdm_columns)
-    )
-
-    run_care_site_id_remap = (
-        cdm_table.__table__.name == VisitOccurrence.__table__.name
-    )
-
-    run_visit_id_remap = (
-        any(c.name == "visit_occurrence_id" for c in cdm_columns)
-        and cdm_table.__table__.name != VisitOccurrence.__table__.name
-    )
-
-    if run_person_remap:
-        remapped_col = f"{schema}.{cdm_table.person_id.expression}"
-        s, j = remap_person_id(schema, remapped_col, Person)
-        selected_cols = selected_cols.replace(remapped_col, s)
-        joins += j
-
-    if run_care_site_id_remap:
+    if cdm_table.__table__.name == VisitOccurrence.__table__.name:
         remapped_col = (
             f"{schema}.{getattr(VisitOccurrence.care_site_id, 'expression')}"
         )
         s, j = remap_care_site_id(schema, remapped_col, CareSite)
-        selected_cols = selected_cols.replace(remapped_col, s)
-        joins += j
-
-    if run_visit_id_remap:
-        assert care_site_id, "Care site id is required for visit id remap."
-        remapped_col = f"{schema}.{cdm_table.visit_occurrence_id.expression}"
-        s, j = remap_visit_id(
-            schema, remapped_col, VisitOccurrence, care_site_id
-        )
         selected_cols = selected_cols.replace(remapped_col, s)
         joins += j
 
@@ -81,7 +49,6 @@ def merge_cdm_table(
     session: AbstractSession,
     cdm_table: OmopCdmModelBase,
     logger: Logger = getLogger(),
-    cdm_columns: List[str] = None,
 ) -> None:
     """
     Merge (union) a CDM table based on a list of columns.
@@ -91,33 +58,29 @@ def merge_cdm_table(
     """
     schemas = get_source_cdm_schemas(session)
 
-    skip_person_remap = (
-        get_environment_variable("SKIP_PERSON_REMAP", default="TRUE") == "TRUE"
+    is_person_from_registry = (
+        get_environment_variable("PERSON_FROM_REGISTRY", default="TRUE")
+        == "TRUE"
     )
 
-    if not cdm_columns:
-        cdm_columns = [
-            c
-            for c in cdm_table.__table__.columns
-            if c.key not in cdm_table.__table__.primary_key.columns
-        ]
+    merging_death = cdm_table.__table__.name == Death.__table__.name
+    merging_person = cdm_table.__table__.name == Person.__table__.name
+    merging_visit_occurrence = (
+        cdm_table.__table__.name == VisitOccurrence.__table__.name
+    )
 
-    if skip_person_remap and cdm_table.__table__.name == Person.__table__.name:
-        schemas = schemas[0:1]
-        cdm_columns.append(Person.person_id.expression)
+    cdm_columns = [
+        c
+        for c in cdm_table.__table__.columns
+        if c.key not in cdm_table.__table__.primary_key.columns
+        or (merging_person or merging_visit_occurrence)
+    ]
 
-    if skip_person_remap and cdm_table.__table__.name == Death.__table__.name:
+    if is_person_from_registry and (merging_person or merging_death):
         schemas = schemas[0:1]
 
     for schema in schemas:
-        care_site_id = session.execute(_sql_get_care_site(schema)).fetchone()
-
-        if care_site_id:
-            care_site_id = care_site_id[0]
-
-        merge_sql = _sql_merge_cdm_table(
-            schema, cdm_table, cdm_columns, skip_person_remap, care_site_id
-        )
+        merge_sql = _sql_merge_cdm_table(schema, cdm_table, cdm_columns)
         session.execute(merge_sql)
         logger.debug(
             "\tIntermediate merge step. Merged %s records into %s from %s",
@@ -178,22 +141,6 @@ def remap_care_site_id(
                 ON {remapped_col} = site_care_site.care_site_id
                 INNER JOIN {care_site_table.__table__} AS merge_care_site
                 ON site_care_site.care_site_source_value = merge_care_site.care_site_source_value"""
-
-    return selects, joins
-
-
-def remap_visit_id(
-    schema: str, remapped_col, visit_table: OmopCdmModelBase, care_site_id: int
-):
-    """Remap Visit IDs in a CDM table."""
-    selects = (
-        "merge_visit_occurrence.visit_occurrence_id as visit_occurrence_id"
-    )
-    joins = f""" INNER JOIN {schema}.{visit_table.__tablename__} AS site_visit_occurrence
-                ON {remapped_col} = site_visit_occurrence.visit_occurrence_id
-                INNER JOIN {visit_table.__table__} AS merge_visit_occurrence
-                ON site_visit_occurrence.visit_source_value = merge_visit_occurrence.visit_source_value
-                AND merge_visit_occurrence.care_site_id = {care_site_id}"""
 
     return selects, joins
 
