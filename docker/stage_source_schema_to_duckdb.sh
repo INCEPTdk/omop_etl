@@ -31,6 +31,6 @@ create table $SOURCE_SCHEMA. observations as \
   on tb1.from_file=tb2.filename and tb1.variable=tb2.field; \
 ALTER TABLE $SOURCE_SCHEMA.administrations alter value type double; \
 ALTER TABLE $SOURCE_SCHEMA.administrations alter value0 type double; \
-ALTER TABLE $SOURCE_SCHEMA.administrations alter value1 type double; \"
+ALTER TABLE $SOURCE_SCHEMA.administrations alter value1 type double; "
 
 duckdb $DB_DBNAME -c "$exec_command"
