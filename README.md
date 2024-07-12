@@ -14,7 +14,7 @@ The singularity container has to be build on the host machine (currently using b
 
 ### Step 1. Check files
 Check that `rigs-etl.latest.sif` is in the correct location (following examples assume it is at `/data/singularity/rigs-etl.latest.sif`)
-Check that a file with all the env variables is in the same location as where the singularity is executed. This file would look like:
+Check that a file with all the env variables is in the same location where the singularity is executed. This file would look like:
 
 ```bash
 DB_DBMS=duckdb
@@ -26,6 +26,7 @@ DB_PASSWORD=none
 VERBOSITY_LEVEL=DEBUG
 SOURCE_SCHEMA=source
 TARGET_SCHEMA=omopcdm
+REGISTRY_SCHEMA=registries
 INCLUDE_UNMAPPED_CODES=FALSE
 NUM_THREADS=30
 MAX_MEMORY_LIMIT=120gb
@@ -80,6 +81,13 @@ In order to load the vocab into the database you can run the following command (
 
 ```bash
 singularity exec --bind /path/to/database:/data --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/stage_vocab_to_duckdb.sh
+```
+
+### Load registry into the database
+In order to load the registries into the database you can run the following command (you need to bind the right folder to /data and /vocab):
+
+```bash
+singularity exec --bind /path/to/database:/data --bind /path/to/vocab:/vocab --env-file rigs-etl-duckdb.env --pwd /etl --writable /data/singularity/rigs-etl.latest.sif /etl/docker/stage_registries_to_duckdb.sh
 ```
 
 ### Run the main ETL
