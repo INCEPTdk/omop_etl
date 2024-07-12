@@ -63,15 +63,6 @@ def merge_cdm_table(
         == "TRUE"
     )
 
-    if not is_person_from_registry:
-        raise NotImplementedError(
-            """
-        PERSON_FROM_REGISTRY is false. In order to use this flag the person id
-        has to be hashed in the same way as the visit_occurrence_id, i.e. using
-        both department_shak_code and person_source_value
-        """
-        )
-
     merging_death = cdm_table.__table__.name == Death.__table__.name
     merging_person = cdm_table.__table__.name == Person.__table__.name
     merging_visit_occurrence = (
