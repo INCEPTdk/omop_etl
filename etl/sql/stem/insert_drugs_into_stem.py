@@ -14,6 +14,7 @@ from sqlalchemy import (
     cast,
     insert,
     literal,
+    or_,
     select,
     union_all,
 )
@@ -54,7 +55,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     drug_mappings = session.query(ConceptLookupStem).where(criterion).all()
     drug_mappings = [row.__dict__ for row in drug_mappings]
 
-    drugs_with_data = set(session.scalars(select(Administrations.drug_name)))
+    drugs_with_data = set(
+        session.scalars(select(Administrations.drug_name).distinct())
+    )
     drugs_with_mappings = set(d["source_variable"] for d in drug_mappings)
     drugs_without_mappings = set(
         d for d in drugs_with_data if d not in drugs_with_mappings
@@ -175,7 +178,25 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 ConceptLookup.filter == "administration_route",
             ),
         )
-        .where(Administrations.drug_name.in_(drugs_with_mappings))
+        .where(
+            and_(
+                Administrations.drug_name.in_(drugs_with_mappings),
+                or_(
+                    and_(
+                        Administrations.from_file.like("3%"),
+                        Administrations.administration_type == "discrete",
+                    ),
+                    and_(
+                        Administrations.from_file.like("8%"),
+                        Administrations.administration_type == "continuous",
+                    ),
+                    and_(
+                        Administrations.from_file.like("9%"),
+                        Administrations.administration_type == "bolus",
+                    ),
+                ),
+            )
+        )
     )
 
     # Create SELECT statement for drugs without custom mappings
@@ -206,7 +227,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ).label("source_value"),
             null().label("source_concept_id"),
             null().label("value_as_number"),
-            ConceptLookup.concept_id.label("source_concept_id"),
+            ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             null().label("era_lookback_interval"),
             case(
@@ -261,7 +282,23 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             isouter=INCLUDE_UNMAPPED_CODES,
         )
         .where(
-            Administrations.drug_name.in_(drugs_without_mappings),
+            and_(
+                Administrations.drug_name.in_(drugs_without_mappings),
+                or_(
+                    and_(
+                        Administrations.from_file.like("3%"),
+                        Administrations.administration_type == "discrete",
+                    ),
+                    and_(
+                        Administrations.from_file.like("8%"),
+                        Administrations.administration_type == "continuous",
+                    ),
+                    and_(
+                        Administrations.from_file.like("9%"),
+                        Administrations.administration_type == "bolus",
+                    ),
+                ),
+            )
         )
     )
 
