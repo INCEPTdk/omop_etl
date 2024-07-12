@@ -72,7 +72,7 @@ class PersonIdMixin:
     @declared_attr
     # pylint: disable=no-self-argument
     def person_id(cls) -> Column:
-        return IntField(FK(Person.person_id), nullable=False)
+        return BigIntField(FK(Person.person_id), nullable=False)
 
 
 @register_omop_model
@@ -155,7 +155,7 @@ class VisitOccurrenceIdMixin:
     @declared_attr
     # pylint: disable=no-self-argument
     def visit_occurrence_id(cls) -> Column:
-        return IntField(FK(VisitOccurrence.visit_occurrence_id))
+        return BigIntField(FK(VisitOccurrence.visit_occurrence_id))
 
 
 @register_omop_model
@@ -560,7 +560,7 @@ class Stem(ModelBase):
     stem_id: Final[Column] = PKIntField(
         f"{ModelBase.metadata.schema}_{__tablename__}_id_seq"
     )
-    person_id: Final[Column] = IntField(FK(Person.person_id), nullable=False)
+    person_id: Final[Column] = BigIntField(FK(Person.person_id), nullable=False)
     concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True
     )
@@ -570,7 +570,7 @@ class Stem(ModelBase):
     end_datetime: Final[Column] = DateTimeField()
     type_concept_id: Final[Column] = IntField()
     provider_id: Final[Column] = IntField()
-    visit_occurrence_id: Final[Column] = IntField(
+    visit_occurrence_id: Final[Column] = BigIntField(
         FK(VisitOccurrence.visit_occurrence_id), nullable=True
     )
     visit_detail_id: Final[Column] = IntField(
