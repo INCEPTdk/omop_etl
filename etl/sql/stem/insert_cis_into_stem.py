@@ -43,6 +43,23 @@ def create_simple_stem_insert(
         ConceptLookupStem,
     )
 
+    value_source_value = func.coalesce(
+        get_case_statement(
+            value_as_number_column_name,
+            model,
+            TEXT,
+            "numerical",
+            ConceptLookupStem,
+        ),
+        get_case_statement(
+            value_as_string_column_name,
+            model,
+            TEXT,
+            "categorical",
+            ConceptLookupStem,
+        ),
+        cast(model.value, TEXT),
+    )
     conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
 
     StemSelect = (
@@ -64,7 +81,8 @@ def create_simple_stem_insert(
             ),
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
-            concat(model.variable, "__", cast(model.value, TEXT)),
+            concat(model.variable, "__", value_source_value),
+            value_source_value,
             ConceptLookupStem.uid,
             (conversion * value_as_number).label("value_as_number"),
             get_case_statement(
@@ -77,6 +95,7 @@ def create_simple_stem_insert(
             cast(ConceptLookupStem.value_as_concept_id, INT),
             cast(ConceptLookupStem.unit_concept_id, INT),
             ConceptLookupStem.unit_source_value,
+            ConceptLookupStem.unit_source_concept_id,
             cast(ConceptLookupStem.modifier_concept_id, INT),
             cast(ConceptLookupStem.operator_concept_id, INT),
             (conversion * ConceptLookupStem.range_low).label("range_low"),
@@ -124,12 +143,14 @@ def create_simple_stem_insert(
             OmopStem.type_concept_id,
             OmopStem.visit_occurrence_id,
             OmopStem.source_value,
+            OmopStem.value_source_value,
             OmopStem.source_concept_id,
             OmopStem.value_as_number,
             OmopStem.value_as_string,
             OmopStem.value_as_concept_id,
             OmopStem.unit_concept_id,
             OmopStem.unit_source_value,
+            OmopStem.unit_source_concept_id,
             OmopStem.modifier_concept_id,
             OmopStem.operator_concept_id,
             OmopStem.range_low,

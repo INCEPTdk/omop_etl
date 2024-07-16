@@ -90,6 +90,7 @@ class ConceptLookupStem(TempModelBase):
     value_as_string: Final[Column] = CharField(200)
     operator_concept_id: Final[Column] = IntField()
     unit_source_value: Final[Column] = CharField(50)
+    unit_source_concept_id: Final[Column] = IntField()
     unit_concept_id: Final[Column] = IntField()
     drug_exposure_type: Final[Column] = CharField(255)
     conversion: Final[Column] = CharField(255)
