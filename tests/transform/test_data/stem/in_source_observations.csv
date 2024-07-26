@@ -14,3 +14,4 @@ courseid;timestamp;variable;value;from_file
 2;1891-12-12 14:15:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;700;0-2.csv
 4;1818-12-12 14:15:00;po2-pO2, Unit: kPa, Aggregation: No aggregation, Period: Any;300;0-5.csv
 4;1824-07-26 10:36:00;abldt-Observations: ABL dato;18240726103600;2-123123.csv
+4;1824-07-26 12:29:00;ventilationmds-Ventilation modus, Aggregation: No aggregation, Period: Any;VC-MMV;2-123124.csv
