@@ -27,3 +27,38 @@ GI;4132161;administration_route
 IV;4171047;administration_route
 OR;4132161;administration_route
 SC;4142048;administration_route
+ASB/CPAP;45880365;ventilation_mode
+CPAP/ASB;45880365;ventilation_mode
+ CPAP/ASB;45880365;ventilation_mode
+SPN-CPAP;45880365;ventilation_mode
+mode SPN-CPAP;45880365;ventilation_mode
+PS/CPAP;45880365;ventilation_mode
+BNA;45878142;ventilation_mode
+VC-MMV;36310227;ventilation_mode
+CPAP;45880365;ventilation_mode
+ CPAP;45880365;ventilation_mode
+MMV/ASB/AutoFlow;36310227;ventilation_mode
+NPPV S/T;45880365;ventilation_mode
+VS(automode);45880365;ventilation_mode
+PRVC(automode);36308445;ventilation_mode
+PC/PS;36308106;ventilation_mode
+PC-BIPAP;36308445;ventilation_mode
+mode PC-BIPAP;36308445;ventilation_mode
+PRVC;36308445;ventilation_mode
+VM;36308445;ventilation_mode
+VC-CMV;36308445;ventilation_mode
+NIV;36308106;ventilation_mode
+IPPV/ASSIST/AUtoFlow;36308445;ventilation_mode
+PS(automode);45880365;ventilation_mode
+PC(automode);36308445;ventilation_mode
+NIV-PS;45880365;ventilation_mode
+PRVC/VS;36308106;ventilation_mode
+UIT;45878142;ventilation_mode
+IPPV/AutoFlow;36308445;ventilation_mode
+SN;45878142;ventilation_mode
+VC-AC;36308106;ventilation_mode
++PS;45880365;ventilation_mode
+TV;45878142;ventilation_mode
+MMV/AutoFlow;36310227;ventilation_mode
+MMV;36310227;ventilation_mode
+O2 Therapy;45878142;ventilation_mode
