@@ -20,7 +20,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.tempmodels import ConceptLookupStem
+from ...models.tempmodels import ConceptLookupStem, ConceptLookup
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -35,11 +35,20 @@ def create_simple_stem_insert(
     value_as_number_column_name: str = None,
     value_as_string_column_name: str = None,
 ) -> Insert:
+
     value_as_number = get_case_statement(
         value_as_number_column_name,
         model,
         FLOAT,
         "numerical",
+        ConceptLookupStem,
+    )
+
+    value_as_string = get_case_statement(
+        value_as_string_column_name,
+        model,
+        TEXT,
+        "text",
         ConceptLookupStem,
     )
 
@@ -51,16 +60,17 @@ def create_simple_stem_insert(
             "numerical",
             ConceptLookupStem,
         ),
-        get_case_statement(
-            value_as_string_column_name,
-            model,
-            TEXT,
-            "categorical",
-            ConceptLookupStem,
-        ),
+        value_as_string,
         cast(model.value, TEXT),
     )
+
     conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
+
+    get_value_as_concept_id_from_lookup = (
+        select(ConceptLookup.concept_id)
+        .where(ConceptLookup.concept_string == value_as_string)
+        .scalar_subquery()
+    )
 
     StemSelect = (
         select(
@@ -85,14 +95,11 @@ def create_simple_stem_insert(
             value_source_value,
             ConceptLookupStem.uid,
             (conversion * value_as_number).label("value_as_number"),
-            get_case_statement(
-                value_as_string_column_name,
-                model,
-                TEXT,
-                "categorical",
-                ConceptLookupStem,
-            ).label("value_as_string"),
-            cast(ConceptLookupStem.value_as_concept_id, INT),
+            value_as_string.label("value_as_string"),
+            func.coalesce(
+                cast(ConceptLookupStem.value_as_concept_id, INT),
+                get_value_as_concept_id_from_lookup,
+            ),
             cast(ConceptLookupStem.unit_concept_id, INT),
             ConceptLookupStem.unit_source_value,
             ConceptLookupStem.unit_source_concept_id,
@@ -122,6 +129,12 @@ def create_simple_stem_insert(
                 ),
                 and_(
                     ConceptLookupStem.value_type == "numerical",
+                    func.lower(ConceptLookupStem.source_variable)
+                    == func.lower(model.variable),
+                    ConceptLookupStem.datasource == model.__tablename__,
+                ),
+                and_(
+                    ConceptLookupStem.value_type == "text",
                     func.lower(ConceptLookupStem.source_variable)
                     == func.lower(model.variable),
                     ConceptLookupStem.datasource == model.__tablename__,
