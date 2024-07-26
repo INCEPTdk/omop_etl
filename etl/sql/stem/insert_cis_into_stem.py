@@ -20,7 +20,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.tempmodels import ConceptLookupStem, ConceptLookup
+from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .utils import (
     find_unique_column_names,
     get_case_statement,
