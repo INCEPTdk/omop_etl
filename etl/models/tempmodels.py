@@ -76,6 +76,7 @@ class ConceptLookupStem(TempModelBase):
     value_definition: Final[Column] = CharField(200)
     start_date: Final[Column] = CharField(50)
     end_date: Final[Column] = CharField(50)
+    timezone: Final[Column] = CharField(50)
     provider: Final[Column] = CharField(50)
     care_site: Final[Column] = CharField(50)
     type_concept_id: Final[Column] = IntField()
