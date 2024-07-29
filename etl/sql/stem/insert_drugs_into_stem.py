@@ -12,6 +12,7 @@ from sqlalchemy import (
     and_,
     case,
     cast,
+    func,
     insert,
     literal,
     or_,
@@ -99,14 +100,27 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         session, Administrations, ConceptLookupStem, "end_date"
     )
 
-    start_datetime = get_case_statement(
-        unique_end_datetime, Administrations, TIMESTAMP
-    ) - case(
-        (
-            Administrations.administration_type == "continuous",
-            text("INTERVAL 59 seconds"),
+    timezone = case(
+        (Administrations.from_file.like("8%"), "UTC"),
+        (Administrations.from_file.like("9%"), "UTC"),
+        else_="Europe/Copenhagen",
+    )
+
+    end_datetime = func.timezone(
+        timezone,
+        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP),
+    )
+
+    start_datetime = func.timezone(
+        timezone,
+        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP)
+        - case(
+            (
+                Administrations.administration_type == "continuous",
+                text("INTERVAL 59 seconds"),
+            ),
+            else_=text("INTERVAL 0 seconds"),
         ),
-        else_=text("INTERVAL 0 seconds"),
     )
 
     unique_route_source_value = find_unique_column_names(
@@ -126,12 +140,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ),
             cast(start_datetime, DATE).label("start_date"),
             cast(start_datetime, TIMESTAMP).label("start_datetime"),
-            get_case_statement(
-                unique_end_datetime, Administrations, DATE
-            ).label("end_date"),
-            get_case_statement(
-                unique_end_datetime, Administrations, TIMESTAMP
-            ).label("end_datetime"),
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(
@@ -212,12 +222,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopConcept2.concept_id.label("concept_id"),
             cast(start_datetime, DATE).label("start_date"),
             cast(start_datetime, TIMESTAMP).label("start_datetime"),
-            get_case_statement(
-                unique_end_datetime, Administrations, DATE
-            ).label("end_date"),
-            get_case_statement(
-                unique_end_datetime, Administrations, TIMESTAMP
-            ).label("end_datetime"),
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             literal(CONCEPT_ID_EHR).label("type_concept_id"),
             VisitOccurrence.visit_occurrence_id,
             concat(
