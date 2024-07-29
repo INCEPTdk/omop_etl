@@ -20,7 +20,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.tempmodels import ConceptLookup, ConceptLookupStem
+from ...models.tempmodels import ConceptLookup
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -30,6 +30,7 @@ from .utils import (
 
 def create_simple_stem_insert(
     model: Any = None,
+    concept_lookup_stem_cte: Any = None,
     unique_start_date: str = None,
     unique_end_date: str = None,
     value_as_number_column_name: str = None,
@@ -41,7 +42,7 @@ def create_simple_stem_insert(
         model,
         FLOAT,
         "numerical",
-        ConceptLookupStem,
+        concept_lookup_stem_cte.c,
     )
 
     value_as_string = get_case_statement(
@@ -49,7 +50,7 @@ def create_simple_stem_insert(
         model,
         TEXT,
         "text",
-        ConceptLookupStem,
+        concept_lookup_stem_cte.c,
     )
 
     value_source_value = func.coalesce(
@@ -58,13 +59,15 @@ def create_simple_stem_insert(
             model,
             TEXT,
             "numerical",
-            ConceptLookupStem,
+            concept_lookup_stem_cte.c,
         ),
         value_as_string,
         cast(model.value, TEXT),
     )
 
-    conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
+    conversion = func.coalesce(
+        cast(concept_lookup_stem_cte.c.conversion, FLOAT), 1.0
+    )
 
     get_value_as_concept_id_from_lookup = (
         select(ConceptLookup.concept_id)
@@ -74,9 +77,9 @@ def create_simple_stem_insert(
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain.label("domain_id"),
+            concept_lookup_stem_cte.c.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
-            cast(ConceptLookupStem.mapped_standard_code, INT).label(
+            cast(concept_lookup_stem_cte.c.mapped_standard_code, INT).label(
                 "concept_id"
             ),
             get_case_statement(unique_start_date, model, DATE).label(
@@ -89,27 +92,31 @@ def create_simple_stem_insert(
             get_case_statement(unique_end_date, model, TIMESTAMP).label(
                 "end_datetime"
             ),
-            cast(ConceptLookupStem.type_concept_id, INT),
+            cast(concept_lookup_stem_cte.c.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(model.variable, "__", value_source_value),
             value_source_value,
-            ConceptLookupStem.uid,
+            concept_lookup_stem_cte.c.uid,
             (conversion * value_as_number).label("value_as_number"),
             value_as_string.label("value_as_string"),
             func.coalesce(
-                cast(ConceptLookupStem.value_as_concept_id, INT),
+                cast(concept_lookup_stem_cte.c.value_as_concept_id, INT),
                 get_value_as_concept_id_from_lookup,
             ),
-            cast(ConceptLookupStem.unit_concept_id, INT),
-            ConceptLookupStem.unit_source_value,
-            ConceptLookupStem.unit_source_concept_id,
-            cast(ConceptLookupStem.modifier_concept_id, INT),
-            cast(ConceptLookupStem.operator_concept_id, INT),
-            (conversion * ConceptLookupStem.range_low).label("range_low"),
-            (conversion * ConceptLookupStem.range_high).label("range_high"),
-            ConceptLookupStem.stop_reason,
-            cast(ConceptLookupStem.route_concept_id, INT),
-            ConceptLookupStem.route_source_value,
+            cast(concept_lookup_stem_cte.c.unit_concept_id, INT),
+            concept_lookup_stem_cte.c.unit_source_value,
+            concept_lookup_stem_cte.c.unit_source_concept_id,
+            cast(concept_lookup_stem_cte.c.modifier_concept_id, INT),
+            cast(concept_lookup_stem_cte.c.operator_concept_id, INT),
+            (conversion * concept_lookup_stem_cte.c.range_low).label(
+                "range_low"
+            ),
+            (conversion * concept_lookup_stem_cte.c.range_high).label(
+                "range_high"
+            ),
+            concept_lookup_stem_cte.c.stop_reason,
+            cast(concept_lookup_stem_cte.c.route_concept_id, INT),
+            concept_lookup_stem_cte.c.route_source_value,
             literal(model.__tablename__).label("datasource"),
         )
         .select_from(model)
@@ -119,25 +126,25 @@ def create_simple_stem_insert(
             == concat("courseid|", model.courseid),
         )
         .join(
-            ConceptLookupStem,
+            concept_lookup_stem_cte,
             or_(
                 and_(
-                    ConceptLookupStem.value_type == "categorical",
-                    func.lower(ConceptLookupStem.source_concept_code)
+                    concept_lookup_stem_cte.c.value_type == "categorical",
+                    func.lower(concept_lookup_stem_cte.c.source_concept_code)
                     == func.lower(concat(model.variable, "__", model.value)),
-                    ConceptLookupStem.datasource == model.__tablename__,
+                    concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
                 and_(
-                    ConceptLookupStem.value_type == "numerical",
-                    func.lower(ConceptLookupStem.source_variable)
+                    concept_lookup_stem_cte.c.value_type == "numerical",
+                    func.lower(concept_lookup_stem_cte.c.source_variable)
                     == func.lower(model.variable),
-                    ConceptLookupStem.datasource == model.__tablename__,
+                    concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
                 and_(
-                    ConceptLookupStem.value_type == "text",
-                    func.lower(ConceptLookupStem.source_variable)
+                    concept_lookup_stem_cte.c.value_type == "text",
+                    func.lower(concept_lookup_stem_cte.c.source_variable)
                     == func.lower(model.variable),
-                    ConceptLookupStem.datasource == model.__tablename__,
+                    concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
@@ -178,25 +185,31 @@ def create_simple_stem_insert(
 
 
 @toggle_stem_transform
-def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
+def get_nondrug_stem_insert(
+    session: Any = None,
+    model: Any = None,
+    concept_lookup_stem_cte: Any = None,
+) -> Insert:
+
     unique_start_date_columns = find_unique_column_names(
-        session, model, ConceptLookupStem, "start_date"
+        session, model, concept_lookup_stem_cte.c, "start_date"
     )
 
     unique_end_date_columns = find_unique_column_names(
-        session, model, ConceptLookupStem, "end_date"
+        session, model, concept_lookup_stem_cte.c, "end_date"
     )
 
     unique_value_as_number_columns = find_unique_column_names(
-        session, model, ConceptLookupStem, "value_as_number"
+        session, model, concept_lookup_stem_cte.c, "value_as_number"
     )
 
     unique_value_as_string_columns = find_unique_column_names(
-        session, model, ConceptLookupStem, "value_as_string"
+        session, model, concept_lookup_stem_cte.c, "value_as_string"
     )
 
     return create_simple_stem_insert(
         model,
+        concept_lookup_stem_cte,
         unique_start_date_columns,
         unique_end_date_columns,
         unique_value_as_number_columns,
