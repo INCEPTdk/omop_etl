@@ -50,7 +50,7 @@ def create_simple_stem_insert(
         model,
         TEXT,
         "free_text",
-        ConceptLookupStem,
+        concept_lookup_stem_cte.c,
     )
 
     value_source_value = func.coalesce(
