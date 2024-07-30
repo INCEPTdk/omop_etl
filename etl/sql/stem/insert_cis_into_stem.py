@@ -20,7 +20,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.tempmodels import ConceptLookupStem
+from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -35,6 +35,7 @@ def create_simple_stem_insert(
     value_as_number_column_name: str = None,
     value_as_string_column_name: str = None,
 ) -> Insert:
+
     value_as_number = get_case_statement(
         value_as_number_column_name,
         model,
@@ -43,7 +44,33 @@ def create_simple_stem_insert(
         ConceptLookupStem,
     )
 
+    value_as_string = get_case_statement(
+        value_as_string_column_name,
+        model,
+        TEXT,
+        "free_text",
+        ConceptLookupStem,
+    )
+
+    value_source_value = func.coalesce(
+        get_case_statement(
+            value_as_number_column_name,
+            model,
+            TEXT,
+            "numerical",
+            ConceptLookupStem,
+        ),
+        value_as_string,
+        cast(model.value, TEXT),
+    )
+
     conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
+
+    value_as_concept_id_from_lookup = (
+        select(ConceptLookup.concept_id)
+        .where(ConceptLookup.concept_string == value_as_string)
+        .scalar_subquery()
+    )
 
     StemSelect = (
         select(
@@ -64,19 +91,18 @@ def create_simple_stem_insert(
             ),
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
-            concat(model.variable, "__", cast(model.value, TEXT)),
+            concat(model.variable, "__", value_source_value),
+            value_source_value,
             ConceptLookupStem.uid,
             (conversion * value_as_number).label("value_as_number"),
-            get_case_statement(
-                value_as_string_column_name,
-                model,
-                TEXT,
-                "categorical",
-                ConceptLookupStem,
-            ).label("value_as_string"),
-            cast(ConceptLookupStem.value_as_concept_id, INT),
+            value_as_string.label("value_as_string"),
+            func.coalesce(
+                cast(ConceptLookupStem.value_as_concept_id, INT),
+                value_as_concept_id_from_lookup,
+            ),
             cast(ConceptLookupStem.unit_concept_id, INT),
             ConceptLookupStem.unit_source_value,
+            ConceptLookupStem.unit_source_concept_id,
             cast(ConceptLookupStem.modifier_concept_id, INT),
             cast(ConceptLookupStem.operator_concept_id, INT),
             (conversion * ConceptLookupStem.range_low).label("range_low"),
@@ -107,6 +133,12 @@ def create_simple_stem_insert(
                     == func.lower(model.variable),
                     ConceptLookupStem.datasource == model.__tablename__,
                 ),
+                and_(
+                    ConceptLookupStem.value_type == "free_text",
+                    func.lower(ConceptLookupStem.source_variable)
+                    == func.lower(model.variable),
+                    ConceptLookupStem.datasource == model.__tablename__,
+                ),
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
@@ -124,12 +156,14 @@ def create_simple_stem_insert(
             OmopStem.type_concept_id,
             OmopStem.visit_occurrence_id,
             OmopStem.source_value,
+            OmopStem.value_source_value,
             OmopStem.source_concept_id,
             OmopStem.value_as_number,
             OmopStem.value_as_string,
             OmopStem.value_as_concept_id,
             OmopStem.unit_concept_id,
             OmopStem.unit_source_value,
+            OmopStem.unit_source_concept_id,
             OmopStem.modifier_concept_id,
             OmopStem.operator_concept_id,
             OmopStem.range_low,

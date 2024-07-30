@@ -128,6 +128,8 @@ def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
 
     sorted_df1 = df1.sort_values(by=column_names).reset_index(drop=True)
     sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
+    sorted_df1 = sorted_df1.where(pd.notna(sorted_df1), None)
+    sorted_df2 = sorted_df2.where(pd.notna(sorted_df2), None)
 
     pd.testing.assert_frame_equal(
         sorted_df1,
