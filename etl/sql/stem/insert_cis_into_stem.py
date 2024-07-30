@@ -66,7 +66,7 @@ def create_simple_stem_insert(
 
     conversion = func.coalesce(cast(ConceptLookupStem.conversion, FLOAT), 1.0)
 
-    get_value_as_concept_id_from_lookup = (
+    value_as_concept_id_from_lookup = (
         select(ConceptLookup.concept_id)
         .where(ConceptLookup.concept_string == value_as_string)
         .scalar_subquery()
@@ -98,7 +98,7 @@ def create_simple_stem_insert(
             value_as_string.label("value_as_string"),
             func.coalesce(
                 cast(ConceptLookupStem.value_as_concept_id, INT),
-                get_value_as_concept_id_from_lookup,
+                value_as_concept_id_from_lookup,
             ),
             cast(ConceptLookupStem.unit_concept_id, INT),
             ConceptLookupStem.unit_source_value,
