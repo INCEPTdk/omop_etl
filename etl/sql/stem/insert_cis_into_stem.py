@@ -49,8 +49,8 @@ def create_simple_stem_insert(
         value_as_string_column_name,
         model,
         TEXT,
-        "text",
-        concept_lookup_stem_cte.c,
+        "free_text",
+        ConceptLookupStem,
     )
 
     value_source_value = func.coalesce(
@@ -69,7 +69,7 @@ def create_simple_stem_insert(
         cast(concept_lookup_stem_cte.c.conversion, FLOAT), 1.0
     )
 
-    get_value_as_concept_id_from_lookup = (
+    value_as_concept_id_from_lookup = (
         select(ConceptLookup.concept_id)
         .where(ConceptLookup.concept_string == value_as_string)
         .scalar_subquery()
@@ -101,7 +101,7 @@ def create_simple_stem_insert(
             value_as_string.label("value_as_string"),
             func.coalesce(
                 cast(concept_lookup_stem_cte.c.value_as_concept_id, INT),
-                get_value_as_concept_id_from_lookup,
+                value_as_concept_id_from_lookup,
             ),
             cast(concept_lookup_stem_cte.c.unit_concept_id, INT),
             concept_lookup_stem_cte.c.unit_source_value,
@@ -141,7 +141,7 @@ def create_simple_stem_insert(
                     concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
                 and_(
-                    concept_lookup_stem_cte.c.value_type == "text",
+                    concept_lookup_stem_cte.c.value_type == "free_text",
                     func.lower(concept_lookup_stem_cte.c.source_variable)
                     == func.lower(model.variable),
                     concept_lookup_stem_cte.c.datasource == model.__tablename__,
