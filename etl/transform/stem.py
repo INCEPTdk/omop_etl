@@ -1,6 +1,7 @@
 """Stem transformations"""
 
 import logging
+import os
 from typing import List
 
 from sqlalchemy import and_, select
@@ -21,8 +22,9 @@ from ..models.source import (
 from ..sql.stem import (
     get_drug_stem_insert,
     get_laboratory_stem_insert,
-    get_nondrug_stem_insert,
+    get_mapped_nondrug_stem_insert,
     get_registry_stem_insert,
+    get_unmapped_nondrug_stem_insert,
 )
 from ..util.db import AbstractSession
 
@@ -84,18 +86,29 @@ def transform(session: AbstractSession) -> None:
                 batch,
             )
             session.execute(
-                get_nondrug_stem_insert(
+                get_mapped_nondrug_stem_insert(
                     session, model, concept_lookup_stem_batch
                 )
             )
 
         logger.info(
-            "STEM Transform in Progress, %s Events Included from source %s.",
+            "STEM Transform in Progress, %s Events Included from mapped nondrug source %s.",
             session.query(OmopStem)
             .where(OmopStem.datasource == model.__tablename__)
             .count(),
             model.__tablename__,
         )
+
+        if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
+            session.execute(get_unmapped_nondrug_stem_insert(model))
+
+            logger.info(
+                "STEM Transform in Progress, %s Events including unmapped nondrug source %s.",
+                session.query(OmopStem)
+                .where(OmopStem.datasource == model.__tablename__)
+                .count(),
+                model.__tablename__,
+            )
 
     logger.info("DRUG source data to the STEM table...")
     session.execute(get_drug_stem_insert(session, logger))

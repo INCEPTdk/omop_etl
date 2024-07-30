@@ -1,6 +1,5 @@
 """ SQL query string definition for the stem functions"""
 
-import os
 from typing import Any
 
 from sqlalchemy import (
@@ -10,6 +9,7 @@ from sqlalchemy import (
     TEXT,
     TIMESTAMP,
     and_,
+    case,
     cast,
     insert,
     literal,
@@ -20,7 +20,7 @@ from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
-from ...models.tempmodels import ConceptLookup
+from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -75,7 +75,7 @@ def create_simple_stem_insert(
         .scalar_subquery()
     )
 
-    StemSelect = (
+    StemSelectMapped = (
         select(
             concept_lookup_stem_cte.c.std_code_domain.label("domain_id"),
             VisitOccurrence.person_id,
@@ -147,10 +147,8 @@ def create_simple_stem_insert(
                     concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
             ),
-            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
         )
     )
-
     return insert(OmopStem).from_select(
         names=[
             OmopStem.domain_id,
@@ -180,12 +178,74 @@ def create_simple_stem_insert(
             OmopStem.route_source_value,
             OmopStem.datasource,
         ],
-        select=StemSelect,
+        select=StemSelectMapped,
+    )
+
+
+def get_unmapped_nondrug_stem_insert(
+    model: Any = None,
+) -> Insert:
+
+    value_source_value = cast(model.value, TEXT)
+
+    StemSelectUnmapped = (
+        select(
+            VisitOccurrence.person_id,
+            VisitOccurrence.visit_occurrence_id,
+            cast(model.timestamp, DATE).label("start_date"),
+            cast(model.timestamp, TIMESTAMP).label("start_datetime"),
+            concat(model.variable, "__", value_source_value),
+            value_source_value,
+            literal(model.__tablename__).label("datasource"),
+        )
+        .select_from(model)
+        .join(
+            VisitOccurrence,
+            VisitOccurrence.visit_source_value
+            == concat("courseid|", model.courseid),
+        )
+        .where(
+            case(
+                (
+                    and_(
+                        model.variable.in_(
+                            select(ConceptLookupStem.source_variable).where(
+                                ConceptLookupStem.value_type == "categorical"
+                            )
+                        ).is_(True),
+                        concat(model.variable, "__", value_source_value)
+                        .in_(select(ConceptLookupStem.source_concept_code))
+                        .isnot(True),
+                    ),
+                    True,
+                ),
+                (
+                    model.variable.in_(
+                        select(ConceptLookupStem.source_variable)
+                    ),
+                    False,
+                ),
+                else_=True,
+            )
+        )
+    )
+
+    return insert(OmopStem).from_select(
+        names=[
+            OmopStem.person_id,
+            OmopStem.visit_occurrence_id,
+            OmopStem.start_date,
+            OmopStem.start_datetime,
+            OmopStem.source_value,
+            OmopStem.value_source_value,
+            OmopStem.datasource,
+        ],
+        select=StemSelectUnmapped,
     )
 
 
 @toggle_stem_transform
-def get_nondrug_stem_insert(
+def get_mapped_nondrug_stem_insert(
     session: Any = None,
     model: Any = None,
     concept_lookup_stem_cte: Any = None,
