@@ -48,7 +48,7 @@ def create_simple_stem_insert(
         value_as_string_column_name,
         model,
         TEXT,
-        "text",
+        "free_text",
         ConceptLookupStem,
     )
 
@@ -134,7 +134,7 @@ def create_simple_stem_insert(
                     ConceptLookupStem.datasource == model.__tablename__,
                 ),
                 and_(
-                    ConceptLookupStem.value_type == "text",
+                    ConceptLookupStem.value_type == "free_text",
                     func.lower(ConceptLookupStem.source_variable)
                     == func.lower(model.variable),
                     ConceptLookupStem.datasource == model.__tablename__,
