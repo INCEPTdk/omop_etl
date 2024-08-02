@@ -27,6 +27,7 @@ from .models.omopcdm54 import (
 )
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.cdm_source import transform as cdm_source_transform
 from .transform.condition_era import transform as condition_era_transform
 from .transform.condition_occurrence import (
     transform as condition_occurrence_transform,
@@ -176,6 +177,15 @@ def run_etl(
                 session=session,
                 func=create_omop_tables,
                 description="Create OMOP tables",
+            ),
+        ),
+        (
+            -1,
+            SessionOperation(
+                key=str(CDMSource.__table__),
+                session=session,
+                func=cdm_source_transform,
+                description="CDMSource transform",
             ),
         ),
         (
@@ -362,6 +372,15 @@ def run_merge(session: AbstractSession) -> None:
                 session=session,
                 func=create_omop_tables,
                 description="Create OMOP tables",
+            ),
+        ),
+        (
+            -1,
+            SessionOperation(
+                key=str(CDMSource.__table__),
+                session=session,
+                func=cdm_source_transform,
+                description="CDMSource transform",
             ),
         ),
         (
