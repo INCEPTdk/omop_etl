@@ -3,6 +3,7 @@ import types
 from datetime import datetime
 
 from sqlalchemy import insert, update
+from sqlalchemy.exc import ProgrammingError
 
 from etl.models.omopcdm54 import CDMSummary
 from etl.util.db import AbstractSession, FakeSession
@@ -13,15 +14,18 @@ def with_log_to_summary_table(func) -> types.FunctionType:
     def wrapper(obj, *args, **kwargs):
         start_datetime = datetime.now()
         result = func(obj, *args, **kwargs)
-        
         if not isinstance(obj.session, FakeSession):
-            log_transform_to_summary_table(
-                obj.session,
-                transform_name=obj.key,
-                start_transform_datetime=start_datetime,
-                end_transform_datetime=datetime.now(),
-                memory_used=get_memory_use(),
-            )
+            try:
+                log_transform_to_summary_table(
+                    obj.session,
+                    transform_name=obj.key,
+                    start_transform_datetime=start_datetime,
+                    end_transform_datetime=datetime.now(),
+                    memory_used=get_memory_use(),
+                )
+            except ProgrammingError as e:
+                if "cdm_summary does not exist" not in str(e):
+                    raise e
         return result
 
     return wrapper
