@@ -42,7 +42,7 @@ class Metadata(ModelBase):
     name: Final[Column] = CharField(250, nullable=False)
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    value_as_number: Final[Column] = NumericField()
+    quantity_or_value_as_number: Final[Column] = NumericField()
     metadata_date: Final[Column] = DateField()
     metadata_datetime: Final[Column] = DateTimeField()
 

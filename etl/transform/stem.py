@@ -72,7 +72,7 @@ def transform(session: AbstractSession) -> None:
             and_(
                 OmopStem.domain_id == "Drug",
                 OmopStem.concept_id.isnot(None),
-                OmopStem.value_as_number.isnot(None),
+                OmopStem.quantity_or_value_as_number.isnot(None),
             )
         )
         .count()

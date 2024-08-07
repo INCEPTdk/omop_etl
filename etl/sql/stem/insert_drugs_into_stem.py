@@ -74,17 +74,17 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             Administrations.administration_type == dmwd["drug_exposure_type"],
         )
 
-        if str(dmwd["value_as_number"]).startswith("recipe__"):
+        if str(dmwd["quantity_or_value_as_number"]).startswith("recipe__"):
             this_quantity = get_quantity_recipe(
                 Administrations,
                 Prescriptions,
                 dmwd["drug_exposure_type"],
-                dmwd["value_as_number"],
+                dmwd["quantity_or_value_as_number"],
                 logger,
             )
         else:
             this_quantity = get_case_statement(
-                dmwd["value_as_number"],
+                dmwd["quantity_or_value_as_number"],
                 Administrations,
                 FLOAT,
             )
@@ -140,7 +140,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
             ConceptLookupStem.uid.label("source_concept_id"),
-            case(*quantity, else_=null()).label("value_as_number"),
+            case(*quantity, else_=null()).label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             ConceptLookupStem.era_lookback_interval,
@@ -226,7 +226,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
             null().label("source_concept_id"),
-            null().label("value_as_number"),
+            null().label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             null().label("era_lookback_interval"),
@@ -315,7 +315,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.visit_occurrence_id,
             OmopStem.source_value,
             OmopStem.source_concept_id,
-            OmopStem.value_as_number,
+            OmopStem.quantity_or_value_as_number,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
             OmopStem.era_lookback_interval,

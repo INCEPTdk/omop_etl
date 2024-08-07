@@ -32,12 +32,12 @@ def create_simple_stem_insert(
     model: Any = None,
     unique_start_date: str = None,
     unique_end_date: str = None,
-    value_as_number_column_name: str = None,
+    quantity_or_value_as_number_column_name: str = None,
     value_as_string_column_name: str = None,
 ) -> Insert:
 
-    value_as_number = get_case_statement(
-        value_as_number_column_name,
+    quantity_or_value_as_number = get_case_statement(
+        quantity_or_value_as_number_column_name,
         model,
         FLOAT,
         "numerical",
@@ -54,7 +54,7 @@ def create_simple_stem_insert(
 
     value_source_value = func.coalesce(
         get_case_statement(
-            value_as_number_column_name,
+            quantity_or_value_as_number_column_name,
             model,
             TEXT,
             "numerical",
@@ -94,7 +94,9 @@ def create_simple_stem_insert(
             concat(model.variable, "__", value_source_value),
             value_source_value,
             ConceptLookupStem.uid,
-            (conversion * value_as_number).label("value_as_number"),
+            (conversion * quantity_or_value_as_number).label(
+                "quantity_or_value_as_number"
+            ),
             value_as_string.label("value_as_string"),
             func.coalesce(
                 cast(ConceptLookupStem.value_as_concept_id, INT),
@@ -158,7 +160,7 @@ def create_simple_stem_insert(
             OmopStem.source_value,
             OmopStem.value_source_value,
             OmopStem.source_concept_id,
-            OmopStem.value_as_number,
+            OmopStem.quantity_or_value_as_number,
             OmopStem.value_as_string,
             OmopStem.value_as_concept_id,
             OmopStem.unit_concept_id,
@@ -187,8 +189,8 @@ def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
         session, model, ConceptLookupStem, "end_date"
     )
 
-    unique_value_as_number_columns = find_unique_column_names(
-        session, model, ConceptLookupStem, "value_as_number"
+    unique_quantity_or_value_as_number_columns = find_unique_column_names(
+        session, model, ConceptLookupStem, "quantity_or_value_as_number"
     )
 
     unique_value_as_string_columns = find_unique_column_names(
@@ -199,6 +201,6 @@ def get_nondrug_stem_insert(session: Any = None, model: Any = None) -> Insert:
         model,
         unique_start_date_columns,
         unique_end_date_columns,
-        unique_value_as_number_columns,
+        unique_quantity_or_value_as_number_columns,
         unique_value_as_string_columns,
     )
