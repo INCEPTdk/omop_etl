@@ -1,0 +1,65 @@
+project:
+  type: book
+
+book:
+  title: |
+    RH4131 Database Mapping Document
+    Source Data Mapping Approach to CDMV5.4.1
+  subtitle: |
+    ***edenceHealth NV***
+    ***in collaboration with***
+    ***Dept. of Intensive Care (4131), Rigshospitalet***
+  author: "Benjamin Skov Kaas-Hansen"
+  date: "7/16/2024"
+  downloads: [pdf, epub]
+  search: true
+  chapters:
+    - part: "Background"
+      chapters:
+        - index.qmd
+        - technical_infrastructure.qmd
+    - part: "Mapping approach"
+      chapters:
+        - mapping_overview.qmd
+        - conventional_mapping.qmd
+        - stem_mapping.qmd
+        - merge_etl.qmd
+        - vocabularies.qmd
+    - part: "Mapped OMOP tables"
+      chapters:
+        - health_system_data_tables.qmd
+        - clinical_data_tables.qmd
+        - standardized_derived_elements.qmd
+        - metadata_tables.qmd
+  appendices:
+    - appendix_A.qmd
+    - appendix_B.qmd
+
+bibliography: references.bib
+
+# The list-table filter is installed by running this in the terminal:
+# quarto add pandoc-ext/list-table
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    fig-cap-location: margin
+    tbl-cap-location: top
+    self-contained-math: true
+    embed-resources: true
+    css: styles.css
+    df-print: paged
+    code-fold: true
+    fontsize: 0.8em
+    tbl-colwidths: [25, 25, 25, 25]
+    filters:
+      - list-table
+  pdf:
+    documentclass: scrreprt
+    include-in-header: custom.sty
+    tbl-colwidths: [25, 25, 25, 25]
+    filters:
+      - list-table
+
+editor: source

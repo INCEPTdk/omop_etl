@@ -1,0 +1,155 @@
+# Health System Data Tables {#health-system-data-tables}
+
+## Table name: LOCATION {#table-name-location}
+
+### Reading from environment variable (SHAK_code) and SHAK code lookup file {#reading-from-environment-variable-shak_code-and-shak-code-lookup-file}
+
+Note: to avoid adding in locations that will not be used by the ETL, we
+will ask the user via an environment variable what the SHAK code
+associated with the dataset is.
+
+$$video_recording.mp4$$: Part 2 - 00:46:00
+
++:------------:+:------------:+:------------------:+:------------:+
+| -   \        | **Source     | **Logic**          | **Comment**  |
+| *Destination | Field**      |                    |              |
+|              |              |                    |              |
+|    Field\*\* |              |                    |              |
++--------------+--------------+--------------------+--------------+
+| **l          | Hospit       | Autogenerate       | Use the      |
+| ocation_id** | al_SHAK_code | integer            | SHAK_code    |
+|              | (SHAK code   |                    | environment  |
+|              | look up      |                    | variable to  |
+|              | file)        |                    | do the       |
+|              |              |                    | lookup in    |
+|              |              |                    | the SHAK     |
+|              |              |                    | code lookup  |
+|              |              |                    | file against |
+|              |              |                    | the          |
+|              |              |                    | SHAK_code    |
+|              |              |                    | field. Only  |
+|              |              |                    | create one   |
+|              |              |                    | distinct     |
+|              |              |                    | record for   |
+|              |              |                    | the returned |
+|              |              |                    | entry.       |
++--------------+--------------+--------------------+--------------+
+| address_1    |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| address_2    |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| city         |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| state        |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| zip          | postal_code  | Use postal code (4 |              |
+|              | (SHAK code   | digits)            |              |
+|              | look up      |                    |              |
+|              | file)        |                    |              |
++--------------+--------------+--------------------+--------------+
+| county       |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| location\_   | Hospit       | \<column_nam       |              |
+| source_value | al_SHAK_code | e\>                |              |
+|              | (environment | \|\<column_value\> |              |
+|              | variable)    |                    |              |
++--------------+--------------+--------------------+--------------+
+| countr       |              | 4330435            |              |
+| y_concept_id |              | $$Denmark$$        |              |
++--------------+--------------+--------------------+--------------+
+| conntry\_    |              |                    | NULL         |
+| source_value |              |                    |              |
++--------------+--------------+--------------------+--------------+
+| latitude     |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+| longitude    |              |                    | NULL         |
++--------------+--------------+--------------------+--------------+
+
+## Table name: CARE_SITE {#table-name-care_site}
+
+### Reading from environment variable (SHAK_code) and SHAK code lookup file {#reading-from-environment-variable-shak_code-and-shak-code-lookup-file-1}
+
+Note: to avoid adding in locations that will not be used by the ETL, we
+will ask the user via an environment variable what the SHAK code
+associated with the dataset is.
+
+$$video_recording.mp4$$: Part 2 - 00:47:00
+
++:------------:+:-------------+:----------------:+:------------:+
+| *            | **Source     | **Logic**        | **Comment**  |
+| *Destination | Field**      |                  |              |
+| Field**      |              |                  |              |
++--------------+--------------+------------------+--------------+
+| -   \*care   |              | Autogenerate     | Use the      |
+| _site_id\*\* |              | integer          | SHAK_code    |
+|              |              |                  | environment  |
+|              |              |                  | variable to  |
+|              |              |                  | do the       |
+|              |              |                  | lookup in    |
+|              |              |                  | the SHAK     |
+|              |              |                  | code lookup  |
+|              |              |                  | file against |
+|              |              |                  | the          |
+|              |              |                  | SHAK_code    |
+|              |              |                  | field. Only  |
+|              |              |                  | create a     |
+|              |              |                  | record for   |
+|              |              |                  | the returned |
+|              |              |                  | entry.       |
++--------------+--------------+------------------+--------------+
+| ca           | depa         | use the          |              |
+| re_site_name | rtment_name  | department name  |              |
+|              | (SHAK code   | from the SHAK    |              |
+|              | look up      | lookup file      |              |
+|              | file)        |                  |              |
++--------------+--------------+------------------+--------------+
+| place_of_ser | depa         | First join the   | E.g. 32037   |
+| vic          | rtment_type  | SHAK_codes (env  | $$Intensive  |
+| e_concept_id | (SHAK code   | variable and the | Care$$       |
+|              | look up      | SHAK code look   |              |
+|              | file)        | up file) then    |              |
+|              |              | look up the      |              |
+|              |              | department_type  |              |
+|              |              | in the           |              |
+|              |              | concept_look up  |              |
+|              |              | file by joining  |              |
+|              |              | on the           |              |
+|              |              | source_code      |              |
+|              |              | field and the    |              |
+|              |              | department_type  |              |
+|              |              | and filtering on |              |
+|              |              | 'care_site', use |              |
+|              |              | the              |              |
+|              |              | corresponding    |              |
+|              |              | sta              |              |
+|              |              | ndard_concept_id |              |
+|              |              | (lookup based on |              |
+|              |              | SHAK department  |              |
+|              |              | code)            |              |
++--------------+--------------+------------------+--------------+
+| location_id  | SHAK_code (  | Join in the      |              |
+|              | environment  | location table   |              |
+|              | variable)    | using the lo     |              |
+|              |              | cat              |              |
+|              |              | ion_source_value |              |
+|              |              | and the          |              |
+|              |              | SHAK_code        |              |
+|              |              | (\<column_name\  |              |
+|              |              | \>\|             |              |
+|              |              | \<column_value\> |              |
+|              |              | format) to find  |              |
+|              |              | the              |              |
+|              |              | corresponding    |              |
+|              |              | location_id      |              |
++--------------+--------------+------------------+--------------+
+| care_si      | SHAK_code (  | \<column_name\   | SHAK code    |
+| te_          | environment  | \>\|             | encodes      |
+| source_value | variable)    | \<column_value\> | hospital +   |
+|              |              |                  | department   |
++--------------+--------------+------------------+--------------+
+| pl           | depa         | \<column_name\   |              |
+| ace_of_servi | rtment_type  | \>\|             |              |
+| ce_          | (SHAK code   | \<column_value\> |              |
+| source_value | look up      |                  |              |
+|              | file)        |                  |              |
++--------------+--------------+------------------+--------------+

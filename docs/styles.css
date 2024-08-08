@@ -1,0 +1,16 @@
+table, th, td {
+  border: none !important;
+}
+
+table {
+	table-layout: fixed;
+}
+
+tr:nth-child(odd) {
+    background-color: #efefef;
+}
+
+th, td {
+	word-wrap: break-word;
+	hyphens: auto;
+}

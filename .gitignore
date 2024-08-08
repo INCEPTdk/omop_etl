@@ -27,3 +27,4 @@ connection_postgres.json
 
 .coverage
 htmlcov
+.Rproj.user
