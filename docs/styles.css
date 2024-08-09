@@ -6,7 +6,7 @@ table {
 	table-layout: fixed;
 }
 
-tr:nth-child(odd) {
+tr:nth-child(even) {
     background-color: #efefef;
 }
 

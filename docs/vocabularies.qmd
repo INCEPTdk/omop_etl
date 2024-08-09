@@ -4,10 +4,52 @@ In this section, an overview is provided of the vocabulary mapping step.  
 
 The following source code vocabularies are present in the database: 
 
-| Vocabulary           | Reference Link                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                  | Data Domains                                    |
-|:---------------------|:-------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------|
-| SKS                  | \<ht tps://medinfo.dk/sks/\>                                                                                       |                                                                                                                                                                                                                                                                                                                                              | ob servation, procedure, condition\_ occurrence |
-| ATC                  | [htt ps://www.whocc.no/atc/ structure_a nd_principles](https:/%20/www.whocc.no/atc/%20str%20ucture_and_principles) |                                                                                                                                                                                                                                                                                                                                              | dru g_exposure                                  |
-| NPU                  | \<https:/ /npu-terminology.org/\>                                                                                  | The source data use NPU codes for b iochemical analyses of biological samples (blood, plasma, urin, spinal fluid, etc.). Pat ient-level NPU data will, in the end, not be available for this pilot project, but we will undertake semantic mapping of the 200 most common NPU codes so these are ready for structural mapping once possible. | m easurement                                    |
-| drug_mapp ing_helper | Overview of drugs with ATC code, dosage, unit, form, drug name(s). Provided by RH4131.                             | Will be used to create mappings to best level of g ranularity using the RxN ormBuilder scripts *(based on OHDSI's "Boiler")*                                                                                                                                                                                                                 | dru g_exposure                                  |
-| \<sh ak_lookup\>     | Overview of SHAK codes, departments, locations, address                                                            |                                                                                                                                                                                                                                                                                                                                              | care_site, location, visit\_ occurrence         |
+::: list-table
+-
+
+    -   Vocabulary 
+    -   Reference Link 
+    -   Description 
+    -   Data Domains 
+
+-
+
+    -   SKS
+    -   <https://medinfo.dk/sks/>
+    -    
+    -   observation, procedure, condition_occurrence
+
+-
+
+    -   ATC
+    -   <https://www.whocc.no/atc/structure_and_principles/>
+    -
+    -   drug_exposure
+
+-
+
+    -   NPU
+    -   https://npu-terminology.org/
+    -   The source data use NPU codes for biochemical analyses of biological
+        samples (blood, plasma, urin, spinal fluid, etc.). Patient-level NPU
+        data will, in the end, not be available for this pilot project, but we
+        will undertake semantic mapping of the 200 most common NPU codes so
+        these are ready for structural mapping once possible.
+    -   measurement
+
+-
+
+    -   drug_mapping_helper
+    -   Overview of drugs with ATC code, dosage, unit, form, drug name(s).
+        Provided by RH4131.
+    -   Will be used to create mappings to best level of granularity using the
+        RxNormBuilder scripts *(based on OHDSI's "Boiler")*
+    -   drug_exposure
+
+-
+
+    -   \<shak_lookup\>
+    -   Overview of SHAK codes, departments, locations, address
+    -
+    -   care_site, location, visit_occurrence
+:::

@@ -1,32 +1,73 @@
 # Introduction {#introduction}
 
-This document describes how the RH4131 database is converted to the OMOP Common Data Model (CDM) version 5.4.1. It describes the definition of the ETL that will be used in the implementation. 
+This document describes how the RH4131 database is converted to the OMOP Common
+Data Model (CDM) version 5.4.1. It describes the definition of the ETL that will
+be used in the implementation. 
 
-RH4131 has requested support from edenceHealth to extract, transform and load historical data in the context of a first "pilot" project. This project will serve as a stepping stone to larger future projects that include building and maintaining a Danish national data warehouse to house real-world evidence. The pilot project of historical data contains ICU data from 10 hospitals. edenceHealth will co-develop an ETL for ICU data from 3 hospitals as a template for RH4131.
+RH4131 has requested support from edenceHealth to extract, transform and load
+historical data in the context of a first "pilot" project. This project will
+serve as a stepping stone to larger future projects that include building and
+maintaining a Danish national data warehouse to house real-world evidence. The
+pilot project of historical data contains ICU data from 10 hospitals.
+edenceHealth will co-develop an ETL for ICU data from 3 hospitals as a template
+for RH4131.
 
 ## Document History {#document-history}
 
-| Version | Date       | Changes                                                                                                                                       |
-|:---------|:---------|:---------------------------------------------------|
-| 0.1     | 2023-12-14 | Internal document used at the mapping workshop                                                                                                |
-| 0.2     | 2023-12-28 | Updated with notes from mapping workshop                                                                                                      |
-| 0.3     | 2024-01-12 | Updated with notes from infrastructure workshop. And misc. additional details. Rename source tables to reflect final pre-processing.          |
-| 0.4     | 2024-01-24 | Finalise infrastructure section, clarification of remaining questions, technical instructions for the STEM table, removal of resolved threads |
-| 0.5     | 2024-01-31 | Update of the person and death logic                                                                                                          |
-| 0.6     | 2024-02-02 | Final edits                                                                                                                                   |
-| 1.0     | 2024-02-05 | Signed-off structural mapping doc; instructions for v1.0 ETL                                                                                  |
-| 1.1     | 2024-07-14 | Adaptations to reflect final ETL (work in progress)                                                                                           |
+::: list-table
+-
 
+    -   Version
+    -   Date
+    -   Changes
 
-:::table2lol
-| Version | Date       | Changes                                                                                                                                       |
-|:---------|:---------|:---------------------------------------------------|
-| 0.1     | 2023-12-14 | Internal document used at the mapping workshop                                                                                                |
-| 0.2     | 2023-12-28 | Updated with notes from mapping workshop                                                                                                      |
-| 0.3     | 2024-01-12 | Updated with notes from infrastructure workshop. And misc. additional details. Rename source tables to reflect final pre-processing.          |
-| 0.4     | 2024-01-24 | Finalise infrastructure section, clarification of remaining questions, technical instructions for the STEM table, removal of resolved threads |
-| 0.5     | 2024-01-31 | Update of the person and death logic                                                                                                          |
-| 0.6     | 2024-02-02 | Final edits                                                                                                                                   |
-| 1.0     | 2024-02-05 | Signed-off structural mapping doc; instructions for v1.0 ETL                                                                                  |
-| 1.1     | 2024-07-14 | Adaptations to reflect final ETL (work in progress)                                                                                           |
+-
+
+    -   0.1
+    -   2023-12-14
+    -   Internal document used at the mapping workshop
+
+-
+
+    -   0.2
+    -   2023-12-28
+    -   Updated with notes from mapping workshop
+
+-
+
+    -   0.3
+    -   2024-01-12
+    -   Updated with notes from infrastructure workshop. And misc. additional
+        details. Rename source tables to reflect final pre-processing.
+
+-
+
+    -   0.4
+    -   2024-01-24
+    -   Finalise infrastructure section, clarification of remaining questions,
+        technical instructions for the STEM table, removal of resolved threads
+
+-
+
+    -   0.5
+    -   2024-01-31
+    -   Update of the person and death logic
+
+-
+
+    -   0.6
+    -   2024-02-02
+    -   Final edits
+
+-
+
+    -   1.0
+    -   2024-02-05
+    -   Signed-off structural mapping doc; instructions for v1.0 ETL
+
+-
+
+    -   1.1
+    -   2024-07-14
+    -   Adaptations to reflect final ETL (work in progress)
 :::

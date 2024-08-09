@@ -2,67 +2,91 @@
 
 ## Table Name: CDM_SOURCE {#table-name-cdm_source}
 
-NOTE: Single-record table containing information about the site, source,
-and cdm.
+NOTE: Single-record table containing information about the site, source, and
+cdm.
 
-$$video_recording.mp4$$: Part 1 -- 01:34:00
+::: list-table
+-
 
-+:-----------:+:-----------:+:-----------:+:-------------------:+
-|             | **Source    | **Logic**   | **Comment**         |
-| **          | Field**     |             |                     |
-| Destination |             |             |                     |
-| Field**     |             |             |                     |
-+-------------+-------------+-------------+---------------------+
-| **cdm_so    |             | Add in an   |                     |
-| urce_name** |             | environment |                     |
-|             |             | variable    |                     |
-+-------------+-------------+-------------+---------------------+
-| \*\*cdm     |             | Add in an   |                     |
-| \           |             | environment |                     |
-| _source_abb |             | variable    |                     |
-| re          |             |             |                     |
-| viation\*\* |             |             |                     |
-+-------------+-------------+-------------+---------------------+
-| **c         |             | Add in an   |                     |
-| dm_holder** |             | environment |                     |
-|             |             | variable    |                     |
-+-------------+-------------+-------------+---------------------+
-| source\_    |             | Add in an   |                     |
-| description |             | environment |                     |
-|             |             | variable    |                     |
-+-------------+-------------+-------------+---------------------+
-| source_d    |             |             |                     |
-| ocumentatio |             |             |                     |
-| n_reference |             |             |                     |
-+-------------+-------------+-------------+---------------------+
-| cdm_et      |             | Includes Gi | \[https://git       |
-| l_reference |             | tHub/GitLab | hub.                |
-|             |             | tag, if     | com/edencehealth/rh |
-|             |             | provided    | 4131/               |
-|             |             |             | releases/tag/\\\](h |
-|             |             |             | ttps                |
-|             |             |             | ://github.com/edenc |
-|             |             |             | ehea                |
-|             |             |             | lth/rh4131/releases |
-|             |             |             | /ta                 |
-|             |             |             | g/){.uri}\<gh-tag\> |
-+-------------+-------------+-------------+---------------------+
-| -   \       |             | Add in an   | Request date of     |
-| *source_rel |             | environment | last export at the  |
-|     ea      |             | variable    | start of ETL run    |
-| se_date\*\* |             |             |                     |
-+-------------+-------------+-------------+---------------------+
-| **cdm_rel   |             | Date of ETL |                     |
-| ease_date** |             | run         |                     |
-+-------------+-------------+-------------+---------------------+
-| cdm_version |             |             | '5.4.1'             |
-+-------------+-------------+-------------+---------------------+
-| **cd        |             |             | 798878 $$O          |
-| m_version_c |             |             | MOP                 |
-| oncept_id** |             |             | CDM Version 5.4.1$$ |
-+-------------+-------------+-------------+---------------------+
-| **vocabular | vocabul     | record      |                     |
-| y_version** | ary.vocabul | where       |                     |
-|             | ary_version | vocabular   |                     |
-|             |             | y_id='None' |                     |
-+-------------+-------------+-------------+---------------------+
+    -   **Destination Field**
+    -   **Source Field**
+    -   **Logic**
+    -   **Comment**
+
+-
+
+    -   **cdm_source_name**
+    -
+    -   Add in an environment variable
+    -
+
+-
+
+    -   **cdm_source_abbreviation**
+    -
+    -   Add in an environment variable
+    -
+
+-
+
+    -   **cdm_holder**
+    -
+    -   Add in an environment variable
+    -
+
+-
+
+    -   source_description
+    -
+    -   Add in an environment variable
+    -
+
+-
+
+    -   source_documentation_reference
+    -
+    -
+    -
+
+-
+
+    -   cdm_etl_reference
+    -
+    -   Includes GitHub/GitLab tag, if provided
+    -   https://github.com/edencehealth/rh4131/releases/tag/\<gh-tag\>
+
+-
+
+    -   **source_release_date**
+    -
+    -   Add in an environment variable
+    -   Request date of last export at the start of ETL run
+
+-
+
+    -   **cdm_release_date**
+    -
+    -   Date of ETL run
+    -
+
+-
+
+    -   cdm_version
+    -
+    -
+    -   '5.4.1'
+
+-
+
+    -   **cdm_version_concept_id**
+    -
+    -
+    -   798878 \[OMOP CDM Version 5.4.1\]
+
+-
+
+    -   **vocabulary_version**
+    -   vocabulary.vocabulary_version
+    -   record where vocabulary_id='None'
+    -
+:::
