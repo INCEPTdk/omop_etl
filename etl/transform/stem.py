@@ -61,7 +61,7 @@ def transform(session: AbstractSession) -> None:
         )
 
         if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
-            session.execute(get_unmapped_nondrug_stem_insert(model))
+            session.execute(get_unmapped_nondrug_stem_insert(session, model))
 
             logger.info(
                 "STEM Transform in Progress, %s Events including unmapped nondrug source %s.",

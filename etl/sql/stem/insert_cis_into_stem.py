@@ -21,6 +21,7 @@ from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Stem as OmopStem, VisitOccurrence
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
+from ...util.db import AbstractSession
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -183,8 +184,13 @@ def create_simple_stem_insert(
 
 
 def get_unmapped_nondrug_stem_insert(
+    session: AbstractSession = None,
     model: Any = None,
 ) -> Insert:
+
+    unique_start_date = find_unique_column_names(
+        session, model, ConceptLookupStem, "start_date"
+    )
 
     value_source_value = cast(model.value, TEXT)
 
@@ -192,8 +198,12 @@ def get_unmapped_nondrug_stem_insert(
         select(
             VisitOccurrence.person_id,
             VisitOccurrence.visit_occurrence_id,
-            cast(model.timestamp, DATE).label("start_date"),
-            cast(model.timestamp, TIMESTAMP).label("start_datetime"),
+            get_case_statement(unique_start_date, model, DATE).label(
+                "start_date"
+            ),
+            get_case_statement(unique_start_date, model, TIMESTAMP).label(
+                "start_datetime"
+            ),
             concat(model.variable, "__", value_source_value),
             value_source_value,
             literal(model.__tablename__).label("datasource"),
@@ -246,7 +256,7 @@ def get_unmapped_nondrug_stem_insert(
 
 @toggle_stem_transform
 def get_mapped_nondrug_stem_insert(
-    session: Any = None,
+    session: AbstractSession = None,
     model: Any = None,
     concept_lookup_stem_cte: Any = None,
 ) -> Insert:
