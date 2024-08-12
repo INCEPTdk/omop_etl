@@ -27,6 +27,7 @@ from .models.omopcdm54 import (
     Stem,
     VisitOccurrence,
 )
+from .models.omopcdm54.registry import TARGET_SCHEMA
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
 from .transform.condition_era import transform as condition_era_transform
@@ -525,9 +526,7 @@ def print_summary(
     models: List[OmopCdmModelBase],  # type: ignore
 ) -> None:
     """Print DB summary"""
-    output_str = (
-        f"\n{''.join([' ' for _ in range(10)])}--- ROWS TO OMOPCDM ---\n"
-    )
+    output_str = f"\n{''.join([' ' for _ in range(10)])}--- ROWS TO {TARGET_SCHEMA} OMOPCDM ---\n"
     for model in models:
         model_row_count = session.query(model).count()
         output_str += f"{model.__tablename__:>22}: {model_row_count:<20}\n"
