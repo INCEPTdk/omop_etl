@@ -8,6 +8,7 @@ from typing import Any, List
 from sqlalchemy import FLOAT, case, cast, func, not_, select
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
+from itertools import zip_longest
 from ...models.source import SourceModelBase
 from ...util.db import AbstractSession
 from ...models.tempmodels import ConceptLookupStem
@@ -20,26 +21,20 @@ def get_batches_from_concept_loopkup_stem(
     logger: Any = None,
 ) -> List[int]:
     """Get batches from the ConceptLookupStem table"""
-    uids = [
-        record.uid
-        for record in session.query(ConceptLookupStem.uid)
-        .where(ConceptLookupStem.datasource == model.__tablename__)
-        .all()
-    ]
-
-    if batch_size is None:
-        batch_size = len(uids)
+    uids = session.scalars(
+        select(ConceptLookupStem.uid).where(
+            ConceptLookupStem.datasource == model.__tablename__
+        )
+    ).all()
 
     if len(uids) == 0:
         logger.warning(
             "MISSING mapping in concept lookup stem  for %s source data ...",
             model.__tablename__.upper(),
         )
-        batches = []
-    else:
-        batches = [
-            uids[i : i + batch_size] for i in range(0, len(uids), batch_size)
-        ]
+
+    batch_size = batch_size or len(uids)
+    batches = list(zip_longest(*([iter(uids)] * batch_size)))
 
     for batch in batches:
         logger.debug(
