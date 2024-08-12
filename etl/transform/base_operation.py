@@ -2,6 +2,7 @@
 
 from typing import Any, Optional
 
+from ..sql.cdm_summary import with_log_to_summary_table
 from ..util.logger import Logger
 
 
@@ -18,6 +19,7 @@ class BaseOperation:
         self.description = description
 
     @Logger
+    @with_log_to_summary_table
     def __call__(self, *args, **kwargs) -> Any:
         """Execute the operation"""
         return self._run(*args, **kwargs)
