@@ -187,6 +187,11 @@ def get_unmapped_nondrug_stem_insert(
     session: AbstractSession = None,
     model: Any = None,
 ) -> Insert:
+    """Inserts unmapped data into the stem table.
+    The unmapped cases can be both source variables that are not included at all in the concept lookup stem table,
+    or categorical source variables that are included in the concept lookup but not with that specific categorical
+    value.
+    """
 
     unique_start_date = find_unique_column_names(
         session, model, ConceptLookupStem, "start_date"

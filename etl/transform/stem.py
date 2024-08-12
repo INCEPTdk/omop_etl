@@ -2,9 +2,8 @@
 
 import logging
 import os
-from typing import List
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
@@ -23,8 +22,8 @@ from ..sql.stem import (
     get_registry_stem_insert,
     get_unmapped_nondrug_stem_insert,
 )
-from ..util.db import AbstractSession
 from ..sql.stem.utils import get_batches_from_concept_loopkup_stem
+from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Stem")
 

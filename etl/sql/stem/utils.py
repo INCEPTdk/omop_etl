@@ -2,16 +2,16 @@
 
 import inspect
 import os
-from itertools import chain
+from itertools import chain, zip_longest
 from typing import Any, List
 
 from sqlalchemy import FLOAT, case, cast, func, not_, select
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
-from itertools import zip_longest
+
 from ...models.source import SourceModelBase
-from ...util.db import AbstractSession
 from ...models.tempmodels import ConceptLookupStem
+from ...util.db import AbstractSession
 
 
 def get_batches_from_concept_loopkup_stem(
