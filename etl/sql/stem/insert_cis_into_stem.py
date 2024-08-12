@@ -136,13 +136,9 @@ def create_simple_stem_insert(
                     concept_lookup_stem_cte.c.datasource == model.__tablename__,
                 ),
                 and_(
-                    concept_lookup_stem_cte.c.value_type == "numerical",
-                    func.lower(concept_lookup_stem_cte.c.source_variable)
-                    == func.lower(model.variable),
-                    concept_lookup_stem_cte.c.datasource == model.__tablename__,
-                ),
-                and_(
-                    concept_lookup_stem_cte.c.value_type == "free_text",
+                    concept_lookup_stem_cte.c.value_type.in_(
+                        ("numerical", "free_text")
+                    ),
                     func.lower(concept_lookup_stem_cte.c.source_variable)
                     == func.lower(model.variable),
                     concept_lookup_stem_cte.c.datasource == model.__tablename__,
