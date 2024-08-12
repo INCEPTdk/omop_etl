@@ -29,42 +29,87 @@ REGISTRY_START_DATE: Final[str] = date(1977, 1, 1).isoformat()
 REGISTRY_END_DATE: Final[str] = date(2018, 4, 1).isoformat()
 
 
-def _obs_period_sql(type_concept_id) -> str:
+def _obs_period_registries_sql() -> str:
     return f"""
     SELECT
         {ObservationPeriod.person_id.key},
-        CASE WHEN {type_concept_id} = {CONCEPT_ID_EHR} THEN
+        GREATEST(
             COALESCE(
-                LEAST(
-                    minimum_measurement_date,
-                    minimum_condition_date,
-                    minimum_procedure_date,
-                    minimum_observation_date,
-                    minimum_drug_date,
-                    minimum_visit_date
-                ), '{DEFAULT_OBSERVATION_DATE}'
-            )
-        ELSE COALESCE(
-                GREATEST( '{REGISTRY_START_DATE}', birth_datetime::date),
+                birth_datetime::date,
                 '{REGISTRY_START_DATE}'
-            ) END AS {ObservationPeriod.observation_period_start_date.key},
-        CASE WHEN {type_concept_id} = {CONCEPT_ID_EHR} THEN
+            ),
+            '{REGISTRY_START_DATE}'
+            ) AS {ObservationPeriod.observation_period_start_date.key},
+        LEAST(
             COALESCE(
-                GREATEST(
-                    maximum_measurement_date,
-                    maximum_condition_date,
-                    maximum_procedure_date,
-                    maximum_observation_date,
-                    maximum_drug_date,
-                    death_date,
-                    maximum_visit_date
-                ), '{DEFAULT_OBSERVATION_DATE}'
-            )
-        ELSE COALESCE(
-            LEAST('{REGISTRY_END_DATE}', death_date),
+                death_date,
+                '{REGISTRY_END_DATE}'
+            ),
             '{REGISTRY_END_DATE}'
-        ) END AS {ObservationPeriod.observation_period_end_date.key},
-        {type_concept_id} AS {ObservationPeriod.period_type_concept_id.key}
+            ) AS {ObservationPeriod.observation_period_end_date.key},
+        {CONCEPT_ID_REGISTRY} AS {ObservationPeriod.period_type_concept_id.key}
+    FROM
+    (
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    {Death.person_id.key},
+                    MAX({Death.death_date.key}) AS {Death.death_date.key}
+                FROM
+                    {str(Death.__table__)}
+                WHERE
+                    {Death.death_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
+                GROUP BY
+                    1
+            ) death_date
+
+            FULL OUTER JOIN (
+                SELECT
+                    {Person.person_id.key},
+                    MAX({Person.birth_datetime.key}) AS {Person.birth_datetime.key}
+                FROM
+                    {str(Person.__table__)}
+                WHERE
+                    {Person.birth_datetime.key} <> '{DEFAULT_OBSERVATION_DATE}'
+                GROUP BY
+                    1
+            ) birth_datetime USING ({Person.person_id.key})
+    ) all_ranges
+    WHERE
+        {Person.person_id.key} in (
+            SELECT
+                {Person.person_id.key}
+            FROM
+                {str(Person.__table__)}
+        )
+        AND observation_period_start_date is not NULL
+        AND observation_period_end_date is not NULL
+"""
+
+
+def _obs_period_ehr_sql() -> str:
+    return f"""
+    SELECT
+        {ObservationPeriod.person_id.key},
+        LEAST(
+            minimum_measurement_date,
+            minimum_condition_date,
+            minimum_procedure_date,
+            minimum_observation_date,
+            minimum_drug_date,
+            minimum_visit_date
+            ) AS {ObservationPeriod.observation_period_start_date.key},
+        GREATEST(
+            maximum_measurement_date,
+            maximum_condition_date,
+            maximum_procedure_date,
+            maximum_observation_date,
+            maximum_drug_date,
+            maximum_visit_date
+        ) AS {ObservationPeriod.observation_period_end_date.key},
+        {CONCEPT_ID_EHR} AS {ObservationPeriod.period_type_concept_id.key}
     FROM
     (
         SELECT
@@ -81,7 +126,7 @@ def _obs_period_sql(type_concept_id) -> str:
                 WHERE
                     {Measurement.measurement_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
                     AND
-                    {Measurement.measurement_type_concept_id.key} = {type_concept_id}
+                    {Measurement.measurement_type_concept_id.key} = {CONCEPT_ID_EHR}
                 GROUP BY
                     1
             ) measurement_date_range
@@ -110,7 +155,7 @@ def _obs_period_sql(type_concept_id) -> str:
                 WHERE
                     condition_date <> '{DEFAULT_OBSERVATION_DATE}'
                     AND
-                    {ConditionOccurrence.condition_type_concept_id.key} = {type_concept_id}
+                    {ConditionOccurrence.condition_type_concept_id.key} = {CONCEPT_ID_EHR}
                 GROUP BY
                     1
             ) condition_date_range USING ({ConditionOccurrence.person_id.key})
@@ -150,7 +195,7 @@ def _obs_period_sql(type_concept_id) -> str:
                 WHERE
                     {ProcedureOccurrence.procedure_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
                     AND
-                    {ProcedureOccurrence.procedure_type_concept_id.key} = {type_concept_id}
+                    {ProcedureOccurrence.procedure_type_concept_id.key} = {CONCEPT_ID_EHR}
                 GROUP BY
                     1
             ) procedure_date_range USING ({ProcedureOccurrence.person_id.key})
@@ -162,7 +207,7 @@ def _obs_period_sql(type_concept_id) -> str:
                     MAX({Observation.observation_date.key}) AS maximum_observation_date
                 FROM
                     {str(Observation.__table__)}
-                WHERE {Observation.observation_type_concept_id.key} = {type_concept_id}
+                WHERE {Observation.observation_type_concept_id.key} = {CONCEPT_ID_EHR}
                 GROUP BY
                     1
             ) observation_date_range USING ({Observation.person_id.key})
@@ -191,34 +236,10 @@ def _obs_period_sql(type_concept_id) -> str:
                 WHERE
                     drug_exposure_date <> '{DEFAULT_OBSERVATION_DATE}'
                     AND
-                    {DrugExposure.drug_type_concept_id.key} = {type_concept_id}
+                    {DrugExposure.drug_type_concept_id.key} = {CONCEPT_ID_EHR}
                 GROUP BY
                     1
             ) drug_date_range USING ({DrugExposure.person_id.key})
-
-            FULL OUTER JOIN (
-                SELECT
-                    {Death.person_id.key},
-                    MAX({Death.death_date.key}) AS {Death.death_date.key}
-                FROM
-                    {str(Death.__table__)}
-                WHERE
-                    {Death.death_date.key} <> '{DEFAULT_OBSERVATION_DATE}'
-                GROUP BY
-                    1
-            ) death_date USING ({Death.person_id.key})
-
-            FULL OUTER JOIN (
-                SELECT
-                    {Person.person_id.key},
-                    MAX({Person.birth_datetime.key}) AS {Person.birth_datetime.key}
-                FROM
-                    {str(Person.__table__)}
-                WHERE
-                    {Person.birth_datetime.key} <> '{DEFAULT_OBSERVATION_DATE}'
-                GROUP BY
-                    1
-            ) birth_datetime USING ({Person.person_id.key})
     ) all_ranges
     WHERE
         {Person.person_id.key} in (
@@ -227,6 +248,8 @@ def _obs_period_sql(type_concept_id) -> str:
             FROM
                 {str(Person.__table__)}
         )
+        AND observation_period_start_date is not NULL
+        AND observation_period_end_date is not NULL
 """
 
 
@@ -240,9 +263,9 @@ INSERT INTO
             {ObservationPeriod.observation_period_end_date.key},
             {ObservationPeriod.period_type_concept_id.key}
 ) WITH temp_observation_period as (
-    {get_observation_period_sql(CONCEPT_ID_EHR)}
+    {_obs_period_registries_sql()}
     union all
-    {get_observation_period_sql(CONCEPT_ID_REGISTRY)}
+    {_obs_period_ehr_sql()}
 ), ordered_times AS (
     SELECT person_id, observation_period_start_date AS timepoint
     FROM temp_observation_period
@@ -294,10 +317,6 @@ expanded_periods AS (
     ORDER BY person_id, interval_start, period_type_concept_id
 ) select person_id, observation_period_start_date::date, observation_period_end_date::date, period_type_concept_id from adjusted;
 """
-
-
-def get_observation_period_sql(type_concept_id: int) -> str:
-    return _obs_period_sql(type_concept_id)
 
 
 def insert_observation_periods_sql() -> str:
