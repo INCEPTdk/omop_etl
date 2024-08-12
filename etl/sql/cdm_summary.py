@@ -37,9 +37,9 @@ def log_transform_to_summary_table(
     **kwargs,
 ) -> None:
 
-    transforms_already_logged = [
+    transforms_already_logged = {
         el[0] for el in session.query(CDMSummary.transform_name).all()
-    ]
+    }
     if transform_name in transforms_already_logged:
         session.execute(
             update(CDMSummary)
