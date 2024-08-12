@@ -3,11 +3,52 @@
 import inspect
 import os
 from itertools import chain
-from typing import Any
+from typing import Any, List
 
-from sqlalchemy import FLOAT, case, cast, func, not_
+from sqlalchemy import FLOAT, case, cast, func, not_, select
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
+from ...models.source import SourceModelBase
+from ...util.db import AbstractSession
+from ...models.tempmodels import ConceptLookupStem
+
+
+def get_batches_from_concept_loopkup_stem(
+    model: SourceModelBase,
+    session: AbstractSession,
+    batch_size: int = None,
+    logger: Any = None,
+) -> List[int]:
+    """Get batches from the ConceptLookupStem table"""
+    uids = [
+        record.uid
+        for record in session.query(ConceptLookupStem.uid)
+        .where(ConceptLookupStem.datasource == model.__tablename__)
+        .all()
+    ]
+
+    if batch_size is None:
+        batch_size = len(uids)
+
+    if len(uids) == 0:
+        logger.warning(
+            "MISSING mapping in concept lookup stem  for %s source data ...",
+            model.__tablename__.upper(),
+        )
+        batches = []
+    else:
+        batches = [
+            uids[i : i + batch_size] for i in range(0, len(uids), batch_size)
+        ]
+
+    for batch in batches:
+        logger.debug(
+            "\tSTEM Transform batch %s is being processed...",
+            batch,
+        )
+        yield select(ConceptLookupStem).where(
+            ConceptLookupStem.uid.in_(batch)
+        ).cte(name="cls_batch")
 
 
 def try_cast_to_float(

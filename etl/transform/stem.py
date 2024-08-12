@@ -6,8 +6,6 @@ from typing import List
 
 from sqlalchemy import and_, select
 
-from etl.models.tempmodels import ConceptLookupStem
-
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
     CourseMetadata,
@@ -17,7 +15,6 @@ from ..models.source import (
     LprOperations,
     LprProcedures,
     Observations,
-    SourceModelBase,
 )
 from ..sql.stem import (
     get_drug_stem_insert,
@@ -27,39 +24,13 @@ from ..sql.stem import (
     get_unmapped_nondrug_stem_insert,
 )
 from ..util.db import AbstractSession
+from ..sql.stem.utils import get_batches_from_concept_loopkup_stem
 
 logger = logging.getLogger("ETL.Stem")
 
 NONDRUG_MODELS = [CourseMetadata, DiagnosesProcedures, Observations]
 REGISTRY_MODELS = [LprDiagnoses, LprProcedures, LprOperations]
 LABORATORY_MODELS = [LabkaBccLaboratory]
-
-
-def get_batches_from_concept_loopkup_stem(
-    model: SourceModelBase, session: AbstractSession, batch_size: int = None
-) -> List[int]:
-    """Get batches from the ConceptLookupStem table"""
-    uids = [
-        record.uid
-        for record in session.query(ConceptLookupStem.uid)
-        .where(ConceptLookupStem.datasource == model.__tablename__)
-        .all()
-    ]
-
-    if batch_size is None:
-        batch_size = len(uids)
-
-    if len(uids) == 0:
-        logger.warning(
-            "MISSING mapping in concept lookup stem  for %s source data ...",
-            model.__tablename__.upper(),
-        )
-        batches = []
-    else:
-        batches = [
-            uids[i : i + batch_size] for i in range(0, len(uids), batch_size)
-        ]
-    return batches
 
 
 def transform(session: AbstractSession) -> None:
@@ -72,22 +43,12 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__.upper(),
         )
 
-        for batch in get_batches_from_concept_loopkup_stem(
-            model, session, batch_size=5
+        for ConceptLookupStemBatchCte in get_batches_from_concept_loopkup_stem(
+            model, session, batch_size=5, logger=logger
         ):
-            concept_lookup_stem_batch = (
-                select(ConceptLookupStem)
-                .where(ConceptLookupStem.uid.in_(batch))
-                .cte(name="cls_batch")
-            )
-
-            logger.debug(
-                "\tSTEM Transform batch %s is being processed...",
-                batch,
-            )
             session.execute(
                 get_mapped_nondrug_stem_insert(
-                    session, model, concept_lookup_stem_batch
+                    session, model, ConceptLookupStemBatchCte
                 )
             )
 
