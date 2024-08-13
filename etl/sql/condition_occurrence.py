@@ -1,8 +1,9 @@
 "Condition occurrence logic."
 
+from datetime import datetime
 from typing import Final
 
-from sqlalchemy import DateTime, and_, cast, func, insert, or_, select
+from sqlalchemy import DateTime, and_, case, cast, func, insert, or_, select
 from sqlalchemy.sql import Insert, Select
 
 from ..models.omopcdm54.clinical import (
@@ -20,12 +21,20 @@ StemConditionOccurrence: Final[Select] = select(
         OmopStem.end_datetime,
         cast(OmopStem.end_date, DateTime),
     ).label("start_datetime"),
-    func.coalesce(OmopStem.end_date, OmopStem.start_date).label("end_date"),
-    func.coalesce(
-        OmopStem.end_datetime,
-        cast(OmopStem.end_date, DateTime),
-        OmopStem.start_datetime,
-        cast(OmopStem.start_date, DateTime),
+    case(
+        (OmopStem.end_date > datetime.now(), OmopStem.start_date),
+        else_=func.coalesce(OmopStem.end_date, OmopStem.start_date).label(
+            "end_date"
+        ),
+    ).label("end_date"),
+    case(
+        (OmopStem.end_datetime > datetime.now(), OmopStem.start_datetime),
+        else_=func.coalesce(
+            OmopStem.end_datetime,
+            cast(OmopStem.end_date, DateTime),
+            OmopStem.start_datetime,
+            cast(OmopStem.start_date, DateTime),
+        ),
     ).label("end_datetime"),
     OmopStem.type_concept_id,
     OmopStem.condition_status_concept_id,
