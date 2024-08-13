@@ -15,6 +15,7 @@ from ..models.omopcdm54 import (
     ProcedureOccurrence,
     VisitOccurrence,
 )
+from ..util.db import get_environment_variable
 from ..util.sql import clean_sql
 
 TARGET_TABLENAME: Final[str] = f"{str(ObservationPeriod.__table__)}"
@@ -25,8 +26,12 @@ CONCEPT_ID_EHR: Final[int] = 32817
 CONCEPT_ID_REGISTRY: Final[int] = 32879
 DEFAULT_DATE: Final[date] = date(1800, 1, 1)
 DEFAULT_OBSERVATION_DATE: Final[str] = DEFAULT_DATE.isoformat()
-REGISTRY_START_DATE: Final[str] = date(1977, 1, 1).isoformat()
-REGISTRY_END_DATE: Final[str] = date(2018, 4, 1).isoformat()
+REGISTRY_START_DATE: Final[str] = get_environment_variable(
+    "REGISTRY_START_DATE", "1977-01-01"
+)
+REGISTRY_END_DATE: Final[str] = get_environment_variable(
+    "REGISTRY_END_DATE", "2018-04-01"
+)
 
 
 def _obs_period_registries_sql() -> str:
