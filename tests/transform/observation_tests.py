@@ -48,12 +48,13 @@ class ObservationTest(DuckDBBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             observation_transformation(session)
 
-            result = select(self.expected_cols).subquery()
+            result_sql = str(select(self.expected_cols).compile())
+            result_df = session.connection_execute(result_sql).df()
             result_df = enforce_dtypes(
                 self.expected_df,
-                pd.DataFrame(session.query(result).all())
+                result_df,
             )
 
-        assert_dataframe_equality(result_df, self.expected_df)
+        assert_dataframe_equality(result_df, self.expected_df, index_cols='observation_source_concept_id')
 
 __all__ = ['ObservationTest']

@@ -55,8 +55,9 @@ class DrugEraTest(DuckDBBaseTest):
         with session_context(make_db_session(self.engine)) as session:
             drug_era_transformation(session)
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine)
+            result_sql = str(select(self.expected_cols).compile())
+            result_df = session.connection_execute(result_sql).df()
+
         result_df = enforce_dtypes(self.expected_df, result_df)
         assert_dataframe_equality(result_df, self.expected_df)
 
