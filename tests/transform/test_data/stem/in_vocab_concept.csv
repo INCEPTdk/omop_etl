@@ -1,5 +1,5 @@
 concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concept;concept_code;valid_start_date;valid_end_date;invalid_reason
-0;No matching concept;Metadata;None;Undefined;;No matching concept;1970-01-01;2099-12-31;
+0;No matching concept;Metadata;'None';Undefined;;No matching concept;1970-01-01;2099-12-31;
 198185;Chronic renal failure;Condition;SNOMED;Clinical Finding;S;90688005;2002-01-31;2099-12-31;
 257315;Bacterial pneumonia;Condition;SNOMED;Clinical Finding;S;53084003;2002-01-31;2099-12-31;
 1124957;oxycodone;Drug;RxNorm;Ingredient;S;7804;1970-01-01;2099-12-31;
