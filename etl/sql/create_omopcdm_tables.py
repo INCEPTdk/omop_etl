@@ -11,6 +11,7 @@ from ..models.modelutils import (
 from ..models.omopcdm54 import (
     CareSite,
     CDMSource,
+    CDMSummary,
     Cohort,
     CohortDefinition,
     ConditionEra,
@@ -53,6 +54,7 @@ MODELS: Final[List] = [
     ConditionOccurrence,
     Observation,
     CDMSource,
+    CDMSummary,
     DrugEra,
     ConditionEra,
     Provider,

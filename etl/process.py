@@ -4,6 +4,8 @@ import logging
 import os
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
+from etl.sql.cdm_summary import log_transform_to_summary_table
+
 from .loader import Loader
 from .models.omopcdm54 import (
     CareSite,
@@ -25,8 +27,10 @@ from .models.omopcdm54 import (
     Stem,
     VisitOccurrence,
 )
+from .models.omopcdm54.registry import TARGET_SCHEMA
 from .models.tempmodels import ConceptLookup, ConceptLookupStem
 from .transform.care_site import transform as care_site_transform
+from .transform.cdm_source import transform as cdm_source_transform
 from .transform.condition_era import transform as condition_era_transform
 from .transform.condition_occurrence import (
     transform as condition_occurrence_transform,
@@ -65,7 +69,7 @@ from .transform.session_operation import (
 from .transform.specimen import transform as specimen_transform
 from .transform.stem import transform as stem_transform
 from .transform.visit_occurrence import transform as visit_occurrence_transform
-from .util.db import AbstractSession
+from .util.db import AbstractSession, session_context
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
 from .util.preprocessing import validate_concept_ids, validate_domain_ids
@@ -176,6 +180,15 @@ def run_etl(
                 session=session,
                 func=create_omop_tables,
                 description="Create OMOP tables",
+            ),
+        ),
+        (
+            -1,
+            SessionOperation(
+                key=str(CDMSource.__table__),
+                session=session,
+                func=cdm_source_transform,
+                description="CDMSource transform",
             ),
         ),
         (
@@ -327,28 +340,29 @@ def run_etl(
     run_transformations(session, transformations, registry)
 
     logger.info("ETL completed")
-    print_summary(
-        session,
-        [
-            Location,
-            CareSite,
-            Person,
-            Death,
-            VisitOccurrence,
-            Stem,
-            ConditionOccurrence,
-            DrugExposure,
-            Observation,
-            ProcedureOccurrence,
-            Measurement,
-            DeviceExposure,
-            Specimen,
-            CDMSource,
-            ObservationPeriod,
-            DrugEra,
-            ConditionEra,
-        ],
-    )
+    with session_context(session) as ctx_session:
+        print_summary(
+            ctx_session,
+            [
+                Location,
+                CareSite,
+                Person,
+                Death,
+                VisitOccurrence,
+                Stem,
+                ConditionOccurrence,
+                DrugExposure,
+                Observation,
+                ProcedureOccurrence,
+                Measurement,
+                DeviceExposure,
+                Specimen,
+                CDMSource,
+                ObservationPeriod,
+                DrugEra,
+                ConditionEra,
+            ],
+        )
 
 
 def run_merge(session: AbstractSession) -> None:
@@ -362,6 +376,15 @@ def run_merge(session: AbstractSession) -> None:
                 session=session,
                 func=create_omop_tables,
                 description="Create OMOP tables",
+            ),
+        ),
+        (
+            -1,
+            SessionOperation(
+                key=str(CDMSource.__table__),
+                session=session,
+                func=cdm_source_transform,
+                description="CDMSource transform",
             ),
         ),
         (
@@ -494,26 +517,27 @@ def run_merge(session: AbstractSession) -> None:
     run_transformations(session, transformations, registry)
 
     logger.info("ETL Merge Complete")
-    print_summary(
-        session,
-        [
-            Location,
-            CareSite,
-            Person,
-            Death,
-            VisitOccurrence,
-            ConditionOccurrence,
-            DrugExposure,
-            Observation,
-            ProcedureOccurrence,
-            Measurement,
-            DeviceExposure,
-            Specimen,
-            ObservationPeriod,
-            DrugEra,
-            ConditionEra,
-        ],
-    )
+    with session_context(session) as ctx_session:
+        print_summary(
+            ctx_session,
+            [
+                Location,
+                CareSite,
+                Person,
+                Death,
+                VisitOccurrence,
+                ConditionOccurrence,
+                DrugExposure,
+                Observation,
+                ProcedureOccurrence,
+                Measurement,
+                DeviceExposure,
+                Specimen,
+                ObservationPeriod,
+                DrugEra,
+                ConditionEra,
+            ],
+        )
 
 
 def print_summary(
@@ -521,11 +545,13 @@ def print_summary(
     models: List[OmopCdmModelBase],  # type: ignore
 ) -> None:
     """Print DB summary"""
-    output_str = (
-        f"\n{''.join([' ' for _ in range(10)])}--- ROWS TO OMOPCDM ---\n"
-    )
+    output_str = f"\n{''.join([' ' for _ in range(10)])}--- ROWS TO {TARGET_SCHEMA} OMOPCDM ---\n"
     for model in models:
-        output_str += (
-            f"{model.__tablename__:>22}: {session.query(model).count():<20}\n"
+        model_row_count = session.query(model).count()
+        output_str += f"{model.__tablename__:>22}: {model_row_count:<20}\n"
+        log_transform_to_summary_table(
+            session,
+            transform_name=str(model.__table__),
+            model_row_count=model_row_count,
         )
     logger.info(output_str)

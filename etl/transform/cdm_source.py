@@ -11,6 +11,7 @@ from ..util.db import AbstractSession, DataBaseWriterBuilder
 
 # Grab the logger
 logger = logging.getLogger("ETL.Core.CDMSource")
+SOURCE_RELEASE_DATE = "2024-05-23"
 
 
 def get_vocabulary_version(session: AbstractSession) -> str:
@@ -38,7 +39,7 @@ def transform(session: AbstractSession) -> None:
     git_commit_sha = "Unspecified"
     git_commit_tag = "Unspecified"
     # Defaults to link to current master
-    cdm_etl_reference = "https://github.com/edencehealth/etl_template/"
+    cdm_etl_reference = "https://github.com/edencehealth/rigshospitalet_etl/"
     try:
         git_commit_sha = os.environ["COMMIT_SHA"]
     except KeyError:
@@ -54,17 +55,13 @@ def transform(session: AbstractSession) -> None:
     vocabulary_version = get_vocabulary_version(session)
 
     cdm_source_data = {
-        # TO-DO: cdm_source_name
-        TARGET.cdm_source_name.key: "ETL Template",
-        # TO-DO: cdm_source_abbreviation
-        TARGET.cdm_source_abbreviation.key: "ETL Template",
-        # TO-DO: cdm_holder
-        TARGET.cdm_holder.key: "ETL Template",
-        # TO-DO: source_description
-        TARGET.source_description.key: "ETL Template",
+        TARGET.cdm_source_name.key: "Rigshospitalet 1301011 ICU ETL",
+        TARGET.cdm_source_abbreviation.key: "RH1301011-ICU-ETL",
+        TARGET.source_description.key: "CIS data from BTH + LPR from registry data + lab data from LABKA and BCC",
+        TARGET.cdm_holder.key: "Rigshospitalet",
         TARGET.source_documentation_reference.key: None,
         TARGET.cdm_etl_reference.key: cdm_etl_reference,
-        TARGET.source_release_date.key: todays_date(),
+        TARGET.source_release_date.key: SOURCE_RELEASE_DATE,
         # TO-DO: cdm_release_date
         TARGET.cdm_release_date.key: todays_date(),
         TARGET.cdm_version.key: "5.4",
