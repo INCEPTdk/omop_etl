@@ -1,6 +1,6 @@
 SQLAlchemy~=1.4.52
 numpy~=1.26.4
-pandas~=1.4.2
+pandas~=2.2.2
 psutil~=5.9.8
 psycopg2-binary~=2.9.9
 python-dateutil~=2.9.0.post0

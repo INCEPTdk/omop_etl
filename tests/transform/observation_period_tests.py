@@ -82,9 +82,9 @@ class ObservationPeriodTransformationTest(DuckDBBaseTest):
 
         with session_context(make_db_session(self.engine)) as session:
             observation_period_transformation(session)
+            result_sql = str(select(self.expected_cols).compile())
+            result_df = session.connection_execute(result_sql).df()
 
-        result = select(self.expected_cols)
-        result_df = pd.read_sql(result, self.engine, parse_dates=self.DATETIME_COLS_TO_PARSE)
         result_df = enforce_dtypes(self.expected_df, result_df)
         assert_dataframe_equality(result_df, self.expected_df, index_cols="observation_period_id")
 
