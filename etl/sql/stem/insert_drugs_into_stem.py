@@ -207,13 +207,12 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     # (they use go straight to ingredient level)
 
     OmopConcept1 = aliased(OmopConcept)
-    OmopConcept2 = aliased(OmopConcept)
 
     AutoMappedSelectSql = (
         select(
             literal("Drug").label("domain_id"),
             VisitOccurrence.person_id,
-            OmopConcept2.concept_id.label("concept_id"),
+            OmopConceptRelationship.concept_id_2.label("concept_id"),
             cast(start_datetime, DATE).label("start_date"),
             cast(start_datetime, TIMESTAMP).label("start_datetime"),
             get_case_statement(
@@ -229,14 +228,14 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            OmopConcept2.concept_id.label("source_concept_id"),
+            OmopConceptRelationship.concept_id_2.label("source_concept_id"),
             null().label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             null().label("era_lookback_interval"),
             case(
                 (
-                    OmopConcept2.concept_id.isnot(null()),
+                    OmopConceptRelationship.concept_id_2.isnot(null()),
                     "automapped_administrations",
                 ),
                 else_="unmapped_administrations",
@@ -274,14 +273,6 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 OmopConceptRelationship.concept_id_1 == OmopConcept1.concept_id,
                 OmopConceptRelationship.relationship_id
                 == "ATC - RxNorm pr lat",
-            ),
-            isouter=INCLUDE_UNMAPPED_CODES,
-        )
-        .join(
-            OmopConcept2,
-            and_(
-                OmopConcept2.concept_id == OmopConceptRelationship.concept_id_2,
-                OmopConcept2.concept_class_id == "Ingredient",
             ),
             isouter=INCLUDE_UNMAPPED_CODES,
         )
