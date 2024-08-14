@@ -136,6 +136,15 @@ class StemTransformationTest(DuckDBBaseTest):
                 pd.DataFrame(session.query(result).all())
             )
 
+        # Test all stem rows
         assert_dataframe_equality(result_df, self.expected_df, index_cols=['stem_id', 'source_concept_id'])
+
+        # Test drug rows only because source_concept_id is deterministic for these
+        # - but leave out drug data from observations because they don't have ATC codes
+        query_criteria = 'domain_id == "Drug" & datasource != "observations"'
+        drug_result_df = result_df.query(query_criteria)
+        drug_expected_df = self.expected_df.query(query_criteria)
+        assert_dataframe_equality(drug_result_df, drug_expected_df, index_cols='stem_id')
+
 
 __all__ = ['StemTransformationTest']
