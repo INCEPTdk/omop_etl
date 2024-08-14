@@ -54,7 +54,7 @@ ObservationInsert: Final[Insert] = insert(OmopObservation).from_select(
         OmopObservation.observation_date,
         OmopObservation.observation_datetime,
         OmopObservation.observation_type_concept_id,
-        OmopObservation.quantity_or_value_as_number,
+        OmopObservation.value_as_number,
         OmopObservation.value_as_string,
         OmopObservation.value_as_concept_id,
         OmopObservation.unit_concept_id,

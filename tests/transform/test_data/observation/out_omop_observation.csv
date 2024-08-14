@@ -1,4 +1,4 @@
-observation_id;person_id;observation_concept_id;observation_date;observation_datetime;observation_type_concept_id;quantity_or_value_as_number;value_as_string;value_as_concept_id;qualifier_concept_id;unit_concept_id;provider_id;visit_occurrence_id;visit_detail_id;observation_source_value;observation_source_concept_id;unit_source_value;qualifier_source_value;value_source_value;observation_event_id;obs_event_field_concept_id
+observation_id;person_id;observation_concept_id;observation_date;observation_datetime;observation_type_concept_id;value_as_number;value_as_string;value_as_concept_id;qualifier_concept_id;unit_concept_id;provider_id;visit_occurrence_id;visit_detail_id;observation_source_value;observation_source_concept_id;unit_source_value;qualifier_source_value;value_source_value;observation_event_id;obs_event_field_concept_id
 1;7;4287468;1810-11-17;1810-11-17 19:17:09;32817;;rygleje;;;;;4;;lejringplc__rygleje;2000000090;;;;;;
 2;7;4287468;1810-11-17;1810-11-17 21:17:09;32817;;;24028007;;;;4;;lejringplc__højre;2000000090;;;;;;
 3;7;0;1810-11-17;1810-11-17 21:17:09;32817;;;24028007;;;;4;;lejringplcunmappable__højre;2000000090;;;;;;

@@ -59,7 +59,7 @@ MeasurementInsert: Final[Insert] = insert(
         OmopMeasurement.measurement_datetime,
         OmopMeasurement.measurement_type_concept_id,
         OmopMeasurement.operator_concept_id,
-        OmopMeasurement.quantity_or_value_as_number,
+        OmopMeasurement.value_as_number,
         OmopMeasurement.value_as_concept_id,
         OmopMeasurement.unit_concept_id,
         OmopMeasurement.range_low,
