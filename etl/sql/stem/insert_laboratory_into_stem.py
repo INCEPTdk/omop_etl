@@ -46,10 +46,10 @@ def get_laboratory_stem_insert(
     )
 
     value_column = find_unique_column_names(
-        session, model, ConceptLookupStem, "value_as_number"
+        session, model, ConceptLookupStem, "quantity_or_value_as_number"
     )
 
-    value_as_number = get_case_statement(
+    quantity_or_value_as_number = get_case_statement(
         value_column,
         model,
         FLOAT,
@@ -93,7 +93,9 @@ def get_laboratory_stem_insert(
             ConceptLookupStem.uid,
             literal(model.__tablename__).label("datasource"),
             ConceptLookup.concept_id.label("value_as_concept_id"),
-            (value_as_number * conversion).label("value_as_number"),
+            (quantity_or_value_as_number * conversion).label(
+                "quantity_or_value_as_number"
+            ),
             get_case_statement(value_column, model, VARCHAR).label(
                 "value_source_value"
             ),
@@ -155,7 +157,7 @@ def get_laboratory_stem_insert(
             null().label("source_concept_id"),
             literal(model.__tablename__).label("datasource"),
             null().label("value_as_concept_id"),
-            null().label("value_as_number"),
+            null().label("quantity_or_value_as_number"),
             model.system_clean.label("value_source_value"),
             null().label("unit_source_value"),
             null().label("unit_concept_id"),
@@ -200,7 +202,7 @@ def get_laboratory_stem_insert(
             OmopStem.source_concept_id,
             OmopStem.datasource,
             OmopStem.value_as_concept_id,
-            OmopStem.value_as_number,
+            OmopStem.quantity_or_value_as_number,
             OmopStem.value_source_value,
             OmopStem.unit_source_value,
             OmopStem.unit_concept_id,
