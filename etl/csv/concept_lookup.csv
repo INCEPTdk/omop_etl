@@ -28,38 +28,38 @@ GI;4132161;administration_route
 IV;4171047;administration_route
 OR;4132161;administration_route
 SC;4142048;administration_route
-ASB/CPAP;45880365;ventilation_mode
-CPAP/ASB;45880365;ventilation_mode
-" CPAP/ASB";45880365;ventilation_mode
-SPN-CPAP;45880365;ventilation_mode
-mode SPN-CPAP;45880365;ventilation_mode
-PS/CPAP;45880365;ventilation_mode
-BNA;45878142;ventilation_mode
-VC-MMV;36310227;ventilation_mode
-CPAP;45880365;ventilation_mode
-" CPAP";45880365;ventilation_mode
-MMV/ASB/AutoFlow;36310227;ventilation_mode
-NPPV S/T;45880365;ventilation_mode
-VS(automode);45880365;ventilation_mode
-PRVC(automode);36308445;ventilation_mode
-PC/PS;36308106;ventilation_mode
-PC-BIPAP;36308445;ventilation_mode
-mode PC-BIPAP;36308445;ventilation_mode
-PRVC;36308445;ventilation_mode
-VM;36308445;ventilation_mode
-VC-CMV;36308445;ventilation_mode
-NIV;36308106;ventilation_mode
-IPPV/ASSIST/AUtoFlow;36308445;ventilation_mode
-PS(automode);45880365;ventilation_mode
-PC(automode);36308445;ventilation_mode
-NIV-PS;45880365;ventilation_mode
-PRVC/VS;36308106;ventilation_mode
-UIT;45878142;ventilation_mode
-IPPV/AutoFlow;36308445;ventilation_mode
-SN;45878142;ventilation_mode
-VC-AC;36308106;ventilation_mode
-+PS;45880365;ventilation_mode
-TV;45878142;ventilation_mode
-MMV/AutoFlow;36310227;ventilation_mode
-MMV;36310227;ventilation_mode
-O2 Therapy;45878142;ventilation_mode
+ASB/CPAP;45880365;ventilationmds
+CPAP/ASB;45880365;ventilationmds
+" CPAP/ASB";45880365;ventilationmds
+SPN-CPAP;45880365;ventilationmds
+mode SPN-CPAP;45880365;ventilationmds
+PS/CPAP;45880365;ventilationmds
+BNA;45878142;ventilationmds
+VC-MMV;36310227;ventilationmds
+CPAP;45880365;ventilationmds
+" CPAP";45880365;ventilationmds
+MMV/ASB/AutoFlow;36310227;ventilationmds
+NPPV S/T;45880365;ventilationmds
+VS(automode);45880365;ventilationmds
+PRVC(automode);36308445;ventilationmds
+PC/PS;36308106;ventilationmds
+PC-BIPAP;36308445;ventilationmds
+mode PC-BIPAP;36308445;ventilationmds
+PRVC;36308445;ventilationmds
+VM;36308445;ventilationmds
+VC-CMV;36308445;ventilationmds
+NIV;36308106;ventilationmds
+IPPV/ASSIST/AUtoFlow;36308445;ventilationmds
+PS(automode);45880365;ventilationmds
+PC(automode);36308445;ventilationmds
+NIV-PS;45880365;ventilationmds
+PRVC/VS;36308106;ventilationmds
+UIT;45878142;ventilationmds
+IPPV/AutoFlow;36308445;ventilationmds
+SN;45878142;ventilationmds
+VC-AC;36308106;ventilationmds
++PS;45880365;ventilationmds
+TV;45878142;ventilationmds
+MMV/AutoFlow;36310227;ventilationmds
+MMV;36310227;ventilationmds
+O2 Therapy;45878142;ventilationmds

@@ -72,7 +72,18 @@ def create_simple_stem_insert(
 
     value_as_concept_id_from_lookup = (
         select(ConceptLookup.concept_id)
-        .where(ConceptLookup.concept_string == value_as_string)
+        .where(
+            and_(
+                ConceptLookup.concept_string == value_as_string,
+                ConceptLookup.filter
+                == func.array_extract(
+                    func.string_split(
+                        concept_lookup_stem_cte.c.source_variable, "-"
+                    ),
+                    1,
+                ),
+            )
+        )
         .scalar_subquery()
     )
 
