@@ -361,7 +361,7 @@ class Measurement(ModelBase, PersonIdMixin, VisitAndProviderMixin):
         FK(Concept.concept_id), nullable=False
     )
     operator_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
-    quantity_or_value_as_number: Final[Column] = FloatField()
+    value_as_number: Final[Column] = FloatField()
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     unit_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     range_low: Final[Column] = FloatField()
@@ -400,7 +400,7 @@ class Observation(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     observation_type_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=False
     )
-    quantity_or_value_as_number: Final[Column] = FloatField()
+    value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(60)
     value_as_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
     qualifier_concept_id: Final[Column] = IntField(FK(Concept.concept_id))
