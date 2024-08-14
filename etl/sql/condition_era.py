@@ -1,5 +1,7 @@
 "Condition era logic."
 
+from datetime import datetime
+
 from sqlalchemy import and_, case, cast, func, insert, or_
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql import Insert
@@ -33,12 +35,26 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
             func.coalesce(OmopStem.start_date, OmopStem.end_date).label(
                 "condition_start_date"
             ),
-            func.coalesce(OmopStem.end_date, OmopStem.start_date).label(
-                "condition_end_date"
-            ),
+            case(
+                (OmopStem.end_date > datetime.now(), OmopStem.start_date),
+                else_=func.coalesce(
+                    OmopStem.end_date, OmopStem.start_date
+                ).label("end_date"),
+            ).label("condition_end_date"),
             (OmopStem.start_date - lookback_interval).label("lookback_date"),
             func.coalesce(
-                func.lag(OmopStem.end_date).over(), OmopStem.start_date
+                func.lag(
+                    case(
+                        (
+                            OmopStem.end_date > datetime.now(),
+                            OmopStem.start_date,
+                        ),
+                        else_=func.coalesce(
+                            OmopStem.end_date, OmopStem.start_date
+                        ),
+                    )
+                ).over(),
+                OmopStem.start_date,
             ).label("previous_condition_date"),
         )
         .where(
