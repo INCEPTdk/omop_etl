@@ -139,7 +139,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            ConceptLookupStem.uid.label("source_concept_id"),
+            OmopConcept.concept_id.label("source_concept_id"),
             case(*quantity, else_=null()).label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
@@ -155,6 +155,10 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
                 Prescriptions.epaspresbaseid == Administrations.epaspresbaseid,
             ),
+        )
+        .join(
+            OmopConcept,
+            Prescriptions.epaspresdrugatc == OmopConcept.concept_code,
         )
         .join(
             VisitOccurrence,
@@ -225,7 +229,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            null().label("source_concept_id"),
+            OmopConcept2.concept_id.label("source_concept_id"),
             null().label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
