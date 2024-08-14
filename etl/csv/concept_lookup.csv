@@ -3,7 +3,7 @@ K;8532;person
 M;8507;person
 ER;9203;care_site
 ICU;32037;care_site
-Home;4084843;visit_occurrence
+Home;0;visit_occurrence
 Emergency room;8870;visit_occurrence
 Non-ICU dept. - this hospital;9201;visit_occurrence
 Non-ICU dept. - other hospital;9201;visit_occurrence
