@@ -1,3 +1,4 @@
 _id;concept_id_1;concept_id_2;relationship_id;valid_start_date;valid_end_date;invalid_reason
 1;21603043;1707687;ATC - RxNorm pr lat;2020-06-01;2099-12-31;
 2;21602732;1506270;ATC - RxNorm pr lat;2020-06-01;2099-12-31;
+3;45590881;440649;"Maps to";2018-11-28;2099-12-31;

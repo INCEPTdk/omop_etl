@@ -3,12 +3,24 @@
 import os
 from typing import Any
 
-from sqlalchemy import DATE, INT, TIMESTAMP, and_, cast, insert, literal, select
+from sqlalchemy import (
+    DATE,
+    INT,
+    TIMESTAMP,
+    and_,
+    cast,
+    insert,
+    literal,
+    or_,
+    select,
+)
 from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
 from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
+from ...models.omopcdm54.vocabulary import Concept, ConceptRelationship
 from ...models.tempmodels import ConceptLookupStem
+from ...sql.observation_period import CONCEPT_ID_REGISTRY
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -28,11 +40,15 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
 
     StemSelect = (
         select(
-            ConceptLookupStem.std_code_domain.label("domain_id"),
+            func.coalesce(
+                ConceptLookupStem.std_code_domain,
+                Concept.domain_id,
+            ).label("domain_id"),
             OmopPerson.person_id,
-            cast(ConceptLookupStem.mapped_standard_code, INT).label(
-                "concept_id"
-            ),
+            func.coalesce(
+                cast(ConceptLookupStem.mapped_standard_code, INT),
+                ConceptRelationship.concept_id_2,
+            ).label("concept_id"),
             get_case_statement(unique_start_date, model, DATE).label(
                 "start_date"
             ),
@@ -43,7 +59,10 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             get_case_statement(unique_end_date, model, TIMESTAMP).label(
                 "end_datetime"
             ),
-            cast(ConceptLookupStem.type_concept_id, INT),
+            func.coalesce(
+                cast(ConceptLookupStem.type_concept_id, INT),
+                CONCEPT_ID_REGISTRY,
+            ).label("type_concept_id"),
             model.sks_code,
             ConceptLookupStem.uid,
             literal(model.__tablename__).label("datasource"),
@@ -62,6 +81,27 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
             isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
+        )
+        .join(
+            Concept,
+            and_(
+                func.replace(Concept.concept_code, ".", "")
+                == func.substring(model.sks_code, 2),
+                Concept.vocabulary_id == "ICD10",
+                or_(
+                    Concept.concept_class_id == "ICD10 code",
+                    Concept.concept_class_id == "ICD10 Hierarchy",
+                ),
+            ),
+            isouter=True,
+        )
+        .join(
+            ConceptRelationship,
+            and_(
+                ConceptRelationship.concept_id_1 == Concept.concept_id,
+                ConceptRelationship.relationship_id == "Maps to",
+            ),
+            isouter=True,
         )
     )
 
