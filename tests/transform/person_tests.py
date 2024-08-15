@@ -1,7 +1,8 @@
 """Person transformation tests"""
 
-import pandas as pd
 import os
+
+import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import Person as OmopPerson
