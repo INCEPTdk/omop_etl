@@ -30,6 +30,11 @@ from .utils import (
 
 @toggle_stem_transform
 def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
+    """Insert registry data into the stem table.
+    If ICD code is not mapped in concept_lookup_stem, it will be mapped using the concept_relationship table.
+    The source ICD codes are in the SKS format, i.e. they are prefixed with the letter 'D' and do not contain any dots.
+
+    """
     unique_start_date = find_unique_column_names(
         session, model, ConceptLookupStem, "start_date"
     )
@@ -85,8 +90,12 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
         .join(
             Concept,
             and_(
-                func.replace(Concept.concept_code, ".", "")
-                == func.substring(model.sks_code, 2),
+                func.replace(
+                    Concept.concept_code, ".", ""
+                )  # remove dots from the concept code
+                == func.substring(
+                    model.sks_code, 2
+                ),  # remove the 'D' prefix from the source code
                 Concept.vocabulary_id == "ICD10",
                 or_(
                     Concept.concept_class_id == "ICD10 code",
