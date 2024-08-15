@@ -583,7 +583,7 @@ class Stem(ModelBase):
         600
     )  # this may be too small for some sources
     source_concept_id: Final[Column] = BigIntField()
-    value_as_number: Final[Column] = FloatField()
+    quantity_or_value_as_number: Final[Column] = FloatField()
     value_as_string: Final[Column] = CharField(250)
     value_as_concept_id: Final[Column] = IntField(
         FK(Concept.concept_id), nullable=True, index=True

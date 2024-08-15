@@ -30,7 +30,7 @@ StemDeviceExposure: Final[Select] = select(
     OmopStem.type_concept_id,
     OmopStem.unique_device_id,
     OmopStem.production_id,
-    OmopStem.value_as_number.label("quantity"),
+    OmopStem.quantity_or_value_as_number.label("quantity"),
     OmopStem.provider_id,
     OmopStem.visit_occurrence_id,
     OmopStem.visit_detail_id,
