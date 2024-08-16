@@ -23,3 +23,4 @@ concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concep
 21600877;"potassium chloride; oral";Drug;ATC;ATC 5th;C;A12BA01;1970-01-01;2099-12-31;
 21600283;"norepinephrine; parenteral";Drug;ATC;ATC 5th;C;C01CA03;1970-01-01;2099-12-31;
 21604260;"oxycodone; systemic";Drug;ATC;ATC 5th;C;N02AA05;1970-01-01;2099-12-31;
+45590881;"Malignant neoplasm: Head of pancreas";Condition;ICD10;"ICD10 code";;C25.0;1990-05-01;2099-12-31;
