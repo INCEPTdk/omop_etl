@@ -6,6 +6,9 @@ from typing import Dict, Final, List
 # Clinical Data Tables
 from .clinical import *
 
+# Custom Tables
+from .custom_models import *
+
 # Health Economics Data Tables
 from .health_economics import *
 

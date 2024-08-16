@@ -1,5 +1,5 @@
 concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concept;concept_code;valid_start_date;valid_end_date;invalid_reason
-0;No matching concept;Metadata;None;Undefined;;No matching concept;1970-01-01;2099-12-31;
+0;No matching concept;Metadata;'None';Undefined;;No matching concept;1970-01-01;2099-12-31;
 198185;Chronic renal failure;Condition;SNOMED;Clinical Finding;S;90688005;2002-01-31;2099-12-31;
 257315;Bacterial pneumonia;Condition;SNOMED;Clinical Finding;S;53084003;2002-01-31;2099-12-31;
 1124957;oxycodone;Drug;RxNorm;Ingredient;S;7804;1970-01-01;2099-12-31;
@@ -19,3 +19,7 @@ concept_id;concept_name;domain_id;vocabulary_id;concept_class_id;standard_concep
 44807895;Acute non-infective exacerbation of chronic obstructive pulmonary disease;Condition;SNOMED;Clinical Finding;S;847091000000104;2012-10-01;2099-12-31;
 46270682;Open drainage of intraperitoneal abscess;Procedure;SNOMED;Procedure;S;708636006;2015-07-31;2099-12-31;
 1506270;methylprednisolone;Drug;RxNorm;Ingredient;S;6902;1970-01-01;2099-12-31;
+21600719;"insulin aspart; parenteral (insulins and analog. for injection, fast-acting)";Drug;ATC;ATC 5th;C;A10AB05;1970-01-01;2099-12-31;
+21600877;"potassium chloride; oral";Drug;ATC;ATC 5th;C;A12BA01;1970-01-01;2099-12-31;
+21600283;"norepinephrine; parenteral";Drug;ATC;ATC 5th;C;C01CA03;1970-01-01;2099-12-31;
+21604260;"oxycodone; systemic";Drug;ATC;ATC 5th;C;N02AA05;1970-01-01;2099-12-31;

@@ -1,6 +1,7 @@
 """Stem transformations"""
 
 import logging
+import os
 
 from sqlalchemy import and_
 
@@ -17,9 +18,11 @@ from ..models.source import (
 from ..sql.stem import (
     get_drug_stem_insert,
     get_laboratory_stem_insert,
-    get_nondrug_stem_insert,
+    get_mapped_nondrug_stem_insert,
     get_registry_stem_insert,
+    get_unmapped_nondrug_stem_insert,
 )
+from ..sql.stem.utils import get_batches_from_concept_loopkup_stem
 from ..util.db import AbstractSession
 
 logger = logging.getLogger("ETL.Stem")
@@ -39,14 +42,33 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__.upper(),
         )
 
-        session.execute(get_nondrug_stem_insert(session, model))
+        for ConceptLookupStemBatchCte in get_batches_from_concept_loopkup_stem(
+            model, session, batch_size=5, logger=logger
+        ):
+            session.execute(
+                get_mapped_nondrug_stem_insert(
+                    session, model, ConceptLookupStemBatchCte
+                )
+            )
+
         logger.info(
-            "STEM Transform in Progress, %s Events Included from source %s.",
+            "STEM Transform in Progress, %s Events Included from mapped nondrug source %s.",
             session.query(OmopStem)
             .where(OmopStem.datasource == model.__tablename__)
             .count(),
             model.__tablename__,
         )
+
+        if os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE":
+            session.execute(get_unmapped_nondrug_stem_insert(session, model))
+
+            logger.info(
+                "STEM Transform in Progress, %s Events including unmapped nondrug source %s.",
+                session.query(OmopStem)
+                .where(OmopStem.datasource == model.__tablename__)
+                .count(),
+                model.__tablename__,
+            )
 
     logger.info("DRUG source data to the STEM table...")
     session.execute(get_drug_stem_insert(session, logger))
@@ -72,7 +94,7 @@ def transform(session: AbstractSession) -> None:
             and_(
                 OmopStem.domain_id == "Drug",
                 OmopStem.concept_id.isnot(None),
-                OmopStem.value_as_number.isnot(None),
+                OmopStem.quantity_or_value_as_number.isnot(None),
             )
         )
         .count()

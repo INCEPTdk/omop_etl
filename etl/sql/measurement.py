@@ -22,7 +22,7 @@ StemMeasurement: Final[Select] = select(
     ).label("start_datetime"),
     OmopStem.type_concept_id,
     OmopStem.operator_concept_id,
-    OmopStem.value_as_number,
+    OmopStem.quantity_or_value_as_number,
     OmopStem.value_as_concept_id,
     OmopStem.unit_concept_id,
     OmopStem.range_low,

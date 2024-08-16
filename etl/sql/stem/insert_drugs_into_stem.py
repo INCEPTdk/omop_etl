@@ -75,17 +75,17 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             Administrations.administration_type == dmwd["drug_exposure_type"],
         )
 
-        if str(dmwd["value_as_number"]).startswith("recipe__"):
+        if str(dmwd["quantity_or_value_as_number"]).startswith("recipe__"):
             this_quantity = get_quantity_recipe(
                 Administrations,
                 Prescriptions,
                 dmwd["drug_exposure_type"],
-                dmwd["value_as_number"],
+                dmwd["quantity_or_value_as_number"],
                 logger,
             )
         else:
             this_quantity = get_case_statement(
-                dmwd["value_as_number"],
+                dmwd["quantity_or_value_as_number"],
                 Administrations,
                 FLOAT,
             )
@@ -149,8 +149,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            ConceptLookupStem.uid.label("source_concept_id"),
-            case(*quantity, else_=null()).label("value_as_number"),
+            OmopConcept.concept_id.label("source_concept_id"),
+            case(*quantity, else_=null()).label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             ConceptLookupStem.era_lookback_interval,
@@ -165,6 +165,10 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
                 Prescriptions.epaspresbaseid == Administrations.epaspresbaseid,
             ),
+        )
+        .join(
+            OmopConcept,
+            Prescriptions.epaspresdrugatc == OmopConcept.concept_code,
         )
         .join(
             VisitOccurrence,
@@ -213,13 +217,12 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     # (they use go straight to ingredient level)
 
     OmopConcept1 = aliased(OmopConcept)
-    OmopConcept2 = aliased(OmopConcept)
 
     AutoMappedSelectSql = (
         select(
             literal("Drug").label("domain_id"),
             VisitOccurrence.person_id,
-            OmopConcept2.concept_id.label("concept_id"),
+            OmopConceptRelationship.concept_id_2.label("concept_id"),
             cast(start_datetime, DATE).label("start_date"),
             cast(start_datetime, TIMESTAMP).label("start_datetime"),
             cast(end_datetime, DATE).label("end_date"),
@@ -231,14 +234,14 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            null().label("source_concept_id"),
-            null().label("value_as_number"),
+            OmopConceptRelationship.concept_id_2.label("source_concept_id"),
+            null().label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
             route_source_value,
             null().label("era_lookback_interval"),
             case(
                 (
-                    OmopConcept2.concept_id.isnot(null()),
+                    OmopConceptRelationship.concept_id_2.isnot(null()),
                     "automapped_administrations",
                 ),
                 else_="unmapped_administrations",
@@ -279,14 +282,6 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ),
             isouter=INCLUDE_UNMAPPED_CODES,
         )
-        .join(
-            OmopConcept2,
-            and_(
-                OmopConcept2.concept_id == OmopConceptRelationship.concept_id_2,
-                OmopConcept2.concept_class_id == "Ingredient",
-            ),
-            isouter=INCLUDE_UNMAPPED_CODES,
-        )
         .where(
             and_(
                 Administrations.drug_name.in_(drugs_without_mappings),
@@ -321,7 +316,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.visit_occurrence_id,
             OmopStem.source_value,
             OmopStem.source_concept_id,
-            OmopStem.value_as_number,
+            OmopStem.quantity_or_value_as_number,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
             OmopStem.era_lookback_interval,

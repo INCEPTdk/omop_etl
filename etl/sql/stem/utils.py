@@ -2,12 +2,48 @@
 
 import inspect
 import os
-from itertools import chain
-from typing import Any
+from itertools import chain, zip_longest
+from typing import Any, List
 
-from sqlalchemy import FLOAT, case, cast, func, not_
+from sqlalchemy import FLOAT, case, cast, func, not_, select
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
+
+from ...models.source import SourceModelBase
+from ...models.tempmodels import ConceptLookupStem
+from ...util.db import AbstractSession
+
+
+def get_batches_from_concept_loopkup_stem(
+    model: SourceModelBase,
+    session: AbstractSession,
+    batch_size: int = None,
+    logger: Any = None,
+) -> List[int]:
+    """Get batches from the ConceptLookupStem table"""
+    uids = session.scalars(
+        select(ConceptLookupStem.uid).where(
+            ConceptLookupStem.datasource == model.__tablename__
+        )
+    ).all()
+
+    if len(uids) == 0:
+        logger.warning(
+            "MISSING mapping in concept lookup stem  for %s source data ...",
+            model.__tablename__.upper(),
+        )
+
+    batch_size = batch_size or len(uids)
+    batches = list(zip_longest(*([iter(uids)] * batch_size)))
+
+    for batch in batches:
+        logger.debug(
+            "\tSTEM Transform batch %s is being processed...",
+            batch,
+        )
+        yield select(ConceptLookupStem).where(
+            ConceptLookupStem.uid.in_(batch)
+        ).cte(name="cls_batch")
 
 
 def try_cast_to_float(
