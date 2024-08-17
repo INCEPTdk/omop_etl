@@ -101,26 +101,27 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     )
 
     timezone = case(
+        (Administrations.from_file.like("3%"), "Europe/Copenhagen"),
         (Administrations.from_file.like("8%"), "UTC"),
         (Administrations.from_file.like("9%"), "UTC"),
-        else_="Europe/Copenhagen",
+        else_=None,
     )
 
-    end_datetime = func.timezone(
-        timezone,
-        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP),
+    original_end_datetime = get_case_statement(
+        unique_end_datetime, Administrations, TIMESTAMP
     )
+    start_offset = case(
+        (
+            Administrations.administration_type == "continuous",
+            text("INTERVAL 59 seconds"),
+        ),
+        else_=text("INTERVAL 0 seconds"),
+    )
+    end_datetime = func.timezone(timezone, original_end_datetime)
 
     start_datetime = func.timezone(
         timezone,
-        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP)
-        - case(
-            (
-                Administrations.administration_type == "continuous",
-                text("INTERVAL 59 seconds"),
-            ),
-            else_=text("INTERVAL 0 seconds"),
-        ),
+        original_end_datetime - start_offset,
     )
 
     unique_route_source_value = find_unique_column_names(
@@ -139,7 +140,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "concept_id"
             ),
             cast(start_datetime, DATE).label("start_date"),
-            cast(start_datetime, TIMESTAMP).label("start_datetime"),
+            start_datetime,
             cast(end_datetime, DATE).label("end_date"),
             end_datetime,
             cast(ConceptLookupStem.type_concept_id, INT),
@@ -224,7 +225,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             VisitOccurrence.person_id,
             OmopConceptRelationship.concept_id_2.label("concept_id"),
             cast(start_datetime, DATE).label("start_date"),
-            cast(start_datetime, TIMESTAMP).label("start_datetime"),
+            start_datetime,
             cast(end_datetime, DATE).label("end_date"),
             end_datetime,
             literal(CONCEPT_ID_EHR).label("type_concept_id"),
