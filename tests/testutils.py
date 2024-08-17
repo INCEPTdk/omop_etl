@@ -1,4 +1,5 @@
 """ A module for integration testing with postgres"""
+
 import inspect
 import os
 import unittest
@@ -15,6 +16,8 @@ from etl.util.db import (
     make_engine_postgres,
     session_context,
 )
+
+TEST_TIMEZONE = "UTC"
 
 
 class PostgresBaseTest(unittest.TestCase):
@@ -102,20 +105,34 @@ def base_path() -> Path:
     caller_module = inspect.getmodule(inspect.stack()[1][0])
     return Path(caller_module.__file__).parent.resolve()
 
+
 def enforce_dtypes(df_source, df_target):
     source_dtypes = df_source.dtypes
-    df_target_converted = df_target.copy()  # To avoid modifying the original df_target
+    df_target_converted = df_target.copy()  # don't modify original
 
     for column, dtype in source_dtypes.items():
         if column in df_target_converted.columns:
-            try:
-                df_target_converted[column] = df_target_converted[column].astype(dtype)
-            except (TypeError, ValueError) as e:
-                print(f"Cannot convert column {column} to {dtype}: {e}")
+            df_target_converted[column] = enforce_dtype_(
+                df_target_converted[column], dtype
+            )
 
     return df_target_converted
 
-def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
+def enforce_dtype_(s: pd.Series, dtype: str) -> pd.Series:
+    try:
+        is_timestamp = pd.api.types.is_datetime64_any_dtype(s)
+        is_timezone_aware = hasattr(s, 'dt')  # DATEs won't be
+        if is_timestamp and is_timezone_aware:
+            return s.dt.tz_convert(TEST_TIMEZONE).dt.tz_localize(None)
+        else:
+            return s.astype(dtype)
+    except (TypeError, ValueError) as e:
+        print(f"Cannot convert column {s.name} to {dtype}: {e}")
+
+
+def assert_dataframe_equality(
+    df1, df2, index_cols: str = None, **kwargs
+):
     if index_cols:
         if isinstance(index_cols, str):
             index_cols = [index_cols]
