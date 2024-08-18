@@ -136,6 +136,6 @@ def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
         sorted_df2,
         check_like=True,
         check_dtype=False,
-        check_datetimelike_compat=True,
+        check_datetimelike_compat=False,
         **kwargs,
     )
