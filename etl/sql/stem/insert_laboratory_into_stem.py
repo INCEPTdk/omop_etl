@@ -31,6 +31,7 @@ from .utils import (
 )
 
 CONCEPT_ID_REGISTRY: Final[int] = 32879
+LABORATORY_TIMEZONE: Final[str] = "Europe/Copenhagen"
 
 
 @toggle_stem_transform
@@ -47,6 +48,16 @@ def get_laboratory_stem_insert(
 
     value_column = find_unique_column_names(
         session, model, ConceptLookupStem, "quantity_or_value_as_number"
+    )
+
+    start_datetime = func.timezone(
+        LABORATORY_TIMEZONE,
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+    )
+
+    end_datetime = func.timezone(
+        LABORATORY_TIMEZONE,
+        get_case_statement(unique_end_date, model, TIMESTAMP),
     )
 
     quantity_or_value_as_number = get_case_statement(
@@ -76,16 +87,10 @@ def get_laboratory_stem_insert(
             cast(ConceptLookupStem.mapped_standard_code, INT).label(
                 "concept_id"
             ),
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
-            get_case_statement(unique_end_date, model, DATE).label("end_date"),
-            get_case_statement(unique_end_date, model, TIMESTAMP).label(
-                "end_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             cast(ConceptLookupStem.type_concept_id, INT),
             model.lab_test_id.label("source_value"),
             ConceptLookupStem.uid,
@@ -137,16 +142,10 @@ def get_laboratory_stem_insert(
             literal_column("'Specimen'").label("domain_id"),
             OmopPerson.person_id,
             ConceptLookup.concept_id,
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
-            get_case_statement(unique_end_date, model, DATE).label("end_date"),
-            get_case_statement(unique_end_date, model, TIMESTAMP).label(
-                "end_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             func.coalesce(
                 cast(ConceptLookupStem.type_concept_id, INT),
                 CONCEPT_ID_REGISTRY,
