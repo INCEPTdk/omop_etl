@@ -28,6 +28,8 @@ from .utils import (
     toggle_stem_transform,
 )
 
+ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA = "Europe/Copenhagen"
+
 
 def create_simple_stem_insert(
     model: Any = None,
@@ -203,18 +205,19 @@ def get_unmapped_nondrug_stem_insert(
         session, model, ConceptLookupStem, "start_date"
     )
 
+    start_datetime = func.timezone(
+        ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA,
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+    )
+
     value_source_value = cast(model.value, TEXT)
 
     StemSelectUnmapped = (
         select(
             VisitOccurrence.person_id,
             VisitOccurrence.visit_occurrence_id,
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
             concat(model.variable, "__", value_source_value),
             value_source_value,
             literal(model.__tablename__).label("datasource"),
