@@ -1,7 +1,7 @@
 """ SQL logic for inserting registry data into the stem table"""
 
 import os
-from typing import Any
+from typing import Any, Final
 
 from sqlalchemy import (
     DATE,
@@ -27,6 +27,8 @@ from .utils import (
     toggle_stem_transform,
 )
 
+REGISTRY_TIMEZONE: Final[str] = "Europe/Copenhagen"
+
 
 @toggle_stem_transform
 def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
@@ -43,6 +45,16 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
         session, model, ConceptLookupStem, "end_date"
     )
 
+    start_datetime = func.timezone(
+        REGISTRY_TIMEZONE,
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+    )
+
+    end_datetime = func.timezone(
+        REGISTRY_TIMEZONE,
+        get_case_statement(unique_end_date, model, TIMESTAMP),
+    )
+
     StemSelect = (
         select(
             func.coalesce(
@@ -54,16 +66,10 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 cast(ConceptLookupStem.mapped_standard_code, INT),
                 ConceptRelationship.concept_id_2,
             ).label("concept_id"),
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
-            get_case_statement(unique_end_date, model, DATE).label("end_date"),
-            get_case_statement(unique_end_date, model, TIMESTAMP).label(
-                "end_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             func.coalesce(
                 cast(ConceptLookupStem.type_concept_id, INT),
                 CONCEPT_ID_REGISTRY,
