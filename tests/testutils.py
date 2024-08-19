@@ -17,7 +17,7 @@ from etl.util.db import (
     session_context,
 )
 
-TEST_TIMEZONE = "UTC"
+TEST_TIMEZONE = "Europe/Copenhagen"
 
 
 class PostgresBaseTest(unittest.TestCase):
@@ -147,6 +147,8 @@ def assert_dataframe_equality(
     sorted_df2 = df2.sort_values(by=column_names).reset_index(drop=True)
     sorted_df1 = sorted_df1.where(pd.notna(sorted_df1), None)
     sorted_df2 = sorted_df2.where(pd.notna(sorted_df2), None)
+
+    breakpoint()
 
     pd.testing.assert_frame_equal(
         sorted_df1,
