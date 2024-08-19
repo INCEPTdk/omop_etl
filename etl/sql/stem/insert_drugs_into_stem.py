@@ -107,9 +107,11 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         else_=None,
     )
 
-    original_end_datetime = get_case_statement(
-        unique_end_datetime, Administrations, TIMESTAMP
+    end_datetime = func.timezone(
+        timezone,
+        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP),
     )
+
     start_offset = case(
         (
             Administrations.administration_type == "continuous",
@@ -117,12 +119,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         ),
         else_=text("INTERVAL 0 seconds"),
     )
-    end_datetime = func.timezone(timezone, original_end_datetime)
 
-    start_datetime = func.timezone(
-        timezone,
-        original_end_datetime - start_offset,
-    )
+    start_datetime = end_datetime - start_offset
 
     unique_route_source_value = find_unique_column_names(
         session, Administrations, ConceptLookupStem, "route_source_value"
