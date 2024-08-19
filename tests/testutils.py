@@ -148,8 +148,6 @@ def assert_dataframe_equality(
     sorted_df1 = sorted_df1.where(pd.notna(sorted_df1), None)
     sorted_df2 = sorted_df2.where(pd.notna(sorted_df2), None)
 
-    breakpoint()
-
     pd.testing.assert_frame_equal(
         sorted_df1,
         sorted_df2,
