@@ -35,10 +35,13 @@ def get_batches_from_concept_loopkup_stem(
 
     batch_size = batch_size or len(uids)
     batches = list(zip_longest(*([iter(uids)] * batch_size)))
+    total_batches = sum(len(batch) for batch in batches if batch)
 
-    for batch in batches:
+    for batch_count, batch in enumerate(batches):
         logger.debug(
-            "\tSTEM Transform batch %s is being processed...",
+            "\tSTEM Transform %s/%s batch %s is being processed...",
+            (batch_count + 1) * len(batch),
+            total_batches,
             batch,
         )
         yield select(ConceptLookupStem).where(

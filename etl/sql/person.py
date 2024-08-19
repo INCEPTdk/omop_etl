@@ -34,41 +34,50 @@ hash_person_id_func = (
     )
 )
 
-PERSON_INSERT: Final[Insert] = insert(OmopPerson).from_select(
-    names=[
-        OmopPerson.gender_concept_id,
-        OmopPerson.year_of_birth,
-        OmopPerson.month_of_birth,
-        OmopPerson.day_of_birth,
-        OmopPerson.birth_datetime,
-        OmopPerson.race_concept_id,
-        OmopPerson.ethnicity_concept_id,
-        OmopPerson.person_source_value,
-        OmopPerson.gender_source_value,
-        OmopPerson.person_id,
-    ],
-    select=select(
-        [
-            GENDER_CONCEPT_ID_CASE,
-            func.date_part("year", SourcePerson.d_foddato),
-            func.date_part("month", SourcePerson.d_foddato),
-            func.date_part("day", SourcePerson.d_foddato),
-            cast(SourcePerson.d_foddato, TIMESTAMP),
-            0,
-            0,
-            concat(SourcePerson.cpr_enc.key, "|", SourcePerson.cpr_enc),
-            concat(SourcePerson.c_kon.key, "|", SourcePerson.c_kon),
-            hash_person_id_func,
+
+def get_person_insert() -> Insert:
+
+    REGISTRY_START_DATE: Final[str] = get_environment_variable(
+        "REGISTRY_START_DATE", "1977-01-01"
+    )
+
+    return insert(OmopPerson).from_select(
+        names=[
+            OmopPerson.gender_concept_id,
+            OmopPerson.year_of_birth,
+            OmopPerson.month_of_birth,
+            OmopPerson.day_of_birth,
+            OmopPerson.birth_datetime,
+            OmopPerson.race_concept_id,
+            OmopPerson.ethnicity_concept_id,
+            OmopPerson.person_source_value,
+            OmopPerson.gender_source_value,
+            OmopPerson.person_id,
         ],
-    )
-    .select_from(SourcePerson)
-    .where(
-        and_(
-            SourcePerson.c_kon.in_(GENDER_CONCEPT_ID_LOOKUP.keys()),
-            SourcePerson.d_foddato.is_not(None),
-            SourcePerson.c_status.is_not(None),
-            SourcePerson.cpr_enc.is_not(None),
+        select=select(
+            [
+                GENDER_CONCEPT_ID_CASE,
+                func.date_part("year", SourcePerson.d_foddato),
+                func.date_part("month", SourcePerson.d_foddato),
+                func.date_part("day", SourcePerson.d_foddato),
+                cast(SourcePerson.d_foddato, TIMESTAMP),
+                0,
+                0,
+                concat(SourcePerson.cpr_enc.key, "|", SourcePerson.cpr_enc),
+                concat(SourcePerson.c_kon.key, "|", SourcePerson.c_kon),
+                hash_person_id_func,
+            ],
         )
+        .select_from(SourcePerson)
+        .where(
+            and_(
+                SourcePerson.c_kon.in_(GENDER_CONCEPT_ID_LOOKUP.keys()),
+                SourcePerson.d_foddato.is_not(None),
+                SourcePerson.c_status.is_not(None),
+                SourcePerson.cpr_enc.is_not(None),
+                SourcePerson.d_status_hen_start > REGISTRY_START_DATE,
+                SourcePerson.d_status_hen_start > SourcePerson.d_foddato,
+            )
+        )
+        .distinct(SourcePerson.cpr_enc),
     )
-    .distinct(SourcePerson.cpr_enc),
-)

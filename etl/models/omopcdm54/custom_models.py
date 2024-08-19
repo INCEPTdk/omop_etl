@@ -4,7 +4,13 @@
 from typing import Final
 
 from ...util.freeze import freeze_instance
-from ..modelutils import CharField, Column, DateTimeField, IntField, PKIdMixin
+from ..modelutils import (
+    BigIntField,
+    CharField,
+    Column,
+    DateTimeField,
+    PKIdMixin,
+)
 from .registry import OmopCdmModelBase as ModelBase
 
 
@@ -20,5 +26,5 @@ class CDMSummary(ModelBase, PKIdMixin):
     transform_name: Final[Column] = CharField(255, nullable=False)
     start_transform_datetime: Final[Column] = DateTimeField()
     end_transform_datetime: Final[Column] = DateTimeField()
-    memory_used: Final[Column] = IntField()
-    model_row_count: Final[Column] = IntField()
+    memory_used: Final[Column] = BigIntField()
+    model_row_count: Final[Column] = BigIntField()
