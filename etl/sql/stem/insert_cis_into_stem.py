@@ -76,6 +76,16 @@ def create_simple_stem_insert(
         .scalar_subquery()
     )
 
+    start_datetime = func.timezone(
+        concept_lookup_stem_cte.c.timezone,
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+    )
+
+    end_datetime = func.timezone(
+        concept_lookup_stem_cte.c.timezone,
+        get_case_statement(unique_end_date, model, TIMESTAMP),
+    )
+
     StemSelectMapped = (
         select(
             concept_lookup_stem_cte.c.std_code_domain.label("domain_id"),
@@ -83,16 +93,10 @@ def create_simple_stem_insert(
             cast(concept_lookup_stem_cte.c.mapped_standard_code, INT).label(
                 "concept_id"
             ),
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
-            get_case_statement(unique_end_date, model, DATE).label("end_date"),
-            get_case_statement(unique_end_date, model, TIMESTAMP).label(
-                "end_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             cast(concept_lookup_stem_cte.c.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(model.variable, "__", value_source_value),
