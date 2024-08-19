@@ -5,10 +5,10 @@ courseid;timestamp;variable;value;from_file
 1;;ibw;55;0-1.csv
 1;;ageadm;130;0-1.csv
 1;;weightkg;80;0-1.csv
-1;;admdatetime;1812-12-12 13:13:00;0-1.csv
+1;;admdatetime;1912-12-12 13:13:00;0-1.csv
 1;;dischdt;1812-12-31 12:13:00;0-1.csv
 1;;transfromid;;0-1.csv
-2;;saps2urinaloutput;1400;0-4.csv
+2;;saps2urinaloutput;1800;0-4.csv
 2;1990-11-08 13:30:30;sofa;1.0;1-0.csv
 2;;height;230;0-1.csv
 2;;ibw;155;0-1.csv
