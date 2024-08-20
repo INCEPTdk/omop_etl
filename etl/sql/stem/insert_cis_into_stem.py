@@ -26,8 +26,11 @@ from ...util.db import AbstractSession
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
 )
+
+ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA = "Europe/Copenhagen"
 
 
 def _get_mapped_nondrug_stem_insert(
@@ -88,6 +91,16 @@ def _get_mapped_nondrug_stem_insert(
         .scalar_subquery()
     )
 
+    start_datetime = harmonise_timezones(
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+        concept_lookup_stem_cte.c.timezone,
+    )
+
+    end_datetime = harmonise_timezones(
+        get_case_statement(unique_end_date, model, TIMESTAMP),
+        concept_lookup_stem_cte.c.timezone,
+    )
+
     cl1 = aliased(ConceptLookup)
 
     StemSelectMapped = (
@@ -97,16 +110,10 @@ def _get_mapped_nondrug_stem_insert(
             cast(concept_lookup_stem_cte.c.mapped_standard_code, INT).label(
                 "concept_id"
             ),
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
-            get_case_statement(unique_end_date, model, DATE).label("end_date"),
-            get_case_statement(unique_end_date, model, TIMESTAMP).label(
-                "end_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             cast(concept_lookup_stem_cte.c.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(model.variable, "__", value_source_value),
@@ -225,18 +232,19 @@ def get_unmapped_nondrug_stem_insert(
         session, model, ConceptLookupStem, "start_date"
     )
 
+    start_datetime = harmonise_timezones(
+        get_case_statement(unique_start_date, model, TIMESTAMP),
+        ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA,
+    )
+
     value_source_value = cast(model.value, TEXT)
 
     StemSelectUnmapped = (
         select(
             VisitOccurrence.person_id,
             VisitOccurrence.visit_occurrence_id,
-            get_case_statement(unique_start_date, model, DATE).label(
-                "start_date"
-            ),
-            get_case_statement(unique_start_date, model, TIMESTAMP).label(
-                "start_datetime"
-            ),
+            cast(start_datetime, DATE).label("start_date"),
+            start_datetime,
             concat(model.variable, "__", value_source_value),
             value_source_value,
             literal(model.__tablename__).label("datasource"),

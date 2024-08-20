@@ -1,17 +1,18 @@
 courseid;timestamp;variable;value;from_file
-1;1812-12-15 13:30:30;gcs-GCS, Aggregation: No aggregation, Period: Any;14;15-2.csv
-1;1812-12-15 14:30:30;hf-HF, Unit: /min, Aggregation: No aggregation, Period: Any;85;16-2.csv
-2;1891-12-12 14:30:30;saps2urinaloutput;1400;0-4.csv
-2;1890-11-08 13:30:30;sofa;1.0;1-0.csv
-4;1813-12-17 09:09:09;gcs-GCS, Aggregation: No aggregation, Period: Any;10;0-1.csv
-4;1813-12-17 09:09:09;gcs-GCS, Aggregation: No aggregation, Period: Any;11;0-1.csv
-4;1813-12-17 09:14:09;gcs-GCS, Aggregation: No aggregation, Period: Any;12;0-1.csv
-4;1813-12-17 09:17:09;gcs-GCS, Aggregation: No aggregation, Period: Any;14;0-1.csv
-4;1813-12-17 09:19:09;gcs-GCS, Aggregation: No aggregation, Period: Any;19;0-1.csv
-4;1813-12-17 09:24:09;hf-HF, Unit: /min, Aggregation: No aggregation, Period: Any;80;0-1.csv
-4;1813-12-17 09:25:09;hco3bkr-HCO3 (bikarbonat), Unit: mmol/l, Aggregation: No aggregation, Period: Any;21;0-1.csv
-4;1813-12-17 08:00:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;1200;0-2.csv
-2;1891-12-12 14:15:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;700;0-2.csv
-4;1818-12-12 14:15:00;po2-pO2, Unit: kPa, Aggregation: No aggregation, Period: Any;300;0-5.csv
-4;1824-07-26 10:36:00;abldt-Observations: ABL dato;18240726103600;2-123123.csv
-4;1824-07-26 12:29:00;ventilationmds-Ventilation modus, Aggregation: No aggregation, Period: Any;VC-MMV;2-123124.csv
+1;1992-12-15 14:30:30;hf-HF, Unit: /min, Aggregation: No aggregation, Period: Any;85;16-2.csv
+2;1991-12-12 14:30:30;saps2urinaloutput;1400;0-4.csv
+2;1990-11-08 13:30:30;sofa;1.0;1-0.csv
+1;1992-12-15 13:30:30;gcs-GCS, Aggregation: No aggregation, Period: Any;14;15-2.csv
+4;1993-07-17 09:09:09;gcs-GCS, Aggregation: No aggregation, Period: Any;10;0-1.csv
+4;1993-07-17 09:11:09;gcs-GCS, Aggregation: No aggregation, Period: Any;11;0-1.csv
+4;1993-12-17 09:14:09;gcs-GCS, Aggregation: No aggregation, Period: Any;12;0-1.csv
+4;1993-12-17 09:17:09;gcs-GCS, Aggregation: No aggregation, Period: Any;14;0-1.csv
+4;1993-12-17 09:19:09;gcs-GCS, Aggregation: No aggregation, Period: Any;19;0-1.csv
+4;1993-07-17 09:24:09;hf-HF, Unit: /min, Aggregation: No aggregation, Period: Any;80;0-1.csv
+4;1993-12-17 09:24:09;hf-HF, Unit: /min, Aggregation: No aggregation, Period: Any;90;0-1.csv
+4;1993-12-17 09:25:09;hco3bkr-HCO3 (bikarbonat), Unit: mmol/l, Aggregation: No aggregation, Period: Any;21;0-1.csv
+4;1993-07-17 08:00:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;1200;0-2.csv
+2;1991-12-12 14:15:00;ringerlkt,Ringer-Laktat (indgivet), Unit: ml, Aggregation: No aggregation, Period: Any;700;0-2.csv
+4;1998-12-12 14:15:00;po2-pO2, Unit: kPa, Aggregation: No aggregation, Period: Any;300;0-5.csv
+4;1994-07-26 10:36:00;abldt-Observations: ABL dato;19940726103600;2-123123.csv
+4;1994-07-26 12:29:00;ventilationmds-Ventilation modus, Aggregation: No aggregation, Period: Any;VC-MMV;2-123124.csv

@@ -36,6 +36,7 @@ from .recipes import get_quantity_recipe
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
 )
 
@@ -100,15 +101,27 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         session, Administrations, ConceptLookupStem, "end_date"
     )
 
-    start_datetime = get_case_statement(
-        unique_end_datetime, Administrations, TIMESTAMP
-    ) - case(
+    timezone = case(
+        (Administrations.from_file.like("3%"), "Europe/Copenhagen"),
+        (Administrations.from_file.like("8%"), "UTC"),
+        (Administrations.from_file.like("9%"), "UTC"),
+        else_=None,
+    )
+
+    end_datetime = harmonise_timezones(
+        get_case_statement(unique_end_datetime, Administrations, TIMESTAMP),
+        timezone,
+    )
+
+    start_offset = case(
         (
             Administrations.administration_type == "continuous",
             text("INTERVAL 59 seconds"),
         ),
         else_=text("INTERVAL 0 seconds"),
     )
+
+    start_datetime = end_datetime - start_offset
 
     # Create SELECT statement for drugs with custom mappings
     CustomMappedSelectSql = (
@@ -119,13 +132,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "concept_id"
             ),
             cast(start_datetime, DATE).label("start_date"),
-            cast(start_datetime, TIMESTAMP).label("start_datetime"),
-            get_case_statement(
-                unique_end_datetime, Administrations, DATE
-            ).label("end_date"),
-            get_case_statement(
-                unique_end_datetime, Administrations, TIMESTAMP
-            ).label("end_datetime"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             cast(ConceptLookupStem.type_concept_id, INT),
             VisitOccurrence.visit_occurrence_id,
             concat(
@@ -217,13 +226,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             VisitOccurrence.person_id,
             OmopConceptRelationship.concept_id_2.label("concept_id"),
             cast(start_datetime, DATE).label("start_date"),
-            cast(start_datetime, TIMESTAMP).label("start_datetime"),
-            get_case_statement(
-                unique_end_datetime, Administrations, DATE
-            ).label("end_date"),
-            get_case_statement(
-                unique_end_datetime, Administrations, TIMESTAMP
-            ).label("end_datetime"),
+            start_datetime,
+            cast(end_datetime, DATE).label("end_date"),
+            end_datetime,
             literal(CONCEPT_ID_EHR).label("type_concept_id"),
             VisitOccurrence.visit_occurrence_id,
             concat(

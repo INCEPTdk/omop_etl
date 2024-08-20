@@ -13,6 +13,7 @@ from .modelutils import (
     BoolField,
     CharField,
     DateField,
+    DateTimeField,
     FloatField,
     PKIdMixin,
     TimeStampField,
@@ -257,8 +258,8 @@ class LprOperations(RegistryModelBase, PKIdMixin):
     __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
-    start_date: Final[Column] = DateField()
-    end_date: Final[Column] = DateField()
+    start_date: Final[Column] = DateTimeField()
+    end_date: Final[Column] = DateTimeField()
     sks_code: Final[Column] = CharField(50)
     sks_source: Final[Column] = CharField(50)
 
@@ -274,8 +275,8 @@ class LprProcedures(RegistryModelBase, PKIdMixin):
     __table_args__ = {"schema": REGISTRY_SCHEMA}
 
     cpr_enc: Final[Column] = CharField(50, nullable=False)
-    start_date: Final[Column] = DateField()
-    end_date: Final[Column] = DateField()
+    start_date: Final[Column] = DateTimeField()
+    end_date: Final[Column] = DateTimeField()
     sks_code: Final[Column] = CharField(50)
     sks_source: Final[Column] = CharField(50)
 

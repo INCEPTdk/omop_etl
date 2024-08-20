@@ -83,3 +83,21 @@ def validate_domain_ids(
         axis=1,
     ).astype(str)
     return input_df
+
+
+def validate_timezones(
+    input_df: pd.DataFrame, session: AbstractSession, timezone_column: str
+) -> pd.DataFrame:
+    original_tz = input_df[timezone_column]
+
+    allowed_tz = set(session.scalars("SELECT name FROM pg_timezone_names()"))
+    provided_tz = set(tz for tz in original_tz if not pd.isna(tz))
+
+    for invalid_tz in provided_tz - allowed_tz:
+        logger.debug(
+            """Time zone %s invalid. It has been set to NULL.""", invalid_tz
+        )
+
+    new_tz = [str(tz) if tz in allowed_tz else None for tz in original_tz]
+    input_df[timezone_column] = new_tz
+    return input_df
