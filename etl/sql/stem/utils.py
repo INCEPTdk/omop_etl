@@ -198,12 +198,13 @@ def harmonise_timezones(
 ) -> Case:
     """
     Converts a datetime column to the timezone of the CDM if this differs from
-    the source timezone. This happens by going through three steps:
+    the source timezone. This happens by localising, converting and
+    delocalising the timestamps
     """
 
     # Localise and convert to the CDM timezone
     in_cdm_tz = func.timezone(CDM_TIMEZONE, func.timezone(source_tz, column))
     return case(
         (source_tz == CDM_TIMEZONE, column),
-        else_=cast(in_cdm_tz, TIMESTAMP),  # delocalise = strip timezone part
+        else_=cast(in_cdm_tz, TIMESTAMP),  # delocalise to strip timezone part
     )
