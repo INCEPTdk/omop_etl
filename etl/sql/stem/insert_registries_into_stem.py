@@ -48,12 +48,12 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
 
     start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
-        REGISTRY_TIMEZONE,
+        func.coalesce(ConceptLookupStem.timezone, REGISTRY_TIMEZONE),
     )
 
     end_datetime = harmonise_timezones(
         get_case_statement(unique_end_date, model, TIMESTAMP),
-        REGISTRY_TIMEZONE,
+        func.coalesce(ConceptLookupStem.timezone, REGISTRY_TIMEZONE),
     )
 
     StemSelect = (

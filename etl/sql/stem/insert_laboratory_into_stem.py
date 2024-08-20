@@ -53,12 +53,12 @@ def get_laboratory_stem_insert(
 
     start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
-        LABORATORY_TIMEZONE,
+        func.coalesce(ConceptLookupStem.timezone, LABORATORY_TIMEZONE),
     )
 
     end_datetime = harmonise_timezones(
         get_case_statement(unique_end_date, model, TIMESTAMP),
-        LABORATORY_TIMEZONE,
+        func.coalesce(ConceptLookupStem.timezone, LABORATORY_TIMEZONE),
     )
 
     quantity_or_value_as_number = get_case_statement(
