@@ -16,6 +16,7 @@ from sqlalchemy import (
     or_,
     select,
 )
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
@@ -29,7 +30,7 @@ from .utils import (
 )
 
 
-def create_simple_stem_insert(
+def _get_mapped_nondrug_stem_insert(
     model: Any = None,
     concept_lookup_stem_cte: Any = None,
     unique_start_date: str = None,
@@ -87,6 +88,8 @@ def create_simple_stem_insert(
         .scalar_subquery()
     )
 
+    cl1 = aliased(ConceptLookup)
+
     StemSelectMapped = (
         select(
             concept_lookup_stem_cte.c.std_code_domain.label("domain_id"),
@@ -129,7 +132,10 @@ def create_simple_stem_insert(
                 "range_high"
             ),
             concept_lookup_stem_cte.c.stop_reason,
-            cast(concept_lookup_stem_cte.c.route_concept_id, INT),
+            func.coalesce(
+                cast(concept_lookup_stem_cte.c.route_concept_id, INT),
+                cl1.concept_id.label("route_concept_id"),
+            ),
             concept_lookup_stem_cte.c.route_source_value,
             literal(model.__tablename__).label("datasource"),
         )
@@ -162,7 +168,16 @@ def create_simple_stem_insert(
                 ),
             ),
         )
+        .outerjoin(
+            cl1,
+            and_(
+                concept_lookup_stem_cte.c.route_source_value
+                == cl1.concept_string,
+                cl1.filter == "administration_route",
+            ),
+        )
     )
+
     return insert(OmopStem).from_select(
         names=[
             OmopStem.domain_id,
@@ -295,7 +310,7 @@ def get_mapped_nondrug_stem_insert(
         session, model, concept_lookup_stem_cte.c, "value_as_string"
     )
 
-    return create_simple_stem_insert(
+    return _get_mapped_nondrug_stem_insert(
         model,
         concept_lookup_stem_cte,
         unique_start_date_columns,
