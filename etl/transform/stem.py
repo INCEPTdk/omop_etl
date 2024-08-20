@@ -38,13 +38,9 @@ def transform(session: AbstractSession) -> None:
     logger.info("Starting the Stem transformation... ")
 
     transform_non_drug_models(session)
-    session.commit()
     transform_drug_models(session)
-    session.commit()
     transform_registry_models(session)
-    session.commit()
     transform_laboratory_models(session)
-    session.commit()
 
     count_rows = session.query(OmopStem).count()
     mapped_rows = (
@@ -75,6 +71,7 @@ def transform_non_drug_models(session: AbstractSession) -> None:
                     session, model, ConceptLookupStemBatchCte
                 )
             )
+            session.commit()
 
         logger.info(
             "STEM Transform in Progress, %s Events Included from mapped nondrug source %s.",
