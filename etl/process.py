@@ -72,7 +72,11 @@ from .transform.visit_occurrence import transform as visit_occurrence_transform
 from .util.db import AbstractSession, session_context
 from .util.exceptions import ETLFatalErrorException
 from .util.logger import ErrorHandler
-from .util.preprocessing import validate_concept_ids, validate_domain_ids
+from .util.preprocessing import (
+    validate_concept_ids,
+    validate_domain_ids,
+    validate_timezones,
+)
 
 logger = logging.getLogger("ETL.Core")
 ETL_RUN_STEP = int(os.getenv("ETL_RUN_STEP", "0"))
@@ -164,6 +168,11 @@ def run_etl(
         session,
         "mapped_standard_code",
         "std_code_domain",
+    )
+    validate_timezones(
+        lookup_loader.data.get(ConceptLookupStem.__tablename__),
+        session,
+        "timezone",
     )
 
     create_lookup_tables(session, lookup_loader.data)
