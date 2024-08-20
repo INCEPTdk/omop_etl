@@ -1,11 +1,13 @@
 """Person transformation tests"""
 
+import os
+
 import pandas as pd
 from sqlalchemy import select
 
 from etl.models.omopcdm54.clinical import Person as OmopPerson
 from etl.models.source import Person as SourcePerson
-from etl.transform.person import transform
+from etl.transform.person import transform as person_transform
 from etl.util.db import make_db_session, session_context
 from tests.testutils import (
     DuckDBBaseTest,
@@ -41,9 +43,14 @@ class PersonTransformationTest(DuckDBBaseTest):
     def test_transform(self):
         with session_context(make_db_session(self.engine)) as session:
             self._insert_test_data(session)
-            transform(session)
-            result = str(select(self.expected_cols).compile(self.engine, compile_kwargs={"literal_binds": True}))
-            result_df = pd.read_sql(result, con=session.connection().connection)
+            os.environ["REGISTRY_START_DATE"] = "1677-01-01"
+            person_transform(session)
+            result = select(self.expected_cols).subquery()
+            result_df = enforce_dtypes(
+                self.expected_df,
+                pd.DataFrame(session.query(result).all())
+            )
+
         result_df = enforce_dtypes(self.expected_df, result_df)
         assert_dataframe_equality(result_df, self.expected_df, index_cols='person_id')
 

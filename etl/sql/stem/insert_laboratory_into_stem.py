@@ -31,7 +31,7 @@ from .utils import (
     try_cast_to_float,
 )
 
-CONCEPT_ID_REGISTRY: Final[int] = 32879
+CONCEPT_ID_LAB: Final[int] = 32856
 LABORATORY_TIMEZONE: Final[str] = "Europe/Copenhagen"
 
 
@@ -92,7 +92,9 @@ def get_laboratory_stem_insert(
             start_datetime,
             cast(end_datetime, DATE).label("end_date"),
             end_datetime,
-            cast(ConceptLookupStem.type_concept_id, INT),
+            func.coalesce(
+                cast(ConceptLookupStem.type_concept_id, INT), CONCEPT_ID_LAB
+            ),
             model.lab_test_id.label("source_value"),
             ConceptLookupStem.uid,
             literal(model.__tablename__).label("datasource"),
@@ -149,7 +151,7 @@ def get_laboratory_stem_insert(
             end_datetime,
             func.coalesce(
                 cast(ConceptLookupStem.type_concept_id, INT),
-                CONCEPT_ID_REGISTRY,
+                CONCEPT_ID_LAB,
             ),
             model.system_clean.label("source_value"),
             null().label("source_concept_id"),

@@ -7,11 +7,17 @@ import pandas as pd
 
 from ..models.omopcdm54 import CDMSource as TARGET, Vocabulary
 from ..util.dates import todays_date
-from ..util.db import AbstractSession, DataBaseWriterBuilder
+from ..util.db import (
+    AbstractSession,
+    DataBaseWriterBuilder,
+    get_environment_variable,
+)
 
 # Grab the logger
 logger = logging.getLogger("ETL.Core.CDMSource")
-SOURCE_RELEASE_DATE = "2024-05-23"
+SOURCE_RELEASE_DATE = get_environment_variable(
+    "SOURCE_RELEASE_DATE", todays_date()
+)
 
 
 def get_vocabulary_version(session: AbstractSession) -> str:
