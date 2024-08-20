@@ -68,7 +68,7 @@ DateField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
     Date, *args, **kwargs
 )
 DateTimeField: Final[Callable[[Any], Column]] = lambda *args, **kwargs: Column(
-    DateTime(timezone=True), *args, **kwargs
+    DateTime, *args, **kwargs
 )
 EnumField: Final[Callable[[Any], Column]] = lambda x, *args, **kwargs: Column(
     Enum(x), *args, **kwargs
