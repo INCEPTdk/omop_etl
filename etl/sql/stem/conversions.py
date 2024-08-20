@@ -5,12 +5,21 @@ from typing import Any, Dict, Final
 from sqlalchemy import and_, case, null
 
 
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
 def get_conversion_factor(
     Administrations: Any = None,
     Prescriptions: Any = None,
     recipe_name: str = None,
     logger: Any = None,
 ) -> Any:
+
     RECIPES: Final[Dict[str, Any]] = {
         "recipe__noradrenalinsad": case(
             (Prescriptions.epaspresdrugunit == "ug", 0.001),
@@ -48,10 +57,16 @@ def get_conversion_factor(
     }
 
     if recipe_name is not None and recipe_name not in RECIPES:
-        logger.warning(
-            "  No conversion recipe found for %s; quantities will be NULL.",
-            recipe_name,
-        )
-        return null()
 
-    return RECIPES.get(recipe_name, 1.0)
+        if is_float(recipe_name):
+            conversion_factor = float(recipe_name)
+        else:
+            logger.warning(
+                "  Recipe %s is not recognized or is invalid multiplier for quantity; quantities will be NULL.",
+                recipe_name,
+            )
+            conversion_factor = null()
+    else:
+        conversion_factor = RECIPES.get(recipe_name, 1.0)
+
+    return conversion_factor
