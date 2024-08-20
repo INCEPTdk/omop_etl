@@ -25,6 +25,7 @@ from ...util.db import AbstractSession
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
 )
 
@@ -78,14 +79,14 @@ def create_simple_stem_insert(
         .scalar_subquery()
     )
 
-    start_datetime = func.timezone(
-        concept_lookup_stem_cte.c.timezone,
+    start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
+        concept_lookup_stem_cte.c.timezone,
     )
 
-    end_datetime = func.timezone(
-        concept_lookup_stem_cte.c.timezone,
+    end_datetime = harmonise_timezones(
         get_case_statement(unique_end_date, model, TIMESTAMP),
+        concept_lookup_stem_cte.c.timezone,
     )
 
     StemSelectMapped = (
@@ -205,9 +206,9 @@ def get_unmapped_nondrug_stem_insert(
         session, model, ConceptLookupStem, "start_date"
     )
 
-    start_datetime = func.timezone(
-        ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA,
+    start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
+        ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA,
     )
 
     value_source_value = cast(model.value, TEXT)

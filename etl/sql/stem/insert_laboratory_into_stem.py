@@ -26,6 +26,7 @@ from ...models.tempmodels import ConceptLookup, ConceptLookupStem
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
     try_cast_to_float,
 )
@@ -50,14 +51,14 @@ def get_laboratory_stem_insert(
         session, model, ConceptLookupStem, "quantity_or_value_as_number"
     )
 
-    start_datetime = func.timezone(
-        LABORATORY_TIMEZONE,
+    start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
+        LABORATORY_TIMEZONE,
     )
 
-    end_datetime = func.timezone(
-        LABORATORY_TIMEZONE,
+    end_datetime = harmonise_timezones(
         get_case_statement(unique_end_date, model, TIMESTAMP),
+        LABORATORY_TIMEZONE,
     )
 
     quantity_or_value_as_number = get_case_statement(

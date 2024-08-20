@@ -24,6 +24,7 @@ from ...sql.observation_period import CONCEPT_ID_REGISTRY
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
 )
 
@@ -45,14 +46,14 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
         session, model, ConceptLookupStem, "end_date"
     )
 
-    start_datetime = func.timezone(
-        REGISTRY_TIMEZONE,
+    start_datetime = harmonise_timezones(
         get_case_statement(unique_start_date, model, TIMESTAMP),
+        REGISTRY_TIMEZONE,
     )
 
-    end_datetime = func.timezone(
-        REGISTRY_TIMEZONE,
+    end_datetime = harmonise_timezones(
         get_case_statement(unique_end_date, model, TIMESTAMP),
+        REGISTRY_TIMEZONE,
     )
 
     StemSelect = (

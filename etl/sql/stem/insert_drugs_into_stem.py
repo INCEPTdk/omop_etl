@@ -12,7 +12,6 @@ from sqlalchemy import (
     and_,
     case,
     cast,
-    func,
     insert,
     literal,
     or_,
@@ -36,6 +35,7 @@ from .recipes import get_quantity_recipe
 from .utils import (
     find_unique_column_names,
     get_case_statement,
+    harmonise_timezones,
     toggle_stem_transform,
 )
 
@@ -107,9 +107,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         else_=None,
     )
 
-    end_datetime = func.timezone(
-        timezone,
+    end_datetime = harmonise_timezones(
         get_case_statement(unique_end_datetime, Administrations, TIMESTAMP),
+        timezone,
     )
 
     start_offset = case(
