@@ -17,8 +17,6 @@ from etl.util.db import (
     session_context,
 )
 
-TEST_TIMEZONE = "Europe/Copenhagen"
-
 
 class PostgresBaseTest(unittest.TestCase):
     """Base class for testing with postgres"""
