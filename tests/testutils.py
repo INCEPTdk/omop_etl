@@ -108,26 +108,17 @@ def base_path() -> Path:
 
 def enforce_dtypes(df_source, df_target):
     source_dtypes = df_source.dtypes
-    df_target_converted = df_target.copy()  # don't modify original
+    df_target_converted = df_target.copy()  # To avoid modifying the original df_target
 
     for column, dtype in source_dtypes.items():
         if column in df_target_converted.columns:
-            df_target_converted[column] = enforce_dtype_(
-                df_target_converted[column], dtype
-            )
+            try:
+                df_target_converted[column] = df_target_converted[column].astype(dtype)
+            except (TypeError, ValueError) as e:
+                print(f"Cannot convert column {column} to {dtype}: {e}")
 
     return df_target_converted
 
-def enforce_dtype_(s: pd.Series, dtype: str) -> pd.Series:
-    try:
-        is_timestamp = pd.api.types.is_datetime64_any_dtype(s)
-        is_timezone_aware = hasattr(s, 'dt')  # DATEs won't be
-        if is_timestamp and is_timezone_aware:
-            return s.dt.tz_convert(TEST_TIMEZONE).dt.tz_localize(None)
-        else:
-            return s.astype(dtype)
-    except (TypeError, ValueError) as e:
-        print(f"Cannot convert column {s.name} to {dtype}: {e}")
 
 
 def assert_dataframe_equality(
