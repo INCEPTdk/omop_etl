@@ -74,12 +74,15 @@ def _get_mapped_nondrug_stem_insert(
         cast(concept_lookup_stem_cte.c.conversion, FLOAT), 1.0
     )
 
+    ConceptLookupRoute = aliased(ConceptLookup)
+    ConceptLookupValue = aliased(ConceptLookup)
+
     value_as_concept_id_from_lookup = (
-        select(ConceptLookup.concept_id)
+        select(ConceptLookupValue.concept_id)
         .where(
             and_(
-                ConceptLookup.concept_string == value_as_string,
-                ConceptLookup.filter
+                ConceptLookupValue.concept_string == value_as_string,
+                ConceptLookupValue.filter
                 == func.array_extract(
                     func.string_split(
                         concept_lookup_stem_cte.c.source_variable, "-"
@@ -100,8 +103,6 @@ def _get_mapped_nondrug_stem_insert(
         get_case_statement(unique_end_date, model, TIMESTAMP),
         concept_lookup_stem_cte.c.timezone,
     )
-
-    cl1 = aliased(ConceptLookup)
 
     StemSelectMapped = (
         select(
@@ -141,7 +142,7 @@ def _get_mapped_nondrug_stem_insert(
             concept_lookup_stem_cte.c.stop_reason,
             func.coalesce(
                 cast(concept_lookup_stem_cte.c.route_concept_id, INT),
-                cl1.concept_id.label("route_concept_id"),
+                ConceptLookupRoute.concept_id.label("route_concept_id"),
             ),
             concept_lookup_stem_cte.c.route_source_value,
             literal(model.__tablename__).label("datasource"),
@@ -176,11 +177,11 @@ def _get_mapped_nondrug_stem_insert(
             ),
         )
         .outerjoin(
-            cl1,
+            ConceptLookupRoute,
             and_(
                 concept_lookup_stem_cte.c.route_source_value
-                == cl1.concept_string,
-                cl1.filter == "administration_route",
+                == ConceptLookupRoute.concept_string,
+                ConceptLookupRoute.filter == "administration_route",
             ),
         )
     )
