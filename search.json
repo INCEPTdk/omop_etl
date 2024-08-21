@@ -1,0 +1,387 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "RH4131 Database Mapping Document Source Data Mapping Approach to CDMV5.4.1",
+    "section": "",
+    "text": "1 Introduction\nThis document describes how the RH4131 database is converted to the OMOP Common Data Model (CDM) version 5.4.1. It describes the definition of the ETL that will be used in the implementation.\nRH4131 has requested support from edenceHealth to extract, transform and load historical data in the context of a first “pilot” project. This project will serve as a stepping stone to larger future projects that include building and maintaining a Danish national data warehouse to house real-world evidence. The pilot project of historical data contains ICU data from 10 hospitals. edenceHealth will co-develop an ETL for ICU data from 3 hospitals as a template for RH4131.",
+    "crumbs": [
+      "Background",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#document-history",
+    "href": "index.html#document-history",
+    "title": "RH4131 Database Mapping Document Source Data Mapping Approach to CDMV5.4.1",
+    "section": "1.1 Document History",
+    "text": "1.1 Document History\n\n\n\n\n\n\n\n\nVersion\nDate\nChanges\n\n\n\n\n0.1\n2023-12-14\nInternal document used at the mapping workshop\n\n\n0.2\n2023-12-28\nUpdated with notes from mapping workshop\n\n\n0.3\n2024-01-12\nUpdated with notes from infrastructure workshop. And misc. additional details. Rename source tables to reflect final pre-processing.\n\n\n0.4\n2024-01-24\nFinalise infrastructure section, clarification of remaining questions, technical instructions for the STEM table, removal of resolved threads\n\n\n0.5\n2024-01-31\nUpdate of the person and death logic\n\n\n0.6\n2024-02-02\nFinal edits\n\n\n1.0\n2024-02-05\nSigned-off structural mapping doc; instructions for v1.0 ETL\n\n\n1.1\n2024-07-14\nAdaptations to reflect final ETL (work in progress)",
+    "crumbs": [
+      "Background",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
+    ]
+  },
+  {
+    "objectID": "technical_infrastructure.html",
+    "href": "technical_infrastructure.html",
+    "title": "2  Technical Infrastructure  ",
+    "section": "",
+    "text": "The ETL will run on a secure HPC cloud hosted at the National Genome Center in Denmark and without internet access (although resources can be uploaded if packaged in a Singularity image file). The compute node available for this project has a 40-core 2.1GHz CPU, 192GB RAM, 1.9TB warm storage (XFS drive, NVMe SSD; approx. 1.5TB will be available).\nAll code will be containerised using Singularity to (i) conform with the HPC nature of the cloud that precludes root access, (ii) prevent version conflicts of software, and (iii) facilitate potential change of cloud system in the future. Singularity containers are brought onto the cloud through a semi-automated process that involves building a Dockerfile (with accompanying metadata such as python_requirements.txt). The SQL parts of the ETL will use PostgreSQL 16.x Non-SQL parts of the ETL will be written in Python 3.10.x or R &gt;= v4.0; should the need arise, other languages can be used as well (e.g., Rust and Julia). All databases will be deployed as containers and the filtered source data will be loaded into the dedicated target source databases, see schematic. The database will use the SSD storage for filesystem.\n\nThe update frequency is expected to be quarterly/monthly, perhaps with intermittent need for more frequent runs in extreme cases such as pandemics. In those cases, more compute resources would probably be available to compensate.",
+    "crumbs": [
+      "Background",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Technical Infrastructure</span>"
+    ]
+  },
+  {
+    "objectID": "mapping_overview.html",
+    "href": "mapping_overview.html",
+    "title": "3  Overview",
+    "section": "",
+    "text": "3.1 Source data\nRigshospitalet provided Parquet files for 2 of 3 sites (expectedly RH4131, Hvidovre, and Odense) containing ICU data. Each Parquet file contains data and/or information about one of the following five tables:\nInitially, RH4131 provided three data-source scan report-like files for each site:\nTherefore, there is a slight nested quality to the data files. database_scan and table_scan contain information usually seen in the first two sheets of a scan report. field_scan contains the data usually seen in the following sheets (one per table) of a field scan; however, here it’s all contained in one table, field_scan.\nIn addition, RH4131 has provided the following three files:\nThe exact columns included in each file are listed in Appendix B.",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Overview</span>"
+    ]
+  },
+  {
+    "objectID": "mapping_overview.html#source-data",
+    "href": "mapping_overview.html#source-data",
+    "title": "3  Overview",
+    "section": "",
+    "text": "prescriptions\nadministrations\ndiagnoses_procedures\nobservations (actually contained in multiple files, named observations-*.parquet)\ncourse_metadata1\nt_person2\n\n\n\ndatabase_scan: contains the number of rows for each table\ntable_scan: includes information about the columns contained within each table, including data type, uniqueness, missing, etc.\nfield_scan: contains the data for each column within each table\n\n\n\n\nshak_lookup.tsv: tab-separated file with SHAK codes and care-site metadata such as postal code and official name. This will be used during the ETL.\ndrug_mapping_helper.tsv: tab-separated file with prescription data (including ATC, dose, dose unit, route, drug names) to be used before the ETL to populate the STEM table.\ncourse_id_cpr_mapping.txt: tab-separated file with three columns:\n\ncourseid: the visit identifier\ntimestamp: irrelevant for the purpose of the ETL\ncpr_enc: the encrypted personal identifier\n\n\n\n\n\n\n\n“CPR-Registeret - Sundhedsdatastyrelsen.” n.d. https://sundhedsdatastyrelsen.dk/da/registre-og-services/om-de-nationale-sundhedsregistre/personoplysninger-og-sundhedsfaglig-beskaeftigelse/cpr-registeret.",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Overview</span>"
+    ]
+  },
+  {
+    "objectID": "mapping_overview.html#footnotes",
+    "href": "mapping_overview.html#footnotes",
+    "title": "3  Overview",
+    "section": "",
+    "text": "Visits are called courses in the source data, from the Danish term forløb↩︎\nFrom the Danish Civil Registration System and holds data such as date of birth and sex (“CPR-Registeret - Sundhedsdatastyrelsen,” n.d.))↩︎",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Overview</span>"
+    ]
+  },
+  {
+    "objectID": "conventional_mapping.html",
+    "href": "conventional_mapping.html",
+    "title": "4  Conventional mapping",
+    "section": "",
+    "text": "A “traditional” mapping including manual mappings for the following tables: PERSON, DEATH, VISIT_OCCURENCE, VISIT_DETAIL, LOCATION, CARE_SITE and CDM_SOURCE.\n\nThese tables will be mapped directly from the source data using manual mappings.\nSome tables will require an additional environment variable and/or look-up table\n\nVISIT_OCCURENCE, LOCATION, and CARE_SITE = SHAK code look-up table\nCDM_SOURCE = environment variables",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Conventional mapping</span>"
+    ]
+  },
+  {
+    "objectID": "stem_mapping.html",
+    "href": "stem_mapping.html",
+    "title": "5  Stem-table mapping",
+    "section": "",
+    "text": "The purpose of using an intermediate stem table between the source data and the clinical OMOP tables is to serve as an efficient, data-driven routing mechanism that allows tailored processing of the source data, and allows different source tables from data that will, eventually, land in the same clinical table. The table-level mechanism is illustrated in figure XXX.\nThe stem table relies on two key tables to do the routing: concept_lookup and concept_lookup_stem. These auxiliary tables are designed so as to enable using the same ETL pipeline for multiple sources (e.g., different ICUs from different hospitals).\n\n\n\nTable-level routing mechanism of the stem table\n\n\nWe, essentially, deploy two types of source-&gt;stem mechanisms: one tailored for drug data and a simple one (for the rest).\n{align=“center”, background=“white”}\n\n5.0.1 Reading from prescriptions and administrations\nBecause DRUG_EXPOSURE records contain data that are stored in two separate source tables, prescriptions and administrations, a more elaborate logic is required to build valid records.\nNOTE: This STEM table refers only to drugs and will use the STEM table logic with the addition of manual mappings to ensure relationships between the two tables can easily be referenced.\nFor clinical tables containing drug information, we will use the STEM table; however, the logic will differ from that described above for other clinical tables. Manual mappings will be included to ensure relationships between the source prescription table and drug look-up table are easily referenced.\n\nThe STEM table will be used as an intermediate mapping table: the source data will first be mapped to the STEM table and the OMOP CDM tables will be populated with records from the STEM table.\nManual mapping will be needed to link the source drug data (contained in prescriptions and administrations) to a drug look-up table (called drug_mapping_helper) and then to the STEM table.\ndrug_mapping_helper only contains the ATC codes and their associated additional information. RxNorm builder will be used to create mappings to best level of granularity possible, aiming for Clinical Drug (or Clinical Drug Component) level to enable population of the drug_era and dose_era tables.\nThe logic to link from the source data to drug_mapping_helper to the STEM table to the OMOP drug_exposure table will need to be done manually with a drug_key (will link prescriptions and drug_mapping_helper, epaspresbaseid will link administrations and prescriptions). The ETL will handle pump and non-pump drug data differently: drug_mapping_helper.numerator_value comes from administrations.value for non-pump drug data and from prescriptions.epaspresconc for pump drug data\nThis slightly different STEM table logic will apply to the following table: DRUG_EXPOSURE.\n\n\n\n\nA diagram of a drug exposure Description automatically generated",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Stem-table mapping</span>"
+    ]
+  },
+  {
+    "objectID": "merge_etl.html",
+    "href": "merge_etl.html",
+    "title": "6  Merge ETL",
+    "section": "",
+    "text": "Using the ETL generated based on this document, one target database per hospital will be created. To allow studies done on a combined data set, a ‘merge ETL’ would have to be written. The aim of this ETL is to combine the outputs of the different datasets into one big target database. For this, people would need to be deduplicated, as they could have person and death records from multiple hospitals which is in violation with OMOP conventions. A person and death entry should be unique. Once the person and death tables have been deduplicated and the person_ids were updated, this needs to be reflected in the other (clinical) tables. Lastly, when adding all events together there will be an overlap in the ids, these will have to be updated to ensure unique values are being used.",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Merge ETL</span>"
+    ]
+  },
+  {
+    "objectID": "vocabularies.html",
+    "href": "vocabularies.html",
+    "title": "7  Vocabularies",
+    "section": "",
+    "text": "In this section, an overview is provided of the vocabulary mapping step.  \nThe following source code vocabularies are present in the database: \n\n\n\n\n\n\n\n\n\nVocabulary \nReference Link \nDescription \nData Domains \n\n\n\n\nSKS\nhttps://medinfo.dk/sks/\n \nobservation, procedure, condition_occurrence\n\n\nATC\nhttps://www.whocc.no/atc/structure_and_principles/\n\ndrug_exposure\n\n\nNPU\nhttps://npu-terminology.org/\nThe source data use NPU codes for biochemical analyses of biological samples (blood, plasma, urin, spinal fluid, etc.). Patient-level NPU data will, in the end, not be available for this pilot project, but we will undertake semantic mapping of the 200 most common NPU codes so these are ready for structural mapping once possible.\nmeasurement\n\n\ndrug_mapping_helper\nOverview of drugs with ATC code, dosage, unit, form, drug name(s). Provided by RH4131.\nWill be used to create mappings to best level of granularity using the RxNormBuilder scripts (based on OHDSI’s “Boiler”)\ndrug_exposure\n\n\n&lt;shak_lookup&gt;\nOverview of SHAK codes, departments, locations, address\n\ncare_site, location, visit_occurrence",
+    "crumbs": [
+      "Mapping approach",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Vocabularies</span>"
+    ]
+  },
+  {
+    "objectID": "health_system_data_tables.html",
+    "href": "health_system_data_tables.html",
+    "title": "8  Health System Data Tables",
+    "section": "",
+    "text": "8.1 Table name: LOCATION",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Health System Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "health_system_data_tables.html#table-name-location",
+    "href": "health_system_data_tables.html#table-name-location",
+    "title": "8  Health System Data Tables",
+    "section": "",
+    "text": "8.1.1 Reading from environment variable (SHAK_code) and SHAK code lookup file\nNote: to avoid adding in locations that will not be used by the ETL, we will ask the user via an environment variable what the SHAK code associated with the dataset is.\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nlocation_id\nHospital_SHAK_code (SHAK code look up file)\nAutogenerate integer\nUse the SHAK_code environment variable to do the lookup in the SHAK code lookup file against the SHAK_code field. Only create one distinct record for the returned entry.\n\n\naddress_1\n\n\nNULL\n\n\naddress_2\n\n\nNULL\n\n\ncity\n\n\nNULL\n\n\nstate\n\n\nNULL\n\n\nzip\npostal_code (SHAK code look up file)\nUse postal code (4 digits)\n\n\n\ncounty\n\n\nNULL\n\n\nlocation_source_value\nHospital_SHAK_code (environment variable)\n&lt;column_name&gt;|&lt;column_value&gt;\n\n\n\ncountry_concept_id\n\n4330435 [Denmark]\n\n\n\nconntry_source_value\n\n\nNULL\n\n\nlatitude\n\n\nNULL\n\n\nlongitude\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Health System Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "health_system_data_tables.html#table-name-care_site",
+    "href": "health_system_data_tables.html#table-name-care_site",
+    "title": "8  Health System Data Tables",
+    "section": "8.2 Table name: CARE_SITE",
+    "text": "8.2 Table name: CARE_SITE\n\n8.2.1 Reading from environment variable (SHAK_code) and SHAK code lookup file\nNote: to avoid adding in locations that will not be used by the ETL, we will ask the user via an environment variable what the SHAK code associated with the dataset is.\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\ncare_site_id\nAutogenerate integer\nUse the SHAK_code environment variable to do the lookup in the SHAK code lookup file against the SHAK_code field. Only create a record for the returned entry.\n\n\n\ncare_site_name\ndepartment_name (SHAK code look up file)\nuse the department name from the SHAK lookup file\n\n\n\nplace_of_service_conce\npt_id department_type (SHAK code look up file)\nFirst join the SHAK_codes (env variable and the SHAK code look up file) then look up the department_type in the concept_look up file by joining on the source_code field and the department_type and filtering on ‘care_site’, use the corresponding standard_concept_id (lookup based on SHAK department code) E.g. 32037 [Intensive Care]\n\n\n\nlocation_id\nSHAK_code (environment variable)\nJoin in the location table using the location_source_value and the SHAK_code (&lt;column_name&gt;|&lt;column_value&gt; format) to find the corresponding location_id\n\n\n\ncare_site_source_value\nSHAK_code (environment variable)\n&lt;column_name&gt;|&lt;column_value&gt;\nSHAK code encodes hospital + department\n\n\nplace_of_service_source_value\ndepartment_type (SHAK code look up file)\n&lt;column_name&gt;|&lt;column_value&gt;",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Health System Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html",
+    "href": "clinical_data_tables.html",
+    "title": "9  Clinical Data Tables",
+    "section": "",
+    "text": "9.1 Table name: PERSON",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#omop-person",
+    "href": "clinical_data_tables.html#omop-person",
+    "title": "9  Clinical Data Tables",
+    "section": "",
+    "text": "9.1.1 Reading from T_PERSON\nNOTE: course_id is visit reference - unique within department only. Raw course_ids are likely to recur across sites.\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nperson_id\ncpr_enc\nfloor(hash(cpr_enc) / 2)\nThe current implementation uses duckdb’s hash function (implemented here; see also https://nullprogram.com/blog/2018/07/31). We divide by two and round down because duckdb’s hash() function returns a uint64 (unsigned big integer) but we want a normal int64 to make the final CDM compatible with e.g. PostgreSQL which isn’t born with uint64. Integer division isn’t easy to implement with ORM, so we resolve to the less elegant way of regular float division, followed by rounding.\n\n\ngender_concept_id\nc_kon\n‘K’ ~ 8532\n‘M’ ~ 8507\nelse drop person\n\n\n\nyear_of_birth\nd_foddato\nExtract year\n\n\n\nmonth_of_birth\nd_foddato\nExtract month\n\n\n\nday_of_birth\nd_foddato\nExtract day\n\n\n\nbirth_datetime\nd_foddato\n\nSet time to 00:00:00\n\n\nrace_concept_id\n\nMap to 0\n\n\n\nethnicity_concept_id\n\nMap to 0\n\n\n\nlocation_id\n\n\nNULL\n\n\nprovider_id\n\n\nNULL\n\n\ncare_site_id\n\n\nNULL\n\n\nperson_source_value\ncpr_enc\ncpr_enc|&lt;cpr_enc&gt;\n\n\n\ngender_source_value\nc_kon\nc_kon|&lt;c_kon&gt;\n\n\n\ngender_source_concept_id\n\n\nNULL\n\n\nrace_source_value\n\n\nNULL\n\n\nrace_source_concept_id\n\n\nNULL\n\n\nethnicity_source_value\n\n\nNULL\n\n\nethnicity_source_concept_id\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#omop-death",
+    "href": "clinical_data_tables.html#omop-death",
+    "title": "9  Clinical Data Tables",
+    "section": "9.2 Table name: DEATH",
+    "text": "9.2 Table name: DEATH\n\n9.2.1 Reading from T_PERSON\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nperson_id\nPERSON.person_id\nOnly for those patients in PERSON with c_status = 90\nLook up the person_id in PERSON by matching the 'cpr_enc|&lt;cpr_enc&gt;' with PERSON.person_source_value\n\n\n\ndeath_date\nd_status_hen_start\nWhen c_status == 90 [dead]\nFormat: YYYY-MM-DD\n\n\ndeath_datetime\n\n\nNULL\n\n\ndeath_type_concept_id\n\n32879 Registry\n\n\n\ncause_concept_id\n\n\nNULL\n\n\ncause_source_value\n\n\nNULL\n\n\ncause_source_concept_id\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-visit_occurence",
+    "href": "clinical_data_tables.html#table-name-visit_occurence",
+    "title": "9  Clinical Data Tables",
+    "section": "9.3 Table name: VISIT_OCCURENCE",
+    "text": "9.3 Table name: VISIT_OCCURENCE\n\n9.3.1 Reading from course_metadata, environment variable (SHAK_code) and SHAK code lookup file\nNOTE: Certain variables are nested within course_metadata. The ETL will need to filter the value column to find data related to admin or disc for example\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nvisit_occurrence_id\n\nhash(&lt;shak_code&gt;|&lt;courseid&gt;)\nSee PERSON.person_id for details on hashing\n\n\nperson_id\nPERSON.person_id\n\n\n\n\nvisit_concept_id\nSHAK_LOOKUP.department_type\nUse environment variable DEPARTMENT_SHAK_CODE to find the department in SHAK_LOOKUP. Then, use CONCEPT_LOOKUP.concept_id where CONCEPT_LOOKUP.concept_string == SHAK_LOOKUP.department_type and CONCEPT_LOOKUP.filter == 'care_site'\n\n\n\nvisit_start_date\nvalue\nWhen variable == ‘admdate’ use corresponding value. If not use admdatetime cast to date.\n\n\n\nvisit_start_datetime\nvalue\nWhen variable == ‘admdatetime’ use corresponding value. If not use admdate with 00:00:00\n\n\n\nvisit_end_date\nvalue\nWhen variable == ‘dischdate’ use corresponding value. If not use dischdtuse cast to date\n\n\n\nvisit_end_datetime\nvalue\nWhen variable == ‘dischdtuse’ corresponding value. If not use dischdate with 00:00:00\n\n\n\nvisit_type_concept_id\n\n32817 EHR\n\n\n\nprovider_id\n\n\nNULL\n\n\ncare_site_id\nCARE_SITE.care_site_id\nJoin with CARE_SITE on CARE_SITE.care_site_source_value == 'department_shak_code|&lt;DEPARTMENT_SHAK_CODE&gt;'\n\n\n\nvisit_source_value\ncourse_id\n'course_id|&lt;course_id&gt;'\n\n\n\nvisit_source_concept_id\n\n\nNULL\n\n\nadmitted_from_concept_id\nvalue where key == 'transfromid'\nIf key == transfromid and value IS NOT NULL, then look up value in CONCEPT_LOOKUP\nThe source data contain the following values:\n\n“Non-ICU dept. - this hospital”\n“Other ICU – other hospital”\n“Non-ICU dept. - other hospital”\n“” (blank)\n“Other ICU – this hospital”\n“Emergency room”\n\n\n\nadmitted_from_source_value\nvalue where key == 'transfromid'\nUse 'transfromid\\|&lt;value&gt;'\n\n\n\ndischarged_to_concept_id\nvalue where key == 'chkouttoid'\nIf key == ‘chkouttoid’, look up value in CONCEPT_LOOKUP\nThe source data contain the following values:\n\n“Non-ICU dept. - this hospital”\n“Other ICU – other hospital”\n“Non-ICU dept. - other hospital”\n“” (blank)\n“Other ICU – this hospital”\n“Home”\n\n\n\ndischarged_to_source_value\nvalue where key == 'chkouttoid'\nUse ‘chkouttoid|&lt;value&gt;’\n\n\n\npreceding_visit_occurrence_id\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-visit_detail",
+    "href": "clinical_data_tables.html#table-name-visit_detail",
+    "title": "9  Clinical Data Tables",
+    "section": "9.4 Table name: VISIT_DETAIL",
+    "text": "9.4 Table name: VISIT_DETAIL\nNot in scope.",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-stem",
+    "href": "clinical_data_tables.html#table-name-stem",
+    "title": "9  Clinical Data Tables",
+    "section": "9.5 Table name: STEM",
+    "text": "9.5 Table name: STEM\nMost of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the origin table is denoted as prefix in the Source Field.\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\ndomain_id\nstd_code_domain\n\n\n\n\ndatasource\n\nAppropriate idenfier of the provenance of the data (e.g. file name)\n\n\n\nstem_id\n\nAuto-generated integer\n\n\n\nperson_id\nPERSON.course_id\nPERSON.person_source_value == 'cpr_enc|&lt;SOURCE_TABLE.cpr_enc&gt;'\n\n\n\nconcept_id\nmapped_standard_code\nJoining source data with CONCEPT_LOOKUP_STEM depends on the type of source data. For details, please refer to the actual implementation here [#TODO add link to SQL files in repo]. Generally, the idea is that\n\nFor categorcial values, we join on '&lt;SOURCE_TABLE&gt;.&lt;variable&gt;__&lt;value&gt;' == CONCEPT_LOOKUP_STEM.source_concept_code\nFor numerical and free-text values, we join on '&lt;SOURCE_TABLE&gt;.&lt;variable&gt;' == CONCEPT_LOOKUP_STEM.source_concept_code. The standard concept id’s of free-text values, then, are fetched from CONCEPT_LOOKUP.\n\nFree-text values can be considered an extension of categorial values, when there are so many possible values that explicitly mapping them each via CONCEPT_LOOKUP_STEM would be too cumbersome.\n\n\nstart_date\n&lt;start_date&gt;\nUse column with the name defined in the source field, cast to DATE\n\n\n\nstart_datetime\n&lt;start_date&gt;\nUse column with the name defined in the source field, cast to TIMESTAMPTZ\n\n\n\nend_date\n&lt;end_date&gt;\nUse column with the name defined in the source field, cast to DATE\n\n\n\nend_datetime\n&lt;end_date&gt;\nUse column with the name defined in the source field, cast to TIMESTAMPTZ\n\n\n\ntype_concept_id\ntype_concept_id\n\n\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nVISIT_OCCURRENCE.visit_occurrence_id\nJoin witH VISIT OCCURRENCE ON VISIT_OCCURRENCE.visit_source_value == 'courseid|&lt;SOURCE_TABLE.courseid&gt;'\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\ncare_site_id\n\n\nNULL\n\n\nsource_value\n&lt;variable&gt;__&lt;value&gt;\n\nThe same structure is found across all tables. There is a variable and a value column and the values in these columns need to be concatenated in the source_value, separated by two underscores\n\n\nsource_concept_id\n\nWill be CONCEPT_LOOKUP_STEM.uid for everything except drug administrations with an ATC code. For these, the source_concept_id will either be for the ATC concept (for drugs with custom mappings, in CONCEPT_LOOKUP_STEM) or for the ingredients (the rest, called 'automapped')\n\n\n\nquantity_or_value_as_number\n\n\nUsed for numerical values (from observations or measurement) and DRUG_EXPOSURE quantity values\n\n\nvalue_as_string\nvalue_as_string\n\n\n\n\nvalue_as_concept_id\nvalue_as_concept_id\n\nUsed for value_type == 'categorical' to encode the different levels of the categorial variable\n\n\nunit_concept_id\nunit_concept_id\n\n\n\n\nvalue_source_value\nvalue\n\n\n\n\nunit_source_concept_id\n\n\nNULL\n\n\nunit_source_value\nunit_source_value\n\n\n\n\nverbatim_end_date\n\n\nNULL\n\n\ndays_supply\n\n\nNULL\n\n\ndose_unit_source_value\ndose_unit_source_value\n\n\n\n\nmodifier_concept_id\nmodifier_concept_id\n\n\n\n\nmodifier_source_value\n\n\nNULL\n\n\nmeasurement_datetime\n\n\nNULL\n\n\noperator_concept_id\noperator_concept_id\n\n\n\n\nrange_low\n\nCoalesce of the lower bound as per the source data, when available, and CONCEPT_LOOKUP_STEM.range_low.\n\n\n\nrange_high\n\nCoalesce of the upper bound as per the source data, when available, and CONCEPT_LOOKUP_STEM.range_high.\n\n\n\nstop_reason\n\n\nNULL\n\n\nrefills\n\n\nNULL\n\n\nsig\n\n\nNULL\n\n\nroute_concept_id\n\nJoin with CONCEPT_LOOKUP on CONCEPT_LOOKUP.concept_string == PRESCRIPTIONS.epaspresadmroute and use CONCEPT_LOOKUP.concept_id\n\n\n\nroute_source_value\n\n= PRESCRIPTIONS.epaspresadmroute\n\n\n\nera_lookback_interval\nera_lookback_interval\n\n\n\n\nlot_number\n\n\nNULL\n\n\nunique_device_id\n\n\nNULL\n\n\nproduction_id\n\n\nNULL\n\n\nanatomic_site_concept_id\n\n\nNULL\n\n\ndisease_status_concept_id\n\n\nNULL\n\n\nspecimen_source_id\n\n\nNULL\n\n\nanatomic_site_source_value\n\n\nNULL\n\n\ndisease_status_source_value\n\n\nNULL\n\n\ncondition_status_concept_id\n\n\nNULL\n\n\ncondition_status_source_value\n\n\nNULL\n\n\nqualifier_concept_id\n\n\nNULL\n\n\nqualifier_source_value\n\n\nNULL\n\n\nevent_id\n\n\nNULL\n\n\nevent_field_concept_id\n\n\nNULL\n\n\nepisode_id_source\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-condition_occurrence",
+    "href": "clinical_data_tables.html#table-name-condition_occurrence",
+    "title": "9  Clinical Data Tables",
+    "section": "9.6 Table name: CONDITION_OCCURRENCE",
+    "text": "9.6 Table name: CONDITION_OCCURRENCE\n\n9.6.1 Reading from STEM (filtered on domain_id = ‘Condition’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\ncondition_occurrence_id\nuid\n\n\n\n\nperson_id\nperson_id\n\n\n\n\ncondition_concept_id\nconcept_id\n\nIf environment variable INCLUDE_UNMAPPED_CODES == ‘FALSE’ (default), we discard records whose concept_id’s are 0 or NULL\n\n\ncondition_start_date\n\ncoalesce(start_date, end_date)\n\n\n\ncondition_start_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\nAdd ‘00:00:00’ suffix to start_date and end_date\n\n\ncondition_end_date\nend_date\ncoalesce(end_date, start_date)\n\n\n\ncondition_end_datetime\n\ncoalesce(end_datetime, end_date, start_datetime, start_date)\n\n\n\ncondition_type_concept_id\ntype_concept_id\n\n\n\n\nstop_reason\n\n\nNULL\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nvisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\ncondition_source_value\nsource_value\n\n\n\n\ncondition_source_concept_id\nsource_concept_id\n\n\n\n\ncondition_status_source_value\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-procedure_occurrence",
+    "href": "clinical_data_tables.html#table-name-procedure_occurrence",
+    "title": "9  Clinical Data Tables",
+    "section": "9.7 Table name: PROCEDURE_OCCURRENCE",
+    "text": "9.7 Table name: PROCEDURE_OCCURRENCE\n\n9.7.1 Reading from STEM (filtered on domain_id = ‘Procedure’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nprocedure_occurrence_id\nuid\n\n\n\n\nperson_id\nperson_id\n\n\n\n\nprocedure_concept_id\nconcept_id\n\nIf environment variable INCLUDE_UNMAPPED_CODES == ‘FALSE’ (default), we discard records whose concept_id’s are 0 or NULL\n\n\nprocedure_date\ncoalesce(start_date, end_date)\n\n\n\n\nprocedure_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\n\n\n\nprocedure_end_date\n\ncoalesce(end_date, start_date)\n\n\n\nprocedure_end_datetime\n\ncoalesce(end_datetime, end_date, start_datetime, start_date)\n\n\n\nprocedure_type_concept_id\ntype_concept_id\n\n\n\n\nmodifier_concept_id\nmodifier_concept_id\n\n\n\n\nquantity\nquantity\n\n\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nvisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\nprocedure_source_value\nsource_value\n\n\n\n\nprocedure_source_concept_id\nsource_concept_id\n\n\n\n\nmodifier_source_value\nmodifier_source_value",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-device_exposure",
+    "href": "clinical_data_tables.html#table-name-device_exposure",
+    "title": "9  Clinical Data Tables",
+    "section": "9.8 Table name: DEVICE_EXPOSURE",
+    "text": "9.8 Table name: DEVICE_EXPOSURE\n\n9.8.1 Reading from STEM (filtered on domain_id = ‘Device’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\ndevice_exposure_id\nuid\n\n\n\n\nperson_id\nperson_id\n\n\n\n\ndevice_concept_id\nconcept_id\n\n\n\n\ndevice_exposure_start_date\n\ncoalesce(start_date, end_date)\n\n\n\ndevice_exposure_start_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\n\n\n\ndevice_exposure_end_date\n\ncoalesce(end_date, start_date)\n\n\n\ndevice_exposure_end_datetime\n\ncoalesce(end_datetime, end_date, start_datetime, start_date)\n\n\n\ndevice_type_concept_id\ntype_concept_id\n\n\n\n\nunique_device_id\n\n\nNULL\n\n\nproduction_id\n\n\nNULL\n\n\nquantity\n\n\nNULL\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nvisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\ndevice_source_value\nsource_value\n\n\n\n\ndevice_source_concept_id\nsource_concept_id\n\n\n\n\nunit_concept_id\nunit_concept_id\n\n\n\n\nunit_source_value\nunit_source_value\n\n\n\n\nunit_source_concept_id\n\n\nNULL",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-measurement",
+    "href": "clinical_data_tables.html#table-name-measurement",
+    "title": "9  Clinical Data Tables",
+    "section": "9.9 Table name: MEASUREMENT",
+    "text": "9.9 Table name: MEASUREMENT\n\n9.9.1 Reading from STEM (filtered on domain_id = ‘Measurement’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nmeasurement_id\nuid\n\n\n\n\nperson_id\nperson_id\n\n\n\n\nmeasurement_concept_id\nconcept_id\n\n\n\n\nmeasurement_date\n\ncoalesce(start_date, end_date)\n\n\n\nmeasurement_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\n\n\n\nmeasurement_time\n\n\nNULL\n\n\nmeasurement_type_concept_id\ntype_concept_id\n\n\n\n\noperator_concept_id\noperator_concept_id\n\n\n\n\nvalue_as_number\nquantity_or_value_as_number\n\n\n\n\nvalue_as_concept_id\nvalue_as_concept_id\n\n\n\n\nunit_concept_id\nunit_concept_id\n\n\n\n\nrange_low\nrange_low\n\n\n\n\nrange_high\nrange_high\n\n\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nvisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\nmeasurement_source_value\nsource_value\n\n\n\n\nmeasurement_source_concept_id\nsource_concept_id\n\n\n\n\nunit_source_value\nunit_source_value\n\n\n\n\nunit_source_concept_id\nunit_source_concept_id\n\n\n\n\nvalue_source_value\nvalue_source_value\n\n\n\n\nmeasurement_event_id\nevent_id\n\n\n\n\nmeas_event_field_concept_id\nevent_field_concept_id",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-specimen",
+    "href": "clinical_data_tables.html#table-name-specimen",
+    "title": "9  Clinical Data Tables",
+    "section": "9.10 Table name: SPECIMEN",
+    "text": "9.10 Table name: SPECIMEN\n\n9.10.1 Reading from STEM (filtered on domain_id = ‘Specimen’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nperson_id\nperson_id\n\n\n\n\nspecimen_id\nspecimen_id\n\n\n\n\nspecimen_concept_id\nconcept_id\n\n\n\n\nspecimen_type_concept_id\ntype_concept_id\n\n\n\n\nspecimen_date\n\ncoalesce(start_date, end_date)\n\n\n\nspecimen_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\n\n\n\nquantity\nquantity_or_value_as_number\n\n\n\n\nunit_concept_id\nunit_concept_id\n\n\n\n\nanatomic_site_concept_id\nanatomic_site_concept_id\n\n\n\n\ndisease_status_concept_id\ndisease_status_concept_id\n\n\n\n\nspecimen_source_id\nsource_concept_id\n\n\n\n\nspecimen_source_value\nsource_value\n\n\n\n\nunit_source_value\nunit_source_value\n\n\n\n\nanatomic_site_source_value\nanatomic_site_source_value\n\n\n\n\ndisease_status_source_value\ndisease_status_source_value",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-observation",
+    "href": "clinical_data_tables.html#table-name-observation",
+    "title": "9  Clinical Data Tables",
+    "section": "9.11 Table name: OBSERVATION",
+    "text": "9.11 Table name: OBSERVATION\n\n9.11.1 Reading from STEM (filtered on domain_id = ‘Observation’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nobservation_id\nuid\n\n\n\n\nperson_id\nperson_id\n\n\n\n\nobservation_concept_id\nconcept_id\n\n\n\n\nobservation_date\n\ncoalesce(start_date, end_date)\n\n\n\nobservation_datetime\n\ncoalesce(start_datetime, start_date, end_datetime, end_date)\n\n\n\nobservation_type_concept_id\ntype_concept_id\n\n\n\n\nvalue_as_number\nquantity_or_value_as_number\n\n\n\n\nvalue_as_string\nvalue_as_string\n\n\n\n\nvalue_as_concept_id\nvalue_as_concept_id\n\n\n\n\nqualifier_concept_id\n\n\n\n\n\nunit_concept_id\nunit_concept_id\n\n\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nvisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\nobservation_source_value\nsource_value\n\n\n\n\nobservation_source_concept_id\nsource_concept_id\n\n\n\n\nunit_source_value\nunit_source_value\n\n\n\n\nqualifier_source_value\n\n\n\n\n\nvalue_source_value\nvalue_source_value\n\n\n\n\nobservation_event_id\n\n\n\n\n\nobs_event_field_concept_id",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-drug_exposure",
+    "href": "clinical_data_tables.html#table-name-drug_exposure",
+    "title": "9  Clinical Data Tables",
+    "section": "9.12 Table name: DRUG_EXPOSURE",
+    "text": "9.12 Table name: DRUG_EXPOSURE\n\n9.12.1 Reading from STEM (filtered on domain_id = ‘Drug’)\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\ndrug_exposure_id\nStem_id\n\n\n\n\nperson_id\nPerson_id\n\n\n\n\ndrug_concept_id\nConcept_id\n\n\n\n\ndrug_exposure_start_date\nStart_date\n\n\n\n\ndrug_exposure_start_datetime\nStart_datetime\n\n\n\n\ndrug_exposure_end_date\nEnd_date\n\n\n\n\ndrug_exposure_end_datetime\nEnd_datetime\n\n\n\n\nverbatim_end_date\n\n\nNULL\n\n\ndrug_type_concept_id\n\n32817 [EHR]\n\n\n\nstop_reason\n\n\nNULL\n\n\nrefills\n\n\n\n\n\nquantity\nQuantity\n\n\n\n\ndays_supply\n\n\nNULL\n\n\nsig\n\n\nNULL\n\n\nroute_concept_id\nRoute_concept_id\n\n\n\n\nlot_number\n\n\nNULL\n\n\nprovider_id\n\n\nNULL\n\n\nvisit_occurrence_id\nVisit_occurrence_id\n\n\n\n\nvisit_detail_id\n\n\nNULL\n\n\ndrug_source_value\nSource_value\n\n\n\n\ndrug_source_concept_id\nSource_concept_id\n\n\n\n\nroute_source_value\nRoute_source_value\n\n\n\n\ndose_unit_source_value",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "clinical_data_tables.html#table-name-observation_period",
+    "href": "clinical_data_tables.html#table-name-observation_period",
+    "title": "9  Clinical Data Tables",
+    "section": "9.13 Table name: OBSERVATION_PERIOD",
+    "text": "9.13 Table name: OBSERVATION_PERIOD\n\n9.13.1 Reading from clinical tables (including visit_occ)\nNOTE: min/max dates all established from dates across all filled in clinical tables\n\n\n\n\n\n\n\n\n\nDestination Field\nSource Field\nLogic\nComment\n\n\n\n\nobservation_period_id\n\nAutogenerated integer\n\n\n\nperson_id\n\nCREATE observation period for each person_id in PERSON\n\n\n\nobservation_period_start_date\n\nMIN(EVENT [START] DATES)\n\n\n\nobservation_period_end_date\n\nMAX(EVENT [END] DATES)\n\n\n\nperiod_type_concept_id\n\n32817 [EHR]",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Clinical Data Tables</span>"
+    ]
+  },
+  {
+    "objectID": "standardized_derived_elements.html",
+    "href": "standardized_derived_elements.html",
+    "title": "10  Standardised Derived Elements",
+    "section": "",
+    "text": "10.1 T able name: DRUG_ERA\nA Drug Era is defined as a span of time when the Person is assumed to be exposed to a particular active ingredient. A Drug Era is not the same as a Drug Exposure: Exposures are individual records corresponding to the source when Drug was delivered to the Person, while successive periods of Drug Exposures are combined under certain rules to produce continuous Drug Eras.\nGenerated as part of ETL process using standard OHDSI SQL script.",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Standardised Derived Elements</span>"
+    ]
+  },
+  {
+    "objectID": "standardized_derived_elements.html#t-able-name-dose_era",
+    "href": "standardized_derived_elements.html#t-able-name-dose_era",
+    "title": "10  Standardised Derived Elements",
+    "section": "10.2 T able name: DOSE_ERA",
+    "text": "10.2 T able name: DOSE_ERA\nA Dose Era is defined as a span of time when the Person is assumed to be exposed to a constant dose of a specific active ingredient.\nGenerated as part of ETL process using standard OHDSI SQL script.",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Standardised Derived Elements</span>"
+    ]
+  },
+  {
+    "objectID": "standardized_derived_elements.html#t-able-name-condition_era",
+    "href": "standardized_derived_elements.html#t-able-name-condition_era",
+    "title": "10  Standardised Derived Elements",
+    "section": "10.3 T able name: CONDITION_ERA",
+    "text": "10.3 T able name: CONDITION_ERA\nA Condition Era is defined as a span of time when the Person is assumed to have a given condition. Condition Eras are chronological periods of Condition Occurrences.\nGenerated as part of ETL process using standard OHDSI SQL script.",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>10</span>  <span class='chapter-title'>Standardised Derived Elements</span>"
+    ]
+  },
+  {
+    "objectID": "metadata_tables.html",
+    "href": "metadata_tables.html",
+    "title": "11  Metadata Tables",
+    "section": "",
+    "text": "11.1 Table Name: CDM_SOURCE\nNOTE: Single-record table containing information about the site, source, and cdm.",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Metadata Tables</span>"
+    ]
+  },
+  {
+    "objectID": "metadata_tables.html#table-name-cdm_source",
+    "href": "metadata_tables.html#table-name-cdm_source",
+    "title": "11  Metadata Tables",
+    "section": "",
+    "text": "Destination Field\nSource Field\nLogic\nComment\n\n\n\n\ncdm_source_name\n\nAdd in an environment variable\n\n\n\ncdm_source_abbreviation\n\nAdd in an environment variable\n\n\n\ncdm_holder\n\nAdd in an environment variable\n\n\n\nsource_description\n\nAdd in an environment variable\n\n\n\nsource_documentation_reference\n\n\n\n\n\ncdm_etl_reference\n\nIncludes GitHub/GitLab tag, if provided\nhttps://github.com/edencehealth/rh4131/releases/tag/&lt;gh-tag&gt;\n\n\nsource_release_date\n\nAdd in an environment variable\nRequest date of last export at the start of ETL run\n\n\ncdm_release_date\n\nDate of ETL run\n\n\n\ncdm_version\n\n\n‘5.4.1’\n\n\ncdm_version_concept_id\n\n\n798878 [OMOP CDM Version 5.4.1]\n\n\nvocabulary_version\nvocabulary.vocabulary_version\nrecord where vocabulary_id=‘None’",
+    "crumbs": [
+      "Mapped OMOP tables",
+      "<span class='chapter-number'>11</span>  <span class='chapter-title'>Metadata Tables</span>"
+    ]
+  },
+  {
+    "objectID": "appendix_A.html",
+    "href": "appendix_A.html",
+    "title": "Appendix A — OMOP CDM tables not included in mapping",
+    "section": "",
+    "text": "The following tables were not included in the mapping as they were not relevant for the source data available. These still need to be created as part of the ETL run as they are needed for some of the OHDSI tooling to successfully complete.\n\nClinical Data Tables: NOTE\nClinical Data Tables: NOTE_NLP\nClinical Data Tables: FACT RELATIONSHIP\nHealth System Data Tables: PROVIDER\nHealth Economics Data Tables: PAYER_PLAN_PERIOD\nHealth Economics Data Tables: COST\nStandardised Derived Elements: EPISODE\nStandardised Derived Elements: EPISODE_EVENT\nMetadata Tables: METADATA",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>A</span>  <span class='chapter-title'>OMOP CDM tables not included in mapping</span>"
+    ]
+  },
+  {
+    "objectID": "appendix_B.html",
+    "href": "appendix_B.html",
+    "title": "Appendix B — Source tables",
+    "section": "",
+    "text": "RH4131 has provided scan reports for 3 ICUs describing the ICU data. Initially, there were 3 data source files for each hospital: table_scan, database_scan, and field_scan. Each TSV file contains data and/or information about the following five tables: prescriptions, administrations, diagnoses_procedures, observations, and course_metadata.\ntable_scan and database_scan contain information usually seen in the first two sheets of a scan report. field_scan contains the data usually seen in the following sheets (one per table) of a field scan; however, here everything is contained in one table = field_scan.\nThe actual ETL development will be based on the RH4131 dataset (as well as Odense and one other site) with the assumptions that technically the ETL should be able to run on all sites if the data structure remains the same.\nTable: prescriptions.parquet included in field_scan\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ncourseid\nBIGINT\n\n\n\n\ntimestamp\nTIMESTAMP\n\n\n\n\nepaspresid\nBIGINT\n\n\n\n\nepaspresbaseid\nBIGINT\n\n\n\n\nepaspresstarttime\nTIMESTAMP\n\n\n\n\nepaspresdose\nDOUBLE\n\n\n\n\nepaspresdosemax\nDOUBLE\n\n\n\n\nepaspresdosestart\nDOUBLE\n\n\n\n\nepaspresdrugunit\nVARCHAR\n\n\n\n\nepaspresdrugunitact\nVARCHAR\n\n\n\n\nepaspresconc\nDOUBLE\n\n\n\n\nepaspresfluids\nVARCHAR\n\n\n\n\nepaspresmaxconc\nDOUBLE\n\n\n\n\nepaspresmaxbag\nBIGINT\n\n\n\n\nepasprescreatetime\nTIMESTAMP\n\n\n\n\nepaspresdisolved\nVARCHAR\n\n\n\n\nepaspresmixammount\nDOUBLE\n\n\n\n\nepasprespn\nVARCHAR\n\n\n\n\nepaspresinint\nVARCHAR\n\n\n\n\nepaspresfreq\nVARCHAR\n\n\n\n\nepasprescreattype\nVARCHAR\n\n\n\n\nepaspresgsubst\nVARCHAR\n\n\n\n\nepasprespsubst\nVARCHAR\n\n\n\n\nepaspresdosemaxdaily\nDOUBLE\n\n\n\n\nepaspresdosemaxtotal\nBIGINT\n\n\n\n\nepaspresscheduletype\nVARCHAR\n\n\n\n\nepaspresdosemaxdailyunit\nVARCHAR\n\n\n\n\nepaspresdosemaxtotalunit\nVARCHAR\n\n\n\n\nepaspressecuritydose\nDOUBLE\n\n\n\n\nepaspressecuritydoseunit\nVARCHAR\n\n\n\n\nepaspressecuritydoseminutes\nBIGINT\n\n\n\n\nepaspresminadmtime\nBIGINT\n\n\n\n\nepaspresprotname\nVARCHAR\n\n\n\n\nepaspresprotname_right\nVARCHAR\n\n\n\n\nepaspresprotkey\nVARCHAR\n\n\n\n\nepaspresdrugname\nVARCHAR\n\n\n\n\nepaspresadmmthd\nVARCHAR\n\n\n\n\nepaspresdrugatc\nVARCHAR\n\n\n\n\nepaspresindication\nVARCHAR\n\n\n\n\nepaspresindictext\nVARCHAR\n\n\n\n\nepaspresindicsks\nVARCHAR\n\n\n\n\nepaspresdisctime\nTIMESTAMP\n\n\n\n\nepaspresdiscreason\nVARCHAR\n\n\n\n\nepaspresadmroute\nVARCHAR\n\n\n\n\nepaspresgestage\nBIGINT\n\n\n\n\nepaspresweight\nBIGINT\n\n\n\n\nepaspresage\nBIGINT\n\n\n\n\nepaspresbsa\nBIGINT\n\n\n\n\nepasadmdoseunit\nVARCHAR\n\n\n\n\nepasadmdose\nDOUBLE\n\n\n\n\nepaspresinfusionmax\nDOUBLE\n\n\n\n\n\nTable: administrations.parquet in field_scan\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ncourseid\nBIGINT\n\n\n\n\ntimestamp\nTIMESTAMP\n\n\n\n\nepaspresbaseid\nBIGINT\n\n\n\n\ndrug_name\nVARCHAR\n\n\n\n\nvalue\nDOUBLE\n\n\n\n\nfrom_file\nVARCHAR\n\n\n\n\n\nTable: diagnoses_procedures.parquet in field_scan\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ncourseid\nBIGINT\n\n\n\n\ntimestamp\nVARCHAR\n\n\n\n\ndiag_proc\nVARCHAR\n\n\n\n\nvalue\nDOUBLE\n\n\n\n\nfrom_file\nVARCHAR\n\n\n\n\n\nTable: observations.parquet in field_scan\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ncourseid\nBIGINT\n\n\n\n\ntimestamp\nTIMESTAMP\n\n\n\n\nobservation\nVARCHAR\n\n\n\n\nvalue\nDOUBLE\n\n\n\n\nfrom_file\nVARCHAR\n\n\n\n\n\nTable: course_metadata.parquet in field_scan\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ncourseid\nBIGINT\n\n\n\n\ntimestamp\nVARCHAR\n\n\n\n\nmetadata\nVARCHAR\n\n\n\n\nvalue\nDOUBLE\n\n\n\n\nfrom_file\nVARCHAR\n\n\n\n\n\nTable: drug_mapping_helper.tsv\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ndrug_key\nVARCHAR\n\n\n\n\natc\nVARCHAR\n\n\n\n\nnumerator_value\nVARCHAR\n\n\n\n\nnumerator_unit\nVARCHAR\n\n\n\n\ndenominator_value\nDOUBLE\n\n\n\n\ndenominator_unit\nVARCHAR\n\n\n\n\nactual_unit\nVARCHAR\n\nThe actual unit prescribed (e.g. mg/min/kg.) In the enacted prescriptions, the per-kg. part goes out and the strength reflects this\n\n\nroute\nVARCHAR\n\nThe original two-letter administration-route code\n\n\nroute_long\nVARCHAR\n\nExpanded administration route\n\n\nn\nINT\n\n\n\n\ndrug_names\nVARCHAR\n\n\n\n\n\nTable: shak_lookup.tsv\n\n\n\n\n\n\n\n\n\nField\nType\nMost freq. value\nComment\n\n\n\n\ndepartment_shak_code\nVARCHAR\n\n\n\n\nhospital_name\nVARCHAR\n\n\n\n\ndepartment_name\nVARCHAR\n\n\n\n\nregion\nVARCHAR\n\nGeographical region in Denmark (of which there are five)\n\n\ninclude\nINT\n\nAll 1’s, not used for now\n\n\nsurgical\nINT\n\nWhether the department accepts surgical patients, 1 = yes, 0 = no\n\n\npostal_code\nINT\n\n\n\n\nhospital_shak_code\nINT",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>B</span>  <span class='chapter-title'>Source tables</span>"
+    ]
+  },
+  {
+    "objectID": "appendix_C.html",
+    "href": "appendix_C.html",
+    "title": "Appendix C — DQD Results",
+    "section": "",
+    "text": "This appendix lists the final DQD results and addresses the cases where the CDM failed the DQD checks and why we have allowed these to stay.",
+    "crumbs": [
+      "Appendices",
+      "<span class='chapter-number'>C</span>  <span class='chapter-title'>DQD Results</span>"
+    ]
+  }
+]
