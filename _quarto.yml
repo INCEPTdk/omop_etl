@@ -3,15 +3,14 @@ project:
 
 book:
   title: |
-    RH4131 Database Mapping Document
+    DAVICU-1 Database Mapping Document
     Source Data Mapping Approach to CDMV5.4.1
   subtitle: |
     ***edenceHealth NV***
     ***in collaboration with***
     ***Dept. of Intensive Care (4131), Rigshospitalet***
-  author: "Benjamin Skov Kaas-Hansen"
+  author: "Benjamin Skov Kaas-Hansen, Davide Placido"
   date: "7/16/2024"
-  downloads: [pdf, epub]
   search: true
   chapters:
     - part: "Background"
