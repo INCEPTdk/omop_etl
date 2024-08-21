@@ -63,7 +63,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ inputs.github_org != '' && format('ghcr.io/{0}/{1}', env.GITHUB_ORG, env.IMAGE_NAME) || '' }}
+          images: ${{ env.GITHUB_ORG != '' && format('ghcr.io/{0}/{1}', env.GITHUB_ORG, env.IMAGE_NAME) || '' }}
           tags: |-
             type=schedule
             type=semver,pattern={{version}}
