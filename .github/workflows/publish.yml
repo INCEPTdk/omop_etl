@@ -24,6 +24,9 @@ jobs:
         with:
           r-version: '4.2.0'
 
+      - name: Install TinyTeX
+        run: quarto install tinytex
+
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
         with:
