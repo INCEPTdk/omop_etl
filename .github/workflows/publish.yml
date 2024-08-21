@@ -27,7 +27,7 @@ jobs:
       - name: Install TinyTeX and list-table extension
         run: |
           quarto install tinytex
-          quarto add pandoc-ext/list-table
+          quarto add pandoc-ext/list-table --no-prompt
 
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
