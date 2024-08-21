@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 LABEL maintainer="Intensive Care Department 4131 - Rigshospitalet"
-LABEL org.opencontainers.image.source https://github.com/INCEPTdk/omop_etl
+LABEL org.opencontainers.image.source="https://github.com/INCEPTdk/omop_etl"
 
 ARG AG="env DEBIAN_FRONTEND=noninteractive apt-get -yq --no-install-recommends"
 RUN set -eux; \
@@ -19,7 +19,7 @@ RUN set -eux; \
   ;
 
 ARG DEV_BUILD=""
-ENV DEV_BUILD ${DEV_BUILD}
+ENV DEV_BUILD=${DEV_BUILD}
 
 COPY requirements.txt requirements.dev.txt /
 RUN set -eux; \
