@@ -3,7 +3,7 @@ on:
   push:
     branches: docs
 
-name: Quarto Publish
+name: Quarto Publish in docs branch
 
 jobs:
   build-deploy:
