@@ -1,5 +1,6 @@
 FROM python:3.11-slim
-LABEL maintainer="edenceHealth NV <info@edence.health>"
+LABEL maintainer="Intensive Care Department 4131 - Rigshospitalet"
+LABEL org.opencontainers.image.source https://github.com/INCEPTdk/omop_etl
 
 ARG AG="env DEBIAN_FRONTEND=noninteractive apt-get -yq --no-install-recommends"
 RUN set -eux; \
