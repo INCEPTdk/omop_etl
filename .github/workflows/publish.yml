@@ -11,8 +11,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Checkout content branch
+        uses: actions/checkout@v3
+        with:
+          ref: docs
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
