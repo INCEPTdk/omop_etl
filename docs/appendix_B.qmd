@@ -1,0 +1,721 @@
+# Source tables {#sec-appendix-source-tables}
+
+RH4131 has provided scan reports for 3 ICUs describing the ICU data. Initially, there were 3 data source files for each hospital: table_scan, database_scan, and field_scan. Each TSV file contains data and/or information about the following five tables: prescriptions, administrations, diagnoses_procedures, observations, and course_metadata.
+
+table_scan and database_scan contain information usually seen in the first two sheets of a scan report. field_scan contains the data usually seen in the following sheets (one per table) of a field scan; however, here everything is contained in one table = field_scan.
+
+The actual ETL development will be based on the RH4131 dataset (as well as Odense and one other site) with the assumptions that technically the ETL should be able to run on all sites if the data structure remains the same.
+
+Table: prescriptions.parquet included in field_scan
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   courseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   timestamp
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   epaspresid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresbaseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresstarttime
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   epaspresdose
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresdosemax
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresdosestart
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresdrugunit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdrugunitact
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresconc
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresfluids
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresmaxconc
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresmaxbag
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epasprescreatetime
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   epaspresdisolved
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresmixammount
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epasprespn
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresinint
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresfreq
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epasprescreattype
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresgsubst
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epasprespsubst
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdosemaxdaily
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresdosemaxtotal
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresscheduletype
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdosemaxdailyunit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdosemaxtotalunit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspressecuritydose
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspressecuritydoseunit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspressecuritydoseminutes
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresminadmtime
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresprotname
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresprotname_right
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresprotkey
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdrugname
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresadmmthd
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdrugatc
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresindication
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresindictext
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresindicsks
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresdisctime
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   epaspresdiscreason
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresadmroute
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epaspresgestage
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresweight
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresage
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epaspresbsa
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   epasadmdoseunit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   epasadmdose
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   epaspresinfusionmax
+    -   DOUBLE
+    -
+    -
+:::
+
+Table: administrations.parquet in field_scan
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   courseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   timestamp
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   epaspresbaseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   drug_name
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   value
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   from_file
+    -   VARCHAR
+    -
+    -
+:::
+
+Table: diagnoses_procedures.parquet in field_scan
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   courseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   timestamp
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   diag_proc
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   value
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   from_file
+    -   VARCHAR
+    -
+    -
+:::
+
+Table: observations.parquet in field_scan
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   courseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   timestamp
+    -   TIMESTAMP
+    -
+    -
+
+-
+
+    -   observation
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   value
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   from_file
+    -   VARCHAR
+    -
+    -
+:::
+
+Table: course_metadata.parquet in field_scan
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   courseid
+    -   BIGINT
+    -
+    -
+
+-
+
+    -   timestamp
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   metadata
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   value
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   from_file
+    -   VARCHAR
+    -
+    -
+:::
+
+Table: drug_mapping_helper.tsv
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   drug_key
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   atc
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   numerator_value
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   numerator_unit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   denominator_value
+    -   DOUBLE
+    -
+    -
+
+-
+
+    -   denominator_unit
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   actual_unit
+    -   VARCHAR
+    -
+    -   The actual unit prescribed (e.g. mg/min/kg.) In the enacted prescriptions, the per-kg. part goes out and the strength reflects this
+
+-
+
+    -   route
+    -   VARCHAR
+    -
+    -   The original two-letter administration-route code
+
+-
+
+    -   route_long
+    -   VARCHAR
+    -
+    -   Expanded administration route
+
+-
+
+    -   n
+    -   INT
+    -
+    -
+
+-
+
+    -   drug_names
+    -   VARCHAR
+    -
+    -
+:::
+
+Table: shak_lookup.tsv
+
+::: list-table
+-
+
+    -   Field
+    -   Type
+    -   Most freq. value
+    -   Comment
+
+-
+
+    -   department_shak_code
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   hospital_name
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   department_name
+    -   VARCHAR
+    -
+    -
+
+-
+
+    -   region
+    -   VARCHAR
+    -
+    -   Geographical region in Denmark (of which there are five)
+
+-
+
+    -   include
+    -   INT
+    -
+    -   All 1's, not used for now
+
+-
+
+    -   surgical
+    -   INT
+    -
+    -   Whether the department accepts surgical patients, 1 = yes, 0 = no
+
+-
+
+    -   postal_code
+    -   INT
+    -
+    -
+
+-
+
+    -   hospital_shak_code
+    -   INT
+    -
+    -
+:::

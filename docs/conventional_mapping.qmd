@@ -1,0 +1,11 @@
+# Conventional mapping {#mapping-approach}
+
+A "traditional" mapping including manual mappings for the following tables: PERSON, DEATH, VISIT_OCCURENCE, VISIT_DETAIL, LOCATION, CARE_SITE and CDM_SOURCE.
+
+-   These tables will be mapped directly from the source data using manual mappings.
+
+-   Some tables will require an additional environment variable and/or look-up table
+
+    -   VISIT_OCCURENCE, LOCATION, and CARE_SITE = SHAK code look-up table
+
+    -   CDM_SOURCE = environment variables

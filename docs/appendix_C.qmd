@@ -1,0 +1,3 @@
+# DQD Results
+
+This appendix lists the final DQD results and addresses the cases where the CDM failed the DQD checks and why we have allowed these to stay.

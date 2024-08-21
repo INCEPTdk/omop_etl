@@ -1,0 +1,21 @@
+# OMOP CDM tables not included in mapping {#sec-appendix-unmapped-omop-tables}
+
+The following tables were not included in the mapping as they were not relevant for the source data available. These still need to be created as part of the ETL run as they are needed for some of the OHDSI tooling to successfully complete.
+
+-   Clinical Data Tables: NOTE
+
+-   Clinical Data Tables: NOTE_NLP
+
+-   Clinical Data Tables: FACT RELATIONSHIP
+
+-   Health System Data Tables: PROVIDER
+
+-   Health Economics Data Tables: PAYER_PLAN_PERIOD
+
+-   Health Economics Data Tables: COST
+
+-   Standardised Derived Elements: EPISODE
+
+-   Standardised Derived Elements: EPISODE_EVENT
+
+-   Metadata Tables: METADATA
