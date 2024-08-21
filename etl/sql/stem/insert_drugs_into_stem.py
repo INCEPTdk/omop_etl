@@ -122,6 +122,10 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     )
 
     start_datetime = end_datetime - start_offset
+    administration_route = func.coalesce(
+        ConceptLookupStem.route_source_value,
+        Prescriptions.epaspresadmroute,
+    )
 
     # Create SELECT statement for drugs with custom mappings
     CustomMappedSelectSql = (
@@ -147,10 +151,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ),
             case(*quantity, else_=null()).label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
-            func.coalesce(
-                ConceptLookupStem.route_source_value,
-                Prescriptions.epaspresadmroute,
-            ).label("route_source_value"),
+            administration_route.label("route_source_value"),
             ConceptLookupStem.era_lookback_interval,
             concat(
                 Administrations.administration_type, "_administrations"
@@ -186,11 +187,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .outerjoin(
             ConceptLookup,
             and_(
-                ConceptLookup.concept_string
-                == func.coalesce(
-                    ConceptLookupStem.route_source_value,
-                    Prescriptions.epaspresadmroute,
-                ),
+                ConceptLookup.concept_string == administration_route,
                 ConceptLookup.filter == "administration_route",
             ),
         )
