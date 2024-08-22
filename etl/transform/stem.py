@@ -7,6 +7,7 @@ from sqlalchemy import and_
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
+    Administrations,
     CourseMetadata,
     DiagnosesProcedures,
     LabkaBccLaboratory,
@@ -22,12 +23,16 @@ from ..sql.stem import (
     get_registry_stem_insert,
     get_unmapped_nondrug_stem_insert,
 )
-from ..sql.stem.utils import get_batches_from_concept_loopkup_stem
+from ..sql.stem.utils import (
+    get_batches_from_concept_loopkup_stem,
+    validate_source_variables,
+)
 from ..util.db import AbstractSession, get_environment_variable
 
 logger = logging.getLogger("ETL.Stem")
 
 NONDRUG_MODELS = [CourseMetadata, DiagnosesProcedures, Observations]
+DRUG_MODELS = [Administrations]
 REGISTRY_MODELS = [LprDiagnoses, LprProcedures, LprOperations]
 LABORATORY_MODELS = [LabkaBccLaboratory]
 BATCH_SIZE = int(get_environment_variable("BATCH_SIZE", "5"))
@@ -36,6 +41,11 @@ BATCH_SIZE = int(get_environment_variable("BATCH_SIZE", "5"))
 def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
+
+    for model in (
+        NONDRUG_MODELS + DRUG_MODELS + REGISTRY_MODELS + LABORATORY_MODELS
+    ):
+        validate_source_variables(session, model, logger)
 
     transform_non_drug_models(session)
     transform_drug_models(session)
