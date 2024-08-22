@@ -1,4 +1,5 @@
 """ A module for integration testing with postgres"""
+
 import inspect
 import os
 import unittest
@@ -102,6 +103,7 @@ def base_path() -> Path:
     caller_module = inspect.getmodule(inspect.stack()[1][0])
     return Path(caller_module.__file__).parent.resolve()
 
+
 def enforce_dtypes(df_source, df_target):
     source_dtypes = df_source.dtypes
     df_target_converted = df_target.copy()  # To avoid modifying the original df_target
@@ -115,7 +117,11 @@ def enforce_dtypes(df_source, df_target):
 
     return df_target_converted
 
-def assert_dataframe_equality(df1, df2, index_cols: str = None, **kwargs):
+
+
+def assert_dataframe_equality(
+    df1, df2, index_cols: str = None, **kwargs
+):
     if index_cols:
         if isinstance(index_cols, str):
             index_cols = [index_cols]

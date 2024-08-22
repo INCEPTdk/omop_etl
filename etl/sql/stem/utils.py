@@ -3,15 +3,28 @@
 import inspect
 import os
 from itertools import chain, zip_longest
-from typing import Any, List
+from typing import Any, List, Union
 
-from sqlalchemy import FLOAT, case, cast, func, not_, select
+from sqlalchemy import (
+    FLOAT,
+    TIMESTAMP,
+    DateTime,
+    String,
+    case,
+    cast,
+    func,
+    not_,
+    select,
+)
+from sqlalchemy.orm import Mapped
 from sqlalchemy.sql import expression
 from sqlalchemy.sql.expression import CTE, Case
 
 from ...models.source import SourceModelBase
 from ...models.tempmodels import ConceptLookupStem
 from ...util.db import AbstractSession
+
+CDM_TIMEZONE: str = "Europe/Copenhagen"
 
 
 def get_batches_from_concept_loopkup_stem(
@@ -177,3 +190,21 @@ def toggle_stem_transform(transform_function):
         return "SELECT NULL;"
 
     return wrapper
+
+
+def harmonise_timezones(
+    column: Mapped[DateTime],
+    source_tz: Union[Mapped[String], str],
+) -> Case:
+    """
+    Converts a datetime column to the timezone of the CDM if this differs from
+    the source timezone. This happens by localising, converting and
+    delocalising the timestamps
+    """
+
+    # Localise and convert to the CDM timezone
+    in_cdm_tz = func.timezone(CDM_TIMEZONE, func.timezone(source_tz, column))
+    return case(
+        (source_tz == CDM_TIMEZONE, column),
+        else_=cast(in_cdm_tz, TIMESTAMP),  # delocalise to strip timezone part
+    )
