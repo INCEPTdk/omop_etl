@@ -4,141 +4,86 @@
 
 ### Reading from T_PERSON {#reading-from-t_person}
 
-NOTE: course_id is visit reference - unique within department only. Raw course_ids are likely to recur across sites.
+NOTE: course_id is the visit reference and unique within departments only. Raw course_id's are likely to recur across sites.
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   person_id
-    -   `cpr_enc`
-    -   `floor(hash(cpr_enc) / 2)`
-    -   The current implementation uses duckdb's hash function (implemented [here](https://github.com/duckdb/duckdb/blob/d8a69cc6563f510a834a80e68d8afc9b81e6b2e3/src/include/duckdb/common/types/hash.hpp#L23); see also [https://nullprogram.com/blog/2018/07/31](https://nullprogram.com/blog/2018/07/31/)). We divide by two and round down because duckdb's `hash()` function returns a uint64 (unsigned big integer) but we want a normal int64 to make the final CDM compatible with e.g. PostgreSQL which isn't born with uint64. Integer division isn't easy to implement with ORM, so we resolve to the less elegant way of regular float division, followed by rounding.
-
+    -   cpr_enc
+    -   `hash(cpr_enc) // 2`\
+        The current implementation uses duckdb's hash function (implemented [here](https://github.com/duckdb/duckdb/blob/d8a69cc6563f510a834a80e68d8afc9b81e6b2e3/src/include/duckdb/common/types/hash.hpp#L23); see also [https://nullprogram.com/blog/2018/07/31](https://nullprogram.com/blog/2018/07/31/)). We halve because duckdb's `hash()` returns a uint64 (unsigned big integer) but we want a normal int64 to make the final CDM compatible with e.g. PostgreSQL which doesn't ship with uint64 support.
 -
-
     -   gender_concept_id
-    -   `c_kon`
+    -   c_kon
     -   'K' \~ 8532\
         'M' \~ 8507\
         else drop person
-    -
-
 -
-
     -   year_of_birth
-    -   `d_foddato`
+    -   d_foddato
     -   Extract year
-    -
-
 -
-
     -   month_of_birth
-    -   `d_foddato`
+    -   d_foddato
     -   Extract month
-    -
-
 -
-
     -   day_of_birth
-    -   `d_foddato`
+    -   d_foddato
     -   Extract day
-    -
-
 -
-
     -   birth_datetime
-    -   `d_foddato`
-    -
+    -   d_foddato
     -   Set time to 00:00:00
-
 -
-
     -   race_concept_id
     -
     -   Map to 0
-    -
-
 -
-
     -   ethnicity_concept_id
     -
     -   Map to 0
-    -
-
 -
-
     -   location_id
     -
-    -
     -   NULL
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   care_site_id
     -
-    -
     -   NULL
-
 -
-
     -   person_source_value
-    -   `cpr_enc`
-    -   `cpr_enc|<cpr_enc>`
-    -
-
+    -   cpr_enc
+    -   `'cpr_enc|<cpr_enc'>`
 -
-
     -   gender_source_value
-    -   `c_kon`
-    -   `c_kon|<c_kon>`
-    -
-
+    -   c_kon
+    -   `'c_kon|<c_kon>'`
 -
-
     -   gender_source_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   race_source_value
     -
-    -
     -   NULL
-
 -
-
     -   race_source_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   ethnicity_source_value
     -
-    -
     -   NULL
-
 -
-
     -   ethnicity_source_concept_id
-    -
     -
     -   NULL
 :::
@@ -149,59 +94,36 @@ NOTE: course_id is visit reference - unique within department only. Raw course_i
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   person_id
-    -   `PERSON.person_id`
+    -   PERSON.person_id
     -   Only for those patients in PERSON with c_status = 90\
         Look up the person_id in PERSON by matching the `'cpr_enc|<cpr_enc>'` with `PERSON.person_source_value`
-    -
-
 -
-
     -   death_date
-    -   `d_status_hen_start`
-    -   When c_status == 90 \[dead\]
-    -   Format: YYYY-MM-DD
-
+    -   d_status_hen_start
+    -   When `c_status == 90` \[dead\]. Format: YYYY-MM-DD
 -
-
     -   death_datetime
     -
-    -
     -   NULL
-
 -
-
     -   death_type_concept_id
     -
-    -   32879 [Registry](https://athena.ohdsi.org/search-terms/terms/32879)
-    -
-
+    -   [32879 Registry](https://athena.ohdsi.org/search-terms/terms/32879)
 -
-
     -   cause_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   cause_source_value
     -
-    -
     -   NULL
-
 -
-
     -   cause_source_concept_id
-    -
     -
     -   NULL
 :::
@@ -210,144 +132,94 @@ NOTE: course_id is visit reference - unique within department only. Raw course_i
 
 ### Reading from course_metadata, environment variable (SHAK_code) and SHAK code lookup file {#reading-from-course_metadata-environment-variable-shak_code-and-shak-code-lookup-file}
 
-NOTE: Certain variables are nested within course_metadata. The ETL will need to filter the value column to find data related to admin or disc for example
+COURSE_METADATA has a long format, effectively yielding a key-value data format so that a variable's name is looked up in the `variable` column and the corresponding `value` is used.
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   visit_occurrence_id
     -
-    -   `hash(<shak_code>|<courseid>)`
-    -   See `PERSON.person_id` for details on hashing
-
+    -   `hash(<shak_code>|<courseid>)`\
+        See `PERSON.person_id` for details on hashing
 -
-
     -   person_id
     -   PERSON.person_id
     -
-    -
-
 -
-
     -   visit_concept_id
-    -   `SHAK_LOOKUP.department_type`
+    -   SHAK_LOOKUP.department_type
     -   Use environment variable `DEPARTMENT_SHAK_CODE` to find the department in `SHAK_LOOKUP`. Then, use `CONCEPT_LOOKUP.concept_id` where `CONCEPT_LOOKUP.concept_string == SHAK_LOOKUP.department_type` and `CONCEPT_LOOKUP.filter == 'care_site'`
-    -
-
 -
-
     -   visit_start_date
     -   value
-    -   When `variable` == 'admdate' use corresponding value. If not use `admdatetime` cast to date.
-    -
-
+    -   When `variable == 'admdate'` use corresponding value. Otherwise, use `admdatetime` cast to date.
 -
-
     -   visit_start_datetime
     -   value
-    -   When `variable` == 'admdatetime' use corresponding value. If not use `admdate` with 00:00:00
-    -
-
+    -   When `variable == 'admdatetime'` use corresponding value. Otherwise, use `admdate` with 00:00:00 suffix
 -
-
     -   visit_end_date
     -   value
-    -   When `variable` == 'dischdate' use corresponding value. If not use `dischdtuse` cast to date
-    -
-
+    -   When `variable == 'dischdate'` use corresponding value. Otherwise, use `dischdtuse` cast to date
 -
-
     -   visit_end_datetime
     -   value
-    -   When `variable` == 'dischdtuse' corresponding value. If not use `dischdate` with 00:00:00
-    -
-
+    -   When `variable == 'dischdtuse'` use corresponding value. Otherwise, use `dischdate` with 00:00:00 suffix
 -
-
     -   visit_type_concept_id
     -
-    -   32817 [EHR](https://athena.ohdsi.org/search-terms/terms/32817)
-    -
-
+    -   [32817 EHR](https://athena.ohdsi.org/search-terms/terms/32817)
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   care_site_id
     -   CARE_SITE.care_site_id
     -   Join with CARE_SITE on `CARE_SITE.care_site_source_value == 'department_shak_code|<DEPARTMENT_SHAK_CODE>'`
-    -
-
 -
-
     -   visit_source_value
-    -   `course_id`
+    -   course_id
     -   `'course_id|<course_id>'`
-    -
-
 -
-
     -   visit_source_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   admitted_from_concept_id
-    -   `value` where `key == 'transfromid'`
-    -   If `key` == `transfromid` and value IS NOT NULL, then look up `value` in CONCEPT_LOOKUP
-    -   The source data contain the following values:
+    -
+    -   If `key` == `transfromid` and `value IS NOT NULL`, then look up `value` in CONCEPT_LOOKUP.\
+        The source data contain the following values:
         -   "Non-ICU dept. - this hospital"
         -   "Other ICU -- other hospital"
         -   "Non-ICU dept. - other hospital"
         -   "" (blank)
         -   "Other ICU -- this hospital"
         -   "Emergency room"
-
 -
-
     -   admitted_from_source_value
-    -   `value` where `key == 'transfromid'`
-    -   Use `'transfromid\|<value>'`
     -
-
+    -   Use `'transfromid\|<value>'`
 -
-
     -   discharged_to_concept_id
-    -   `value` where `key == 'chkouttoid'`
-    -   If `key` == 'chkouttoid', look up `value` in CONCEPT_LOOKUP
-    -   The source data contain the following values:
+    -
+    -   If `key` == 'chkouttoid', look up `value` in CONCEPT_LOOKUP.\
+        The source data contain the following values:
         -   "Non-ICU dept. - this hospital"
         -   "Other ICU -- other hospital"
         -   "Non-ICU dept. - other hospital"
         -   "" (blank)
         -   "Other ICU -- this hospital"
         -   "Home"
-
 -
-
     -   discharged_to_source_value
-    -   `value` where `key == 'chkouttoid'`
-    -   Use 'chkouttoid\|\<value\>'
     -
-
+    -   Use `'chkouttoid|<value>'`
 -
-
     -   preceding_visit_occurrence_id
-    -
     -
     -   NULL
 :::
@@ -362,382 +234,219 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   domain_id
     -   std_code_domain
     -
-    -
-
 -
-
     -   datasource
     -
     -   Appropriate idenfier of the provenance of the data (e.g. file name)
-    -
-
 -
-
     -   stem_id
     -
     -   Auto-generated integer
-    -
-
 -
-
     -   person_id
-    -   `PERSON.course_id`
+    -   PERSON.course_id
     -   `PERSON.person_source_value == 'cpr_enc|<SOURCE_TABLE.cpr_enc>'`
-    -
-
 -
-
     -   concept_id
-    -   `mapped_standard_code`
-    -   Joining source data with CONCEPT_LOOKUP_STEM depends on the type of source data. For details, please refer to the actual implementation here \[#TODO add link to SQL files in repo\]. Generally, the idea is that
-        -   For categorcial values, we join on `'<SOURCE_TABLE>.<variable>__<value>' == CONCEPT_LOOKUP_STEM.source_concept_code`
-        -   For numerical and free-text values, we join on `'<SOURCE_TABLE>.<variable>' == CONCEPT_LOOKUP_STEM.source_concept_code`. The standard concept id's of free-text values, then, are fetched from CONCEPT_LOOKUP.
-    -   Free-text values can be considered an extension of categorial values, when there are so many possible values that explicitly mapping them each via CONCEPT_LOOKUP_STEM would be too cumbersome.
-
+    -   mapped_standard_code
+    -   Joining source data with CONCEPT_LOOKUP_STEM depends on the type of source data. For details, please refer to the actual implementation [here](https://github.com/INCEPTdk/omop_etl/tree/main/etl/sql/stem). Generally, the idea is that for categorcial values, we join on `'<SOURCE_TABLE>.<variable>__<value>' == CONCEPT_LOOKUP_STEM.source_concept_code`, while we join on `'<SOURCE_TABLE>.<variable>' == CONCEPT_LOOKUP_STEM.source_concept_code` for numerical and free-text values. The standard concept id's of free-text values, then, are fetched from CONCEPT_LOOKUP. This way, free-text values serve as an extension of categorical values, when there are so many possible values that explicitly mapping them each via CONCEPT_LOOKUP_STEM would be too cumbersome.
 -
-
     -   start_date
-    -   `<start_date>`
+    -   \<start_date\>
     -   Use column with the name defined in the source field, cast to DATE
-    -
-
 -
-
     -   start_datetime
-    -   `<start_date>`
-    -   Use column with the name defined in the source field, cast to TIMESTAMPTZ
-    -
-
+    -   \<start_date\>
+    -   Use column with the name defined in the source field, cast to TIMESTAMP after converting to Europe/Copenhagen timezone
 -
-
     -   end_date
-    -   `<end_date>`
+    -   \<end_date\>
     -   Use column with the name defined in the source field, cast to DATE
-    -
-
 -
-
     -   end_datetime
-    -   `<end_date>`
-    -   Use column with the name defined in the source field, cast to TIMESTAMPTZ
-    -
-
+    -   \<end_date\>
+    -   Use column with the name defined in the source field, cast to TIMESTAMP after converting to Europe/Copenhagen timezone
 -
-
     -   type_concept_id
-    -   `type_concept_id`
+    -   type_concept_id
     -
-    -
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   visit_occurrence_id
-    -   `VISIT_OCCURRENCE.visit_occurrence_id`
-    -   Join witH VISIT OCCURRENCE ON `VISIT_OCCURRENCE.visit_source_value == 'courseid|<SOURCE_TABLE.courseid>'`
-    -
-
+    -   VISIT_OCCURRENCE.visit_occurrence_id
+    -   Join with VISIT OCCURRENCE on `VISIT_OCCURRENCE.visit_source_value == 'courseid|<SOURCE_TABLE>.courseid'`
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   care_site_id
     -
-    -
     -   NULL
-
 -
-
     -   source_value
-    -   `<variable>__<value>`
     -
-    -   The same structure is found across all tables. There is a variable and a value column and the values in these columns need to be concatenated in the source_value, separated by two underscores
-
+    -   The exact source_value depends on the provenance of the data, but generally consists of the variable name and the value separated by two underscores.
 -
-
     -   source_concept_id
     -
-    -   Will be `CONCEPT_LOOKUP_STEM.uid` for everything except drug administrations with an ATC code. For these, the `source_concept_id` will either be for the ATC concept (for drugs with custom mappings, in CONCEPT_LOOKUP_STEM) or for the ingredients (the rest, called `'automapped'`)
-    -
-
+    -   Will be `CONCEPT_LOOKUP_STEM.uid` for everything except drug administrations with an ATC code. For these, the `source_concept_id` will either be for the ATC concept (for drugs with custom mappings, in CONCEPT_LOOKUP_STEM) or for the ingredients (the rest, called *automapped*)
 -
-
     -   quantity_or_value_as_number
     -
-    -
-    -   Used for numerical values (from observations or measurement) and DRUG_EXPOSURE quantity values
-
+    -   Used in all target tables that have a quantity of value_as_number column. Combined into one in the stem table for efficient routing, see @sec-stem-table-mapping.
 -
-
     -   value_as_string
-    -   `value_as_string`
+    -   value_as_string
     -
-    -
-
 -
-
     -   value_as_concept_id
-    -   `value_as_concept_id`
-    -
+    -   value_as_concept_id
     -   Used for `value_type == 'categorical'` to encode the different levels of the categorial variable
-
 -
-
     -   unit_concept_id
-    -   `unit_concept_id`
+    -   unit_concept_id
     -
-    -
-
 -
-
     -   value_source_value
-    -   `value`
+    -   value
     -
-    -
-
 -
-
     -   unit_source_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   unit_source_value
-    -   `unit_source_value`
+    -   unit_source_value
     -
-    -
-
 -
-
     -   verbatim_end_date
     -
-    -
     -   NULL
-
 -
-
     -   days_supply
     -
-    -
     -   NULL
-
 -
-
     -   dose_unit_source_value
-    -   `dose_unit_source_value`
+    -   dose_unit_source_value
     -
-    -
-
 -
-
     -   modifier_concept_id
-    -   `modifier_concept_id`
+    -   modifier_concept_id
     -
-    -
-
 -
-
     -   modifier_source_value
     -
-    -
     -   NULL
-
 -
-
     -   measurement_datetime
     -
-    -
     -   NULL
-
 -
-
     -   operator_concept_id
-    -   `operator_concept_id`
+    -   operator_concept_id
     -
-    -
-
 -
-
     -   range_low
     -
-    -   Coalesce of the lower bound as per the source data, when available, and CONCEPT_LOOKUP_STEM.range_low.
-    -
-
+    -   Coalesce of the lower bound as per the source data, when available, and `CONCEPT_LOOKUP_STEM.range_low`.
 -
-
     -   range_high
     -
-    -   Coalesce of the upper bound as per the source data, when available, and CONCEPT_LOOKUP_STEM.range_high.
-    -
-
+    -   Coalesce of the upper bound as per the source data, when available, and `CONCEPT_LOOKUP_STEM.range_high`.
 -
-
     -   stop_reason
     -
-    -
     -   NULL
-
 -
-
     -   refills
     -
-    -
     -   NULL
-
 -
-
     -   sig
     -
-    -
     -   NULL
-
 -
-
     -   route_concept_id
     -
-    -   Join with CONCEPT_LOOKUP on `CONCEPT_LOOKUP.concept_string == PRESCRIPTIONS.epaspresadmroute` and use CONCEPT_LOOKUP.concept_id
-    -
-
+    -   Join with CONCEPT_LOOKUP on `CONCEPT_LOOKUP.concept_string == PRESCRIPTIONS.epaspresadmroute` and use `CONCEPT_LOOKUP.concept_id`
 -
-
     -   route_source_value
+    -   PRESCRIPTIONS.epaspresadmroute
     -
-    -   = PRESCRIPTIONS.epaspresadmroute
-    -
-
 -
-
     -   era_lookback_interval
-    -   `era_lookback_interval`
+    -   era_lookback_interval
     -
-    -
-
 -
-
     -   lot_number
     -
-    -
     -   NULL
-
 -
-
     -   unique_device_id
     -
-    -
     -   NULL
-
 -
-
     -   production_id
     -
-    -
     -   NULL
-
 -
-
     -   anatomic_site_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   disease_status_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   specimen_source_id
     -
-    -
     -   NULL
-
 -
-
     -   anatomic_site_source_value
     -
-    -
     -   NULL
-
 -
-
     -   disease_status_source_value
     -
-    -
     -   NULL
-
 -
-
     -   condition_status_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   condition_status_source_value
     -
-    -
     -   NULL
-
 -
-
     -   qualifier_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   qualifier_source_value
     -
-    -
     -   NULL
-
 -
-
     -   event_id
     -
-    -
     -   NULL
-
 -
-
     -   event_field_concept_id
     -
-    -
     -   NULL
-
 -
-
     -   episode_id_source
-    -
     -
     -   NULL
 :::
@@ -748,114 +457,67 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   condition_occurrence_id
-    -   `uid`
+    -   uid
     -
-    -
-
 -
-
     -   person_id
-    -   `person_id`
+    -   person_id
     -
-    -
-
 -
-
     -   condition_concept_id
-    -   `concept_id`
-    -
-    -   If environment variable INCLUDE_UNMAPPED_CODES == 'FALSE' (default), we discard records whose concept_id's are 0 or NULL
-
+    -   concept_id
+    -   If environment variable `INCLUDE_UNMAPPED_CODES == 'FALSE'` (default), we discard records whose concept_id's are 0 or NULL
 -
-
     -   condition_start_date
     -
     -   `coalesce(start_date, end_date)`
-    -
-
 -
-
     -   condition_start_datetime
     -
-    -   `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -   Add '00:00:00' suffix to `start_date` and `end_date`
-
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
-
     -   condition_end_date
-    -   `end_date`
-    -   `coalesce(end_date, start_date)`
     -
-
+    -   `coalesce(end_date, start_date)`
 -
-
     -   condition_end_datetime
     -
-    -   `coalesce(end_datetime, end_date, start_datetime, start_date)`
-    -
-
+    -   `coalesce(end_datetime, end_date::timestamp, start_datetime, start_date::timestamp)`
 -
-
     -   condition_type_concept_id
-    -   `type_concept_id`
+    -   type_concept_id
     -
-    -
-
 -
-
     -   stop_reason
     -
-    -
     -   NULL
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   visit_occurrence_id
-    -   `visit_occurrence_id`
+    -   visit_occurrence_id
     -
-    -
-
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   condition_source_value
-    -   `source_value`
+    -   source_value
     -
-    -
-
 -
-
     -   condition_source_concept_id
-    -   `source_concept_id`
+    -   source_concept_id
     -
-    -
-
 -
-
     -   condition_status_source_value
-    -
     -
     -   NULL
 :::
@@ -866,122 +528,72 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   procedure_occurrence_id
-    -   `uid`
+    -   uid
     -
-    -
-
 -
-
     -   person_id
-    -   `person_id`
+    -   person_id
     -
-    -
-
 -
-
     -   procedure_concept_id
-    -   `concept_id`
-    -
+    -   concept_id
     -   If environment variable INCLUDE_UNMAPPED_CODES == 'FALSE' (default), we discard records whose concept_id's are 0 or NULL
-
 -
-
     -   procedure_date
+    -
     -   `coalesce(start_date, end_date)`
-    -
-    -
-
 -
-
     -   procedure_datetime
     -
-    -   `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -
-
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
-
     -   procedure_end_date
     -
     -   `coalesce(end_date, start_date)`
-    -
-
 -
-
     -   procedure_end_datetime
     -
-    -   `coalesce(end_datetime, end_date, start_datetime, start_date)`
-    -
-
+    -   `coalesce(end_datetime, end_date::timestamp, start_datetime, start_date::timestamp)`
 -
-
     -   procedure_type_concept_id
-    -   `type_concept_id`
+    -   type_concept_id
     -
-    -
-
 -
-
     -   modifier_concept_id
-    -   `modifier_concept_id`
+    -   modifier_concept_id
     -
-    -
-
 -
-
     -   quantity
-    -   `quantity`
+    -   quantity
     -
-    -
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   visit_occurrence_id
-    -   `visit_occurrence_id`
+    -   visit_occurrence_id
     -
-    -
-
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   procedure_source_value
-    -   `source_value`
+    -   source_value
     -
-    -
-
 -
-
     -   procedure_source_concept_id
-    -   `source_concept_id`
+    -   source_concept_id
     -
-    -
-
 -
-
     -   modifier_source_value
-    -   `modifier_source_value`
-    -
+    -   modifier_source_value
     -
 :::
 
@@ -991,142 +603,83 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   device_exposure_id
-    -   `uid`
+    -   uid
     -
-    -
-
 -
-
     -   person_id
-    -   `person_id`
+    -   person_id
     -
-    -
-
 -
-
     -   device_concept_id
-    -   `concept_id`
+    -   concept_id
     -
-    -
-
 -
-
     -   device_exposure_start_date
     -
     -   `coalesce(start_date, end_date)`
-    -
-
 -
-
     -   device_exposure_start_datetime
     -
-    -   `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -
-
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
-
     -   device_exposure_end_date
     -
     -   `coalesce(end_date, start_date)`
-    -
-
 -
-
     -   device_exposure_end_datetime
     -
-    -   `coalesce(end_datetime, end_date, start_datetime, start_date)`
-    -
-
+    -   `coalesce(end_datetime, end_date::timestamp, start_datetime, start_date::timestamp)`
 -
-
     -   device_type_concept_id
-    -   `type_concept_id`
+    -   type_concept_id
     -
-    -
-
 -
-
     -   unique_device_id
     -
-    -
     -   NULL
-
 -
-
     -   production_id
     -
-    -
     -   NULL
-
 -
-
     -   quantity
     -
-    -
     -   NULL
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   visit_occurrence_id
-    -   `visit_occurrence_id`
+    -   visit_occurrence_id
     -
-    -
-
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   device_source_value
-    -   `source_value`
+    -   source_value
     -
-    -
-
 -
-
     -   device_source_concept_id
-    -   `source_concept_id`
+    -   source_concept_id
     -
-    -
-
 -
-
     -   unit_concept_id
-    -   `unit_concept_id`
+    -   unit_concept_id
     -
-    -
-
 -
-
     -   unit_source_value
-    -   `unit_source_value`
+    -   unit_source_value
     -
-    -
-
 -
-
     -   unit_source_concept_id
-    -
     -
     -   NULL
 :::
@@ -1137,171 +690,100 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   measurement_id
-    -   `uid`
+    -   uid
     -
-    -
-
 -
-
     -   person_id
-    -   `person_id`
+    -   person_id
     -
-    -
-
 -
-
     -   measurement_concept_id
-    -   `concept_id`
+    -   concept_id
     -
-    -
-
 -
-
     -   measurement_date
     -
     -   `coalesce(start_date, end_date)`
-    -
-
 -
-
     -   measurement_datetime
     -
-    -   `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -
-
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
-
     -   measurement_time
     -
-    -
     -   NULL
-
 -
-
     -   measurement_type_concept_id
-    -   `type_concept_id`
+    -   type_concept_id
     -
-    -
-
 -
-
     -   operator_concept_id
-    -   `operator_concept_id`
+    -   operator_concept_id
     -
-    -
-
 -
-
     -   value_as_number
-    -   `quantity_or_value_as_number`
+    -   quantity_or_value_as_number
     -
-    -
-
 -
-
     -   value_as_concept_id
-    -   `value_as_concept_id`
+    -   value_as_concept_id
     -
-    -
-
 -
-
     -   unit_concept_id
-    -   `unit_concept_id`
+    -   unit_concept_id
     -
-    -
-
 -
-
     -   range_low
-    -   `range_low`
+    -   range_low
     -
-    -
-
 -
-
     -   range_high
-    -   `range_high`
+    -   range_high
     -
-    -
-
 -
-
     -   provider_id
     -
-    -
     -   NULL
-
 -
-
     -   visit_occurrence_id
-    -   `visit_occurrence_id`
+    -   visit_occurrence_id
     -
-    -
-
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   measurement_source_value
-    -   `source_value`
+    -   source_value
     -
-    -
-
 -
-
     -   measurement_source_concept_id
-    -   `source_concept_id`
+    -   source_concept_id
     -
-    -
-
 -
-
     -   unit_source_value
-    -   `unit_source_value`
+    -   unit_source_value
     -
-    -
-
 -
-
     -   unit_source_concept_id
-    -   `unit_source_concept_id`
+    -   unit_source_concept_id
     -
-    -
-
 -
-
     -   value_source_value
-    -   `value_source_value`
+    -   value_source_value
     -
-    -
-
 -
-
     -   measurement_event_id
-    -   `event_id`
+    -   event_id
     -
-    -
-
 -
-
     -   meas_event_field_concept_id
-    -   `event_field_concept_id`
-    -
+    -   event_field_concept_id
     -
 :::
 
@@ -1311,85 +793,68 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 
 ::: list-table
 -
-
-    - Destination Field
-    - Source Field
-    - Logic
-    - Comment
+    -   Destination Field
+    -   Source Field
+    -   Logic/remarks
 -
-    - person_id
-    - `person_id`
-    -
+    -   person_id
+    -   person_id
     -
 -
-    - specimen_id
-    - `specimen_id`
-    -
-    -
--
-    - specimen_concept_id
-    - `concept_id`
-    -
+    -   specimen_id
+    -   specimen_id
     -
 -
-    - specimen_type_concept_id
-    - `type_concept_id`
-    -
-    -
--
-    - specimen_date
-    -
-    - `coalesce(start_date, end_date)`
+    -   specimen_concept_id
+    -   concept_id
     -
 -
-    - specimen_datetime
-    -
-    - `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -
--
-    - quantity
-    - `quantity_or_value_as_number`
-    -
+    -   specimen_type_concept_id
+    -   type_concept_id
     -
 -
-    - unit_concept_id
-    - `unit_concept_id`
+    -   specimen_date
     -
+    -   `coalesce(start_date, end_date)`
+-
+    -   specimen_datetime
+    -
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
+-
+    -   quantity
+    -   quantity_or_value_as_number
     -
 -
-    - anatomic_site_concept_id
-    - `anatomic_site_concept_id`
-    -
-    -
--
-    - disease_status_concept_id
-    - `disease_status_concept_id`
-    -
+    -   unit_concept_id
+    -   unit_concept_id
     -
 -
-    - specimen_source_id
-    - `source_concept_id`
-    -
-    -
--
-    - specimen_source_value
-    - `source_value`
-    -
+    -   anatomic_site_concept_id
+    -   anatomic_site_concept_id
     -
 -
-    - unit_source_value
-    - `unit_source_value`
-    -
-    -
--
-    - anatomic_site_source_value
-    - `anatomic_site_source_value`
-    -
+    -   disease_status_concept_id
+    -   disease_status_concept_id
     -
 -
-    - disease_status_source_value
-    - `disease_status_source_value`
+    -   specimen_source_id
+    -   source_concept_id
     -
+-
+    -   specimen_source_value
+    -   source_value
+    -
+-
+    -   unit_source_value
+    -   unit_source_value
+    -
+-
+    -   anatomic_site_source_value
+    -   anatomic_site_source_value
+    -
+-
+    -   disease_status_source_value
+    -   disease_status_source_value
     -
 :::
 
@@ -1401,138 +866,90 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 -
     - Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
+    -   Logic/remarks
 -
     -   observation_id
-    -   `uid`
-    -
+    -   uid
     -
 -
     -   person_id
-    -   `person_id`
-    -
+    -   person_id
     -
 -
     -   observation_concept_id
-    -   `concept_id`
-    -
+    -   concept_id
     -
 -
     -   observation_date
     -
     -   `coalesce(start_date, end_date)`
-    -
 -
     -   observation_datetime
     -
-    -   `coalesce(start_datetime, start_date, end_datetime, end_date)`
-    -
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
     -   observation_type_concept_id
     -   type_concept_id
     -
-    -
 -
     -   value_as_number
-    -   `quantity_or_value_as_number`
-    -
+    -   quantity_or_value_as_number
     -
 -
     -   value_as_string
-    -   `value_as_string`
+    -   value_as_string
     -
-    -
-
 -
-
     -   value_as_concept_id
-    -   `value_as_concept_id`
+    -   value_as_concept_id
     -
-    -
-
 -
-
     -   qualifier_concept_id
     -
-    -
-    -
-
+    -   NULL
 -
-
     -   unit_concept_id
     -   unit_concept_id
     -
-    -
-
 -
-
+    -   provider_id
     -   provider_id
     -
-    -
-    -   NULL
-
 -
-
     -   visit_occurrence_id
     -   visit_occurrence_id
     -
-    -
-
 -
-
     -   visit_detail_id
     -
-    -
     -   NULL
-
 -
-
     -   observation_source_value
     -   source_value
     -
-    -
-
 -
-
     -   observation_source_concept_id
     -   source_concept_id
     -
-    -
-
 -
-
     -   unit_source_value
     -   unit_source_value
     -
-    -
-
 -
-
+    -   qualifier_source_value
     -   qualifier_source_value
     -
-    -
-    -
-
 -
-
     -   value_source_value
     -   value_source_value
     -
-    -
-
 -
-
     -   observation_event_id
+    -   event_id
     -
-    -
-    -
-
 -
-
     -   obs_event_field_concept_id
-    -
-    -
+    -   event_field_concept_id
     -
 :::
 
@@ -1544,123 +961,99 @@ Most of the columns here come from CONCEPT_LOOKUP_STEM. When they do not, the or
 -
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
+    -   Logic/remarks
 -
     -   drug_exposure_id
-    -   Stem_id
-    -
+    -   uid
     -
 -
     -   person_id
-    -   Person_id
-    -
+    -   person_id
     -
 -
     -   drug_concept_id
-    -   Concept_id
-    -
+    -   concept_id
     -
 -
     -   drug_exposure_start_date
-    -   Start_date
     -
-    -
+    -   `coalesce(start_date, end_date)`
 -
     -   drug_exposure_start_datetime
-    -   Start_datetime
     -
-    -
+    -   `coalesce(start_datetime, start_date::timestamp, end_datetime, end_date::timestamp)`
 -
     -   drug_exposure_end_date
-    -   End_date
     -
-    -
+    -   `coalesce(end_date, start_date)`
 -
     -   drug_exposure_end_datetime
-    -   End_datetime
     -
-    -
+    -   `coalesce(end_datetime, end_date::timestamp, start_datetime, start_date::timestamp)`
 -
     -   verbatim_end_date
-    -
     -
     -   NULL
 -
     -   drug_type_concept_id
-    -
-    -   32817 \[EHR\]
+    -   type_concept_id
     -
 -
     -   stop_reason
-    -
     -
     -   NULL
 -
     -   refills
     -
     -
-    -
 -
     -   quantity
-    -   Quantity
-    -
+    -   quantity_of_value_as_number
     -
 -
     -   days_supply
-    -
     -
     -   NULL
 -
     -   sig
     -
-    -
     -   NULL
 -
     -   route_concept_id
-    -   Route_concept_id
-    -
+    -   route_concept_id
     -
 -
     -   lot_number
-    -
     -
     -   NULL
 -
     -   provider_id
     -
-    -
     -   NULL
 -
     -   visit_occurrence_id
-    -   Visit_occurrence_id
-    -
+    -   visit_occurrence_id
     -
 -
     -   visit_detail_id
     -
-    -
     -   NULL
 -
     -   drug_source_value
-    -   Source_value
-    -
+    -   source_value
     -
 -
     -   drug_source_concept_id
-    -   Source_concept_id
-    -
+    -   source_concept_id
     -
 -
     -   route_source_value
-    -   Route_source_value
-    -
+    -   route_source_value
     -
 -
     -   dose_unit_source_value
     -
-    -
-    -
+    -   NULL
 :::
 
 ## Table name: OBSERVATION_PERIOD {#table-name-observation_period}
@@ -1671,44 +1064,27 @@ NOTE: min/max dates all established from dates across all filled in clinical tab
 
 ::: list-table
 -
-
     -   Destination Field
     -   Source Field
-    -   Logic
-    -   Comment
-
+    -   Logic/remarks
 -
-
     -   observation_period_id
     -
-    -   Autogenerated integer
-    -
-
+    -   Auto-generated integer
 -
-
+    -   person_id
     -   person_id
     -
-    -   CREATE observation period for each person_id in PERSON
-    -
-
 -
-
     -   observation_period_start_date
     -
     -   MIN(EVENT \[START\] DATES)
-    -
-
 -
-
     -   observation_period_end_date
     -
     -   MAX(EVENT \[END\] DATES)
-    -
-
 -
-
     -   period_type_concept_id
     -
-    -   32817 \[EHR\]
-    -
+    -   [32817 EHR](https://athena.ohdsi.org/search-terms/terms/32817) or [32879 Registry](https://athena.ohdsi.org/search-terms/terms/32879)
 :::
