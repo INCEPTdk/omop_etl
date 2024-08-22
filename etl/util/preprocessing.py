@@ -29,7 +29,7 @@ def _validate_concept_id(concept_id: int, session: AbstractSession) -> int:
         )
         if counter_result == 0:
             logger.debug(
-                """Concept id %s is missing in the concept table of OMOP CDM database. It has been set to 0.""",
+                """\tConcept id %s is missing in the concept table of OMOP CDM database. It has been set to 0.""",
                 concept_id,
             )
             return 0
