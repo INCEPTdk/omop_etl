@@ -48,12 +48,6 @@ def get_conversion_factor(
             ),
             else_=1,
         ),
-        "recipe__corotropsnf": 0.001,
-        "recipe__kaliumkloridps": 75,
-        "recipe__kaliumkloridsad": 75,
-        "recipe__minirinfrr": 1000,
-        "recipe__novorapidiu": 1,
-        "recipe__desmopressintv": 1,
     }
 
     if recipe_name is not None and recipe_name not in RECIPES:
