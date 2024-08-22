@@ -16,6 +16,7 @@ from sqlalchemy import (
     or_,
     select,
 )
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Insert, func
 from sqlalchemy.sql.functions import concat
 
@@ -32,7 +33,7 @@ from .utils import (
 ASSUMED_TIMEZONE_FOR_UNMAPPED_DATA = "Europe/Copenhagen"
 
 
-def create_simple_stem_insert(
+def _get_mapped_nondrug_stem_insert(
     model: Any = None,
     concept_lookup_stem_cte: Any = None,
     unique_start_date: str = None,
@@ -73,12 +74,15 @@ def create_simple_stem_insert(
         cast(concept_lookup_stem_cte.c.conversion, FLOAT), 1.0
     )
 
+    ConceptLookupRoute = aliased(ConceptLookup)
+    ConceptLookupValue = aliased(ConceptLookup)
+
     value_as_concept_id_from_lookup = (
-        select(ConceptLookup.concept_id)
+        select(ConceptLookupValue.concept_id)
         .where(
             and_(
-                ConceptLookup.concept_string == value_as_string,
-                ConceptLookup.filter
+                ConceptLookupValue.concept_string == value_as_string,
+                ConceptLookupValue.filter
                 == func.array_extract(
                     func.string_split(
                         concept_lookup_stem_cte.c.source_variable, "-"
@@ -136,7 +140,10 @@ def create_simple_stem_insert(
                 "range_high"
             ),
             concept_lookup_stem_cte.c.stop_reason,
-            cast(concept_lookup_stem_cte.c.route_concept_id, INT),
+            func.coalesce(
+                cast(concept_lookup_stem_cte.c.route_concept_id, INT),
+                ConceptLookupRoute.concept_id.label("route_concept_id"),
+            ),
             concept_lookup_stem_cte.c.route_source_value,
             literal(model.__tablename__).label("datasource"),
         )
@@ -169,7 +176,16 @@ def create_simple_stem_insert(
                 ),
             ),
         )
+        .outerjoin(
+            ConceptLookupRoute,
+            and_(
+                concept_lookup_stem_cte.c.route_source_value
+                == ConceptLookupRoute.concept_string,
+                ConceptLookupRoute.filter == "administration_route",
+            ),
+        )
     )
+
     return insert(OmopStem).from_select(
         names=[
             OmopStem.domain_id,
@@ -303,7 +319,7 @@ def get_mapped_nondrug_stem_insert(
         session, model, concept_lookup_stem_cte.c, "value_as_string"
     )
 
-    return create_simple_stem_insert(
+    return _get_mapped_nondrug_stem_insert(
         model,
         concept_lookup_stem_cte,
         unique_start_date_columns,

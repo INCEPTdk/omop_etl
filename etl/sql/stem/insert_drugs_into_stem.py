@@ -12,6 +12,7 @@ from sqlalchemy import (
     and_,
     case,
     cast,
+    func,
     insert,
     literal,
     or_,
@@ -121,12 +122,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     )
 
     start_datetime = end_datetime - start_offset
-
-    unique_route_source_value = find_unique_column_names(
-        session, Administrations, ConceptLookupStem, "route_source_value"
-    )
-    route_source_value = get_case_statement(
-        unique_route_source_value, Prescriptions, TEXT
+    administration_route = func.coalesce(
+        ConceptLookupStem.route_source_value,
+        Prescriptions.epaspresadmroute,
     )
 
     # Create SELECT statement for drugs with custom mappings
@@ -148,24 +146,26 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "__",
                 cast(Administrations.value, TEXT),
             ).label("source_value"),
-            OmopConcept.concept_id.label("source_concept_id"),
+            func.coalesce(OmopConcept.concept_id, ConceptLookupStem.uid).label(
+                "source_concept_id"
+            ),
             case(*quantity, else_=null()).label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
-            route_source_value,
+            administration_route.label("route_source_value"),
             ConceptLookupStem.era_lookback_interval,
             concat(
                 Administrations.administration_type, "_administrations"
             ).label("datasource"),
         )
         .select_from(Administrations)
-        .join(
+        .outerjoin(
             Prescriptions,
             and_(
                 Prescriptions.epaspresbaseid == Prescriptions.epaspresid,
                 Prescriptions.epaspresbaseid == Administrations.epaspresbaseid,
             ),
         )
-        .join(
+        .outerjoin(
             OmopConcept,
             Prescriptions.epaspresdrugatc == OmopConcept.concept_code,
         )
@@ -187,7 +187,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .outerjoin(
             ConceptLookup,
             and_(
-                ConceptLookup.concept_string == route_source_value,
+                ConceptLookup.concept_string == administration_route,
                 ConceptLookup.filter == "administration_route",
             ),
         )
@@ -236,7 +236,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopConceptRelationship.concept_id_2.label("source_concept_id"),
             null().label("quantity_or_value_as_number"),
             ConceptLookup.concept_id.label("route_concept_id"),
-            route_source_value,
+            Prescriptions.epaspresadmroute.label("route_source_value"),
             null().label("era_lookback_interval"),
             case(
                 (
@@ -263,7 +263,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         .outerjoin(
             ConceptLookup,
             and_(
-                ConceptLookup.concept_string == route_source_value,
+                ConceptLookup.concept_string == Prescriptions.epaspresadmroute,
                 ConceptLookup.filter == "administration_route",
             ),
         )
