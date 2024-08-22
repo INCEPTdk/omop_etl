@@ -55,7 +55,7 @@ format:
     df-print: paged
     code-fold: true
     fontsize: 1em
-    tbl-colwidths: [20, 20, 30, 30]
+    tbl-colwidths: [25, 25, 50]
     page-layout: full
     filters:
       - list-table
