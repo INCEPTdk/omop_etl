@@ -2,7 +2,7 @@
 
 import inspect
 import os
-from itertools import chain, islice
+from itertools import batched, chain
 from typing import Any, List, Union
 
 from sqlalchemy import (
@@ -26,11 +26,6 @@ from ...models.tempmodels import ConceptLookupStem
 from ...util.db import AbstractSession
 
 CDM_TIMEZONE: str = "Europe/Copenhagen"
-
-
-def split_list(lst, n):
-    it = iter(lst)
-    return list(iter(lambda: list(islice(it, n)), []))
 
 
 def validate_source_variables(
@@ -63,7 +58,7 @@ def validate_source_variables(
         .distinct()
     ).all()
 
-    missing_vars_batches = split_list(missing_vars, 2)
+    missing_vars_batches = batched(missing_vars, 2)
     for vars_to_print in missing_vars_batches:
         logger.debug(
             "\tMISSING %s source data variables: %s...",
@@ -92,9 +87,7 @@ def get_batches_from_concept_loopkup_stem(
         )
 
     batch_size = batch_size or len(uids)
-    batches = split_list(
-        uids, batch_size
-    )  # list(zip_longest(*([iter(uids)] * batch_size)))
+    batches = list(batched(uids, batch_size))
     total_batches = sum(len(batch) for batch in batches if batch)
 
     for batch_count, batch in enumerate(batches):
