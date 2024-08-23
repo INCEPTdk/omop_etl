@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 LABEL maintainer="Intensive Care Department 4131 - Rigshospitalet"
 LABEL org.opencontainers.image.source="https://github.com/INCEPTdk/omop_etl"
 
