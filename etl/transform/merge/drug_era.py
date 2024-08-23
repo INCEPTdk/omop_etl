@@ -13,7 +13,8 @@ logger = logging.getLogger("ETL.Merge.DrugEra")
 def unite_intervals(session: AbstractSession):
 
     SQL: str = _unite_intervals_sql(
-        DrugEra,
+        source_cdm_table=DrugEra,
+        target_cdm_table=DrugEra,
         key_columns=[
             DrugEra.person_id.key,
             DrugEra.drug_concept_id.key,
