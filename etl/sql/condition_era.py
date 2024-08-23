@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import and_, case, cast, func, insert, or_, literal
+from sqlalchemy import and_, case, cast, func, literal
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql import Insert
 
@@ -41,7 +41,7 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
                 (OmopStem.end_date > datetime.now(), OmopStem.start_date),
                 else_=func.coalesce(OmopStem.end_date, OmopStem.start_date),
             ).label("condition_era_end_date"),
-            literal(1).label("condition_occurrence_count")
+            literal(1).label("condition_occurrence_count"),
         )
         .where(
             and_(
@@ -70,5 +70,4 @@ def get_condition_era_insert(session: AbstractSession = None) -> Insert:
         agg_columns="condition_occurrence_count",
         agg_function="SUM",
     )
-    import pdb;pdb.set_trace()
     return sql
