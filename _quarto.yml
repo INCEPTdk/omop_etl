@@ -3,25 +3,22 @@ project:
 
 book:
   title: |
-    DAVICU-1 Database Mapping Document
-    Source Data Mapping Approach to CDMV5.4.1
+    DAVICU-1 Mapping Document Source Data Mapping Approach to CDMV5.4.1
   subtitle: |
-    ***edenceHealth NV***
-    ***in collaboration with***
-    ***Dept. of Intensive Care (4131), Rigshospitalet***
+    INCEPT data science team in collaboration with edenceHealth NV
   author: "Benjamin Skov Kaas-Hansen, Davide Placido"
-  date: "7/16/2024"
+  date: now
+  date-format: DD MMMM YYYY
   search: true
   chapters:
     - part: "Background"
       chapters:
         - index.qmd
         - technical_infrastructure.qmd
-    - part: "Mapping approach"
+    - part: "Mapping"
       chapters:
         - mapping_overview.qmd
-        - conventional_mapping.qmd
-        - stem_mapping.qmd
+        - site_etl.qmd
         - merge_etl.qmd
         - vocabularies.qmd
     - part: "Mapped OMOP tables"
@@ -34,6 +31,7 @@ book:
     - appendix_A.qmd
     - appendix_B.qmd
     - appendix_C.qmd
+    - references.qmd
 
 bibliography: references.bib
 

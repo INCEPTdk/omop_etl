@@ -1,0 +1,62 @@
+# Site-specific ETL
+
+## Conventional mapping {#mapping-approach}
+
+The ETL uses a "traditional" mapping approach, including manual mappings, for the following tables: PERSON, DEATH, VISIT_OCCURENCE*, LOCATION*, CARE_SITE* and CDM_SOURCE*. The following tables marked with asterisk use auxiliary lookup tables and environment variables.
+
+## Stem-table mapping {#sec-stem-table-mapping}
+
+The remaining OMOP tables are populated by way of an intermediate table, a so-called stem table. The stem table provides an efficient, data-driven routing mechanism between the source data and the clinical OMOP tables. The table-level mechanism is illustrated here:
+
+
+```{mermaid}
+flowchart LR
+    cis_prescriptions:::source --> stem:::stem
+    cis_administrations:::source --> stem
+    cis_diagnosesProcedures:::source --> stem
+    cis_observations:::source --> stem
+    labka_bcc_laboratory:::source --> stem:::stem
+    lpr_diagnoses:::source --> stem:::stem
+    lpr_procedures:::source --> stem:::stem
+    lpr_operations:::source --> stem:::stem
+    cis_course_metadata:::source --> stem
+
+    stem --> condition_occurrence:::omop
+    stem --> procedure_occurrence:::omop
+    stem --> measurement:::omop
+    stem --> observation:::omop
+    stem --> drug_exposure:::omop
+    stem --> devise_exposure:::omop
+    stem --> specimen:::omop
+
+    cis_course_metadata --> invisible:::invisible
+    invisible --> person
+    invisible --> death
+    invisible --> visit_occurrence
+
+    cis_course_metadata --> person:::omop
+    cis_course_metadata --> death:::omop
+    cis_course_metadata --> visit_occurrence:::omop
+
+    classDef invisible display: none;
+    classDef stem fill: purple, color: white, stroke-width: 0px;
+    classDef source fill: orange, color: black, stroke-width: 0px;
+    classDef omop fill: blue, color: white, stroke-width: 0px;
+
+    linkStyle 19 display: none;
+    linkStyle 18 display: none;
+    linkStyle 17 display: none;
+    linkStyle 16 display: none;
+```
+
+
+The stem table relies on two key tables to do the routing: CONCEPT_LOOKUP and CONCEPT_LOOKUP_STEM. These auxiliary tables are designed to make the ETL pipeline compatible with multiple sources, in our case different ICUs from different hospitals.
+
+We use multiple source-to-stem transformations because the different source systems and CIS modules need different levels:
+
+- Laboratory data
+- Data from the National Patient Register
+- CIS data that do not come from the medication module
+- CIS data from the medication module
+
+Drug data require slightly more involved logic as we (for most) needt to combine data from PRESCRIPTIONS and ADMINISTRATIONS to get the information we need for complete records in DRUG_EXPOSURE.
