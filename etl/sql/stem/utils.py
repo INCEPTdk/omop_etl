@@ -45,9 +45,7 @@ def validate_source_variables(
         select(ConceptLookupStem.source_variable)
         .outerjoin(
             model,
-            and_(
-                variable_column == ConceptLookupStem.source_variable,
-            ),
+            variable_column == ConceptLookupStem.source_variable,
         )
         .where(
             and_(
