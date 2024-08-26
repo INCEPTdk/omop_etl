@@ -1,86 +1,98 @@
 """ Utility functions for transform queries """
 
-from typing import List
+from typing import List, Union
 
-# from sqlalchemy import cast, func, select, text, union_all
-# from sqlalchemy.dialects.postgresql import INTERVAL
-from sqlalchemy.orm import Query
-
-from ..models.omopcdm54.clinical import Stem as OmopStem
-
-# from sqlalchemy.sql.expression import null
+from sqlalchemy import case, cast, column, func, literal, select, union_all
+from sqlalchemy.dialects.postgresql import INTERVAL
+from sqlalchemy.orm import DeclarativeMeta
+from sqlalchemy.sql.expression import CTE
+from sqlalchemy.sql.selectable import Select
 
 
-def derive_eras(
-    key_columns: List[str],
-    stem_start_column: str,
-    stem_end_column: str,
-    era_start_column: str,
-    era_end_column: str,
-    domain_id: str = "Condition",
-    count_column: str = None,
-) -> Query:
+def get_column(table: Union[CTE, DeclarativeMeta], column_name: str):
+    """
+    Helper function to allow both normal ORM tables and CTE tables in
+    get_era_select below
+    """
+    if isinstance(table, CTE):
+        return getattr(table.c, column_name)
+
+    return getattr(table, column_name)
+
+
+def get_era_select(
+    clinical_table: Union[CTE, DeclarativeMeta],
+    key_columns: List[str] = None,
+    start_column: str = None,
+    end_column: str = None,
+) -> Select:
 
     if not key_columns:
-        NotImplementedError("derive_eras expected at least one grouping column")
+        raise NotImplementedError(
+            "derive_eras expected at least one grouping column"
+        )
 
-    key_cols = ", ".join(key_columns)
-
-    stem_subset_criteria = f"""
-    concept_id != 0
-        AND concept_id IS NOT NULL
-        AND domain_id = '{domain_id}'
-        AND {stem_start_column} IS NOT NULL
-        AND {stem_end_column} IS NOT NULL
-        AND {stem_start_column} <= {stem_end_column}
-    """
-
-    return f"""
-    WITH  weighted_endpoints AS (
-        SELECT
-            {key_cols},
-            era_lookback_interval,
-            a,
-            sum(d) AS d,
-            sum(n) AS n
-        FROM (
-            SELECT
-                {key_cols},
-                era_lookback_interval,
-                {stem_start_column} AS a,
-                1 AS d,
-                1 AS n  -- for counting
-            FROM {OmopStem.metadata.schema}.{OmopStem.__table__.name}
-            WHERE {stem_subset_criteria}
-            UNION ALL
-            SELECT
-                {key_cols},
-                era_lookback_interval,
-                {stem_end_column} + era_lookback_interval::INTERVAL AS a,
-                -1 AS d,
-                0 AS n
-            FROM {OmopStem.metadata.schema}.{OmopStem.__table__.name}
-            WHERE {stem_subset_criteria}
-        ) AS endpoints
-        GROUP BY {key_cols}, era_lookback_interval, a
-    ),
-    endpoints_with_coverage AS (
-        SELECT
-            *,
-            sum(d) OVER(ORDER BY {key_cols}, a) - d AS c
-        FROM weighted_endpoints
-    ),
-    equivalence_classes AS (
-        SELECT
-            *,
-            COUNT(CASE WHEN c = 0 THEN 1 END) OVER(ORDER BY {key_cols}, a) AS class
-        FROM endpoints_with_coverage
+    original_lookback_interval = cast(
+        get_column(clinical_table, "era_lookback_interval"), INTERVAL
     )
-    SELECT
-        {key_cols},
-        MIN(a) as {era_start_column},
-        MAX(a - era_lookback_interval::INTERVAL) as {era_end_column},
-        SUM(n) AS {count_column}
-    FROM equivalence_classes
-    GROUP BY {key_cols}, class
-    """
+
+    combined = union_all(
+        select(
+            *[get_column(clinical_table, g) for g in key_columns],
+            original_lookback_interval.label("lookback_interval"),
+            get_column(clinical_table, start_column).label("a"),
+            literal(1).label("d"),
+            literal(1).label("n"),
+        ),
+        select(
+            *[get_column(clinical_table, g) for g in key_columns],
+            original_lookback_interval.label("lookback_interval"),
+            (
+                get_column(clinical_table, end_column)
+                + original_lookback_interval
+            ).label("a"),
+            literal(-1).label("d"),
+            literal(0).label("n"),
+        ),
+    )
+
+    weighted_endpoints = select(
+        *[column(g) for g in key_columns],
+        combined.c.lookback_interval,
+        combined.c.a,
+        func.sum(combined.c.d).label("d"),
+        func.sum(combined.c.n).label("n"),
+    ).group_by(
+        *[column(g) for g in key_columns],
+        combined.c.lookback_interval,
+        combined.c.a,
+    )
+
+    endpoints_with_coverage = select(
+        *weighted_endpoints.columns,
+        (
+            func.sum(weighted_endpoints.c.d).over(
+                order_by=[column(g) for g in [*key_columns, "a"]]
+            )
+            - weighted_endpoints.c.d
+        ).label("c"),
+    )
+
+    equivalence_classes = select(
+        *endpoints_with_coverage.columns,
+        func.count(case((endpoints_with_coverage.c.c == 0, 1)))
+        .over(order_by=[column(g) for g in [*key_columns, "a"]])
+        .label("id"),
+    )
+
+    return select(
+        *[getattr(equivalence_classes.c, g) for g in key_columns],
+        func.min(equivalence_classes.c.a).label("era_start"),
+        func.max(
+            equivalence_classes.c.a - equivalence_classes.c.lookback_interval
+        ).label("era_end"),
+        func.sum(equivalence_classes.c.n).label("era_count"),
+    ).group_by(
+        *[getattr(equivalence_classes.c, g) for g in key_columns],
+        equivalence_classes.c.id,
+    )
