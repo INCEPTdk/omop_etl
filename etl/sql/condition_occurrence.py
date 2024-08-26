@@ -53,6 +53,7 @@ StemConditionOccurrence: Final[Select] = select(
             OmopStem.start_date.is_not(None),
             OmopStem.end_date.is_not(None),
         ),
+        OmopStem.start_date <= OmopStem.end_date,
     )
 )
 
