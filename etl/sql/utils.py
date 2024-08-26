@@ -2,7 +2,16 @@
 
 from typing import List, Union
 
-from sqlalchemy import case, cast, column, func, literal, select, union_all
+from sqlalchemy import (
+    DATE,
+    case,
+    cast,
+    column,
+    func,
+    literal,
+    select,
+    union_all,
+)
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.sql.expression import CTE
@@ -14,10 +23,10 @@ def get_column(table: Union[CTE, DeclarativeMeta], column_name: str):
     Helper function to allow both normal ORM tables and CTE tables in
     get_era_select below
     """
-    if isinstance(table, CTE):
+    try:
         return getattr(table.c, column_name)
-
-    return getattr(table, column_name)
+    except AttributeError:
+        return getattr(table, column_name)
 
 
 def get_era_select(
@@ -31,6 +40,9 @@ def get_era_select(
         raise NotImplementedError(
             "derive_eras expected at least one grouping column"
         )
+
+    if isinstance(key_columns, str):
+        key_columns = [key_columns]
 
     original_lookback_interval = cast(
         get_column(clinical_table, "era_lookback_interval"), INTERVAL
@@ -85,14 +97,30 @@ def get_era_select(
         .label("id"),
     )
 
-    return select(
+    eras = select(
         *[getattr(equivalence_classes.c, g) for g in key_columns],
-        func.min(equivalence_classes.c.a).label("era_start"),
-        func.max(
-            equivalence_classes.c.a - equivalence_classes.c.lookback_interval
+        cast(func.min(equivalence_classes.c.a), DATE).label("era_start"),
+        cast(
+            func.max(
+                equivalence_classes.c.a
+                - equivalence_classes.c.lookback_interval
+            ),
+            DATE,
         ).label("era_end"),
         func.sum(equivalence_classes.c.n).label("era_count"),
     ).group_by(
         *[getattr(equivalence_classes.c, g) for g in key_columns],
         equivalence_classes.c.id,
+    )
+
+    # We need this final step to get eras in date and not timestamps
+    return select(
+        *[getattr(eras.c, g) for g in key_columns],
+        eras.c.era_start,
+        eras.c.era_end,
+        func.sum(eras.c.era_count).label("era_count"),
+    ).group_by(
+        *[getattr(eras.c, g) for g in key_columns],
+        eras.c.era_start,
+        eras.c.era_end,
     )
