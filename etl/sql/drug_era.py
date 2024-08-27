@@ -43,19 +43,29 @@ def get_ingredient_era_insert(
     session: AbstractSession = None, ingredient_concept_id: int = None
 ) -> Insert:
 
-    CteIngredientExposure = select(
-        OmopDrugExposure.person_id,
-        literal(ingredient_concept_id).label("drug_concept_id"),
-        OmopDrugExposure.drug_exposure_start_datetime,
-        OmopDrugExposure.drug_exposure_end_datetime,
-        OmopDrugExposure.era_lookback_interval,
-    ).join(
-        OmopConceptAncestor,
-        and_(
-            OmopConceptAncestor.ancestor_concept_id == ingredient_concept_id,
-            OmopConceptAncestor.descendant_concept_id
-            == OmopDrugExposure.drug_concept_id,
-        ),
+    CteIngredientExposure = (
+        select(
+            OmopDrugExposure.person_id,
+            literal(ingredient_concept_id).label("drug_concept_id"),
+            OmopDrugExposure.drug_exposure_start_datetime,
+            OmopDrugExposure.drug_exposure_end_datetime,
+            OmopDrugExposure.era_lookback_interval,
+        )
+        .join(
+            OmopConceptAncestor,
+            and_(
+                OmopConceptAncestor.ancestor_concept_id
+                == ingredient_concept_id,
+                OmopConceptAncestor.descendant_concept_id
+                == OmopDrugExposure.drug_concept_id,
+            ),
+        )
+        .where(
+            and_(
+                OmopDrugExposure.drug_exposure_start_datetime.isnot(None),
+                OmopDrugExposure.drug_exposure_end_datetime.isnot(None),
+            )
+        )
     )
 
     DrugEraSelect = get_era_select(
