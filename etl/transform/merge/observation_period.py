@@ -13,8 +13,7 @@ logger = logging.getLogger("ETL.Merge.ObservationPeriod")
 def unite_intervals(session: AbstractSession):
 
     SQL: str = _unite_intervals_sql(
-        source_cdm_table=ObservationPeriod,
-        target_cdm_table=ObservationPeriod,
+        ObservationPeriod,
         key_columns=[
             ObservationPeriod.person_id.key,  # pylint: disable=no-member
             ObservationPeriod.period_type_concept_id.key,

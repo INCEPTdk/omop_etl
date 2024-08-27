@@ -3,7 +3,6 @@
 from typing import List, Optional, Tuple, Union
 
 from sqlalchemy.sql.schema import Column
-from sqlalchemy.sql.selectable import CTE
 
 from etl.models.omopcdm54.clinical import Death, Person, VisitOccurrence
 from etl.models.omopcdm54.health_systems import CareSite
@@ -173,8 +172,7 @@ def build_aggregate_sql(
 
 @clean_sql
 def _unite_intervals_sql(
-    source_cdm_table: OmopCdmModelBase,
-    target_cdm_table: OmopCdmModelBase,
+    cdm_table: OmopCdmModelBase,
     key_columns: List[str],
     interval_start_column: str,
     interval_end_column: str,
@@ -184,19 +182,6 @@ def _unite_intervals_sql(
     """
     SQL code to unite overlapping intervals in observation periods.
     """
-    if isinstance(source_cdm_table, CTE):
-        is_inplace = False
-        source_name = source_cdm_table.name
-        select_from = str(
-            source_cdm_table.compile(compile_kwargs={"literal_binds": True})
-        )
-    else:
-        is_inplace = (
-            source_cdm_table.__table__.name == target_cdm_table.__table__.name
-        )
-        source_name = source_cdm_table.__tablename__
-        select_from = f"SELECT * FROM {source_cdm_table.__table__}"
-
     key_cols = ", ".join(key_columns)
 
     join_condition_key_cols = " AND ".join(
@@ -216,14 +201,9 @@ def _unite_intervals_sql(
         agg_columns, agg_function
     )
 
-    if is_inplace:
-        truncate_str = f"""TRUNCATE TABLE {source_cdm_table.__table__};"""
-    else:
-        truncate_str = ""
-
     return f"""
-    CREATE TEMP TABLE {source_name}_tmp AS {select_from};
-    {truncate_str}
+    CREATE TEMP TABLE {cdm_table.__tablename__}_tmp AS SELECT * FROM {cdm_table.__table__};
+    TRUNCATE TABLE {cdm_table.__table__};
     WITH
     weighted_endpoints AS (
         SELECT
@@ -237,14 +217,14 @@ def _unite_intervals_sql(
                 {interval_start_column} AS a,
                 1 AS d
             FROM
-            {source_name}_tmp
+            {cdm_table.__tablename__}_tmp
         UNION ALL
             SELECT
                 {key_cols},
                 {interval_end_column} AS a,
                 -1 AS d
             FROM
-            {source_name}_tmp
+            {cdm_table.__tablename__}_tmp
             ) e
         GROUP BY
             {key_cols},
@@ -272,14 +252,14 @@ def _unite_intervals_sql(
         FROM equivalence_classes
         GROUP BY {key_cols}, class
     )
-    INSERT INTO {target_cdm_table.__table__} (
+    INSERT INTO {cdm_table.__table__} (
         {key_cols},
         {interval_start_column},
         {interval_end_column}
         {agg_sum_cols_insert}
     ) SELECT DISTINCT i.* {agg_sum_cols_select}
     FROM final_intervals i
-    INNER JOIN {source_name}_tmp d
+    INNER JOIN {cdm_table.__tablename__}_tmp d
     ON {join_condition_key_cols} AND {join_condition_start_date} AND {join_condition_end_date}
     GROUP BY {group_by_cols};
 """
