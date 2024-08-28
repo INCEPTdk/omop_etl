@@ -240,6 +240,7 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
         FK(Concept.concept_id)
     )
     condition_status_source_value: Final[Column] = CharField(50)
+    era_lookback_interval: Final[Column] = CharField(50)
 
 
 @register_omop_model
@@ -275,6 +276,7 @@ class DrugExposure(ModelBase, PersonIdMixin, VisitAndProviderMixin):
     drug_source_concept_id: Final[Column] = BigIntField(FK(Concept.concept_id))
     route_source_value: Final[Column] = CharField(50)
     dose_unit_source_value: Final[Column] = CharField(50)
+    era_lookback_interval: Final[Column] = CharField(50, nullable=False)
 
 
 @register_omop_model
