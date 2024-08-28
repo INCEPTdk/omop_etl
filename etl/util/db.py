@@ -231,15 +231,15 @@ def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
 def get_environment_variable(
     environment_variable_name: str = None, default: str = None
 ) -> str:
-    schema_name: str = os.getenv(environment_variable_name, default=None)
-    if not schema_name:
+    value: str = os.getenv(environment_variable_name, default=None)
+    if not value:
         logger.debug(
             "Environment variable %s not set, defaults to '%s'",
             environment_variable_name,
             default,
         )
-        schema_name = default
-    return schema_name
+        value = default
+    return value
 
 
 class WriteMode(Enum):
