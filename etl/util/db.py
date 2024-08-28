@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from enum import Enum
 from tempfile import NamedTemporaryFile
-from typing import Any, Generator, Iterable, List, Literal, Optional
+from typing import Any, Callable, Generator, Iterable, List, Literal, Optional
 
 import pandas as pd
 from sqlalchemy import JSON, create_engine, inspect
@@ -229,7 +229,9 @@ def make_engine_duckdb(connection: ConnectionDetails, **kwargs) -> Engine:
 
 
 def get_environment_variable(
-    environment_variable_name: str = None, default: str = None
+    environment_variable_name: str = None,
+    default: str = None,
+    validator: Callable = None,
 ) -> str:
     value: str = os.getenv(environment_variable_name, default=None)
     if not value:
@@ -239,6 +241,19 @@ def get_environment_variable(
             default,
         )
         value = default
+
+    if validator:
+        try:
+            validator(value)
+        except ValueError:
+            logger.warning(
+                "Invalid value '%s' given for environment variable %s, defaults to '%s'",
+                value,
+                environment_variable_name,
+                default,
+            )
+            value = default
+
     return value
 
 
