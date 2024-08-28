@@ -3,6 +3,7 @@
 import os
 from typing import Any, Final
 
+import pandas as pd
 from sqlalchemy import (
     DATE,
     FLOAT,
@@ -44,7 +45,7 @@ from .utils import (
 CONCEPT_ID_EHR: Final[int] = 32817
 INCLUDE_UNMAPPED_CODES = os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE"
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_environment_variable(
-    "DRUG_ERA_LOOKBACK", "24 hours"
+    "DRUG_ERA_LOOKBACK", "24 hours", pd.to_timedelta
 )
 
 

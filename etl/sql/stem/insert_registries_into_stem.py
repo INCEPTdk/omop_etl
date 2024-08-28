@@ -3,6 +3,7 @@
 import os
 from typing import Any, Final
 
+import pandas as pd
 from sqlalchemy import (
     DATE,
     INT,
@@ -31,7 +32,7 @@ from .utils import (
 
 REGISTRY_TIMEZONE: Final[str] = "Europe/Copenhagen"
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
-    "CONDITION_ERA_LOOKBACK", "30 days"
+    "CONDITION_ERA_LOOKBACK", "30 days", pd.to_timedelta
 )
 
 
