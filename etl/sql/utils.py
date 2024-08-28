@@ -55,7 +55,7 @@ def get_era_select(
             get_column(clinical_table, start_column).label("a"),
             literal(1).label("d"),
             literal(1).label("n"),
-        ),
+        ).where(original_lookback_interval.isnot(None)),
         select(
             *[get_column(clinical_table, g) for g in key_columns],
             original_lookback_interval.label("lookback_interval"),
@@ -65,7 +65,7 @@ def get_era_select(
             ).label("a"),
             literal(-1).label("d"),
             literal(0).label("n"),
-        ),
+        ).where(original_lookback_interval.isnot(None)),
     )
 
     weighted_endpoints = select(
