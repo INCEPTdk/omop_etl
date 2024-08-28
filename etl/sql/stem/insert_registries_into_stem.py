@@ -31,7 +31,7 @@ from .utils import (
 
 REGISTRY_TIMEZONE: Final[str] = "Europe/Copenhagen"
 DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
-    "CONDITION_ERA_LOOKBACK", "31 days"
+    "CONDITION_ERA_LOOKBACK", "30 days"
 )
 
 
@@ -83,7 +83,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             ConceptLookupStem.uid,
             func.coalesce(
                 ConceptLookupStem.era_lookback_interval,
-                DEFAULT_ERA_LOOKBACK_INTERVAL,
+                literal(DEFAULT_ERA_LOOKBACK_INTERVAL),
             ),
             literal(model.__tablename__).label("datasource"),
         )
