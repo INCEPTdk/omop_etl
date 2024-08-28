@@ -7,6 +7,7 @@ from sqlalchemy import and_
 
 from ..models.omopcdm54.clinical import Stem as OmopStem
 from ..models.source import (
+    Administrations,
     CourseMetadata,
     DiagnosesProcedures,
     LabkaBccLaboratory,
@@ -22,19 +23,49 @@ from ..sql.stem import (
     get_registry_stem_insert,
     get_unmapped_nondrug_stem_insert,
 )
-from ..sql.stem.utils import get_batches_from_concept_loopkup_stem
-from ..util.db import AbstractSession
+from ..sql.stem.utils import (
+    get_batches_from_concept_loopkup_stem,
+    validate_source_variables,
+)
+from ..util.db import AbstractSession, get_environment_variable
 
 logger = logging.getLogger("ETL.Stem")
 
 NONDRUG_MODELS = [CourseMetadata, DiagnosesProcedures, Observations]
+DRUG_MODELS = [Administrations]
 REGISTRY_MODELS = [LprDiagnoses, LprProcedures, LprOperations]
 LABORATORY_MODELS = [LabkaBccLaboratory]
+BATCH_SIZE = int(get_environment_variable("BATCH_SIZE", "5"))
 
 
 def transform(session: AbstractSession) -> None:
     """Run the Stem transformation"""
     logger.info("Starting the Stem transformation... ")
+
+    for model in (
+        NONDRUG_MODELS + DRUG_MODELS + REGISTRY_MODELS + LABORATORY_MODELS
+    ):
+        validate_source_variables(session, model, logger)
+
+    transform_non_drug_models(session)
+    transform_drug_models(session)
+    transform_registry_models(session)
+    transform_laboratory_models(session)
+
+    count_rows = session.query(OmopStem).count()
+    n_mapped_rows = (
+        session.query(OmopStem).where(OmopStem.concept_id.isnot(None)).count()
+    )
+
+    logger.info(
+        "STEM Transformation complete! %s rows included, of which %s were mapped to a concept_id (%s%%).",
+        count_rows,
+        n_mapped_rows,
+        round(n_mapped_rows / max(1, count_rows) * 100, 2),
+    )
+
+
+def transform_non_drug_models(session: AbstractSession) -> None:
 
     for model in NONDRUG_MODELS:
         logger.info(
@@ -43,13 +74,14 @@ def transform(session: AbstractSession) -> None:
         )
 
         for ConceptLookupStemBatchCte in get_batches_from_concept_loopkup_stem(
-            model, session, batch_size=5, logger=logger
+            model, session, batch_size=BATCH_SIZE, logger=logger
         ):
             session.execute(
                 get_mapped_nondrug_stem_insert(
                     session, model, ConceptLookupStemBatchCte
                 )
             )
+            session.commit()
 
         logger.info(
             "STEM Transform in Progress, %s Events Included from mapped nondrug source %s.",
@@ -70,6 +102,8 @@ def transform(session: AbstractSession) -> None:
                 model.__tablename__,
             )
 
+
+def transform_drug_models(session: AbstractSession) -> None:
     logger.info("DRUG source data to the STEM table...")
     session.execute(get_drug_stem_insert(session, logger))
 
@@ -109,6 +143,8 @@ def transform(session: AbstractSession) -> None:
         ),
     )
 
+
+def transform_registry_models(session: AbstractSession) -> None:
     for model in REGISTRY_MODELS:
         logger.info(
             "%s source data to the STEM table...",
@@ -123,6 +159,8 @@ def transform(session: AbstractSession) -> None:
             model.__tablename__,
         )
 
+
+def transform_laboratory_models(session: AbstractSession) -> None:
     for model in LABORATORY_MODELS:
         logger.info(
             "%s source data to the STEM table...",
@@ -136,15 +174,3 @@ def transform(session: AbstractSession) -> None:
             .count(),
             model.__tablename__,
         )
-
-    count_rows = session.query(OmopStem).count()
-    mapped_rows = (
-        session.query(OmopStem).where(OmopStem.concept_id.isnot(None)).count()
-    )
-
-    logger.info(
-        "STEM Transformation complete! %s rows included, of which %s were mapped to a concept_id (%s%%).",
-        count_rows,
-        mapped_rows,
-        round(mapped_rows / max(1, count_rows) * 100, 2),
-    )

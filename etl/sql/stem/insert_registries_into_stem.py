@@ -21,6 +21,7 @@ from ...models.omopcdm54.clinical import Person as OmopPerson, Stem as OmopStem
 from ...models.omopcdm54.vocabulary import Concept, ConceptRelationship
 from ...models.tempmodels import ConceptLookupStem
 from ...sql.observation_period import CONCEPT_ID_REGISTRY
+from ...util.db import get_environment_variable as get_era_lookback_interval
 from .utils import (
     find_unique_column_names,
     get_case_statement,
@@ -29,6 +30,9 @@ from .utils import (
 )
 
 REGISTRY_TIMEZONE: Final[str] = "Europe/Copenhagen"
+DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
+    "CONDITION_ERA_LOOKBACK", "30 days"
+)
 
 
 @toggle_stem_transform
@@ -77,6 +81,10 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             ).label("type_concept_id"),
             model.sks_code,
             ConceptLookupStem.uid,
+            func.coalesce(
+                ConceptLookupStem.era_lookback_interval,
+                literal(DEFAULT_ERA_LOOKBACK_INTERVAL),
+            ),
             literal(model.__tablename__).label("datasource"),
         )
         .select_from(model)
@@ -133,6 +141,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
             OmopStem.type_concept_id,
             OmopStem.source_value,
             OmopStem.source_concept_id,
+            OmopStem.era_lookback_interval,
             OmopStem.datasource,
         ],
         select=StemSelect,

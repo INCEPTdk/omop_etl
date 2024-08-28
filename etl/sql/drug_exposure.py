@@ -36,6 +36,7 @@ StemDrugExposure: Final[Select] = select(
     OmopStem.visit_detail_id,
     OmopStem.source_value,
     OmopStem.source_concept_id,
+    OmopStem.era_lookback_interval,
 ).where(
     and_(
         OmopStem.domain_id == "Drug",
@@ -67,6 +68,7 @@ DrugExposureInsert: Final[Insert] = insert(
         OmopDrugExposure.visit_detail_id,
         OmopDrugExposure.drug_source_value,
         OmopDrugExposure.drug_source_concept_id,
+        OmopDrugExposure.era_lookback_interval,
     ],
     select=StemDrugExposure,
 )

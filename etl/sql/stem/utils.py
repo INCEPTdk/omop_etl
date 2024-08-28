@@ -2,7 +2,7 @@
 
 import inspect
 import os
-from itertools import chain, zip_longest
+from itertools import batched, chain
 from typing import Any, List, Union
 
 from sqlalchemy import (
@@ -10,6 +10,7 @@ from sqlalchemy import (
     TIMESTAMP,
     DateTime,
     String,
+    and_,
     case,
     cast,
     func,
@@ -25,6 +26,43 @@ from ...models.tempmodels import ConceptLookupStem
 from ...util.db import AbstractSession
 
 CDM_TIMEZONE: str = "Europe/Copenhagen"
+
+
+def validate_source_variables(
+    session: AbstractSession, model: Any, logger: Any
+) -> None:
+    """
+    Check that the source variables in the Concept Lookup Stem for a given models are present in the source data.
+    """
+    if hasattr(model, "variable"):
+        variable_column = model.variable
+    elif hasattr(model, "drug_name"):
+        variable_column = model.drug_name
+    else:
+        return
+
+    missing_vars = session.scalars(
+        select(ConceptLookupStem.source_variable)
+        .outerjoin(
+            model,
+            variable_column == ConceptLookupStem.source_variable,
+        )
+        .where(
+            and_(
+                variable_column.is_(None),
+                ConceptLookupStem.datasource == model.__tablename__,
+            )
+        )
+        .distinct()
+    ).all()
+
+    missing_vars_batches = batched(missing_vars, 2)
+    for vars_to_print in missing_vars_batches:
+        logger.debug(
+            "\tMISSING %s source data variables: %s...",
+            model.__tablename__.upper(),
+            vars_to_print,
+        )
 
 
 def get_batches_from_concept_loopkup_stem(
@@ -47,7 +85,7 @@ def get_batches_from_concept_loopkup_stem(
         )
 
     batch_size = batch_size or len(uids)
-    batches = list(zip_longest(*([iter(uids)] * batch_size)))
+    batches = list(batched(uids, batch_size))
     total_batches = sum(len(batch) for batch in batches if batch)
 
     for batch_count, batch in enumerate(batches):

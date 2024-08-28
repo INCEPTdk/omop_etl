@@ -31,6 +31,7 @@ from ...models.omopcdm54.vocabulary import (
 )
 from ...models.source import Administrations, Prescriptions
 from ...models.tempmodels import ConceptLookup, ConceptLookupStem
+from ...util.db import get_environment_variable
 from .conversions import get_conversion_factor
 from .recipes import get_quantity_recipe
 from .utils import (
@@ -42,6 +43,9 @@ from .utils import (
 
 CONCEPT_ID_EHR: Final[int] = 32817
 INCLUDE_UNMAPPED_CODES = os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE"
+DEFAULT_ERA_LOOKBACK_INTERVAL = get_environment_variable(
+    "DRUG_ERA_LOOKBACK", "24 hours"
+)
 
 
 @toggle_stem_transform
@@ -155,7 +159,10 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             case(*source_quantity, else_=null()).label("value_source_value"),
             ConceptLookup.concept_id.label("route_concept_id"),
             administration_route.label("route_source_value"),
-            ConceptLookupStem.era_lookback_interval,
+            func.coalesce(
+                ConceptLookupStem.era_lookback_interval,
+                literal(DEFAULT_ERA_LOOKBACK_INTERVAL),
+            ).label("era_lookback_interval"),
             concat(
                 Administrations.administration_type, "_administrations"
             ).label("datasource"),
@@ -270,7 +277,9 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             null().label("value_source_value"),
             ConceptLookup.concept_id.label("route_concept_id"),
             Prescriptions.epaspresadmroute.label("route_source_value"),
-            null().label("era_lookback_interval"),
+            literal(DEFAULT_ERA_LOOKBACK_INTERVAL).label(
+                "era_lookback_interval"
+            ),
             case(
                 (
                     OmopConceptRelationship.concept_id_2.isnot(null()),

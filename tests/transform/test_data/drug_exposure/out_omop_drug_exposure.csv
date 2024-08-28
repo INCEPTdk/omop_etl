@@ -1,9 +1,9 @@
-drug_exposure_id;person_id;drug_concept_id;drug_exposure_start_date;drug_exposure_start_datetime;drug_exposure_end_date;drug_exposure_end_datetime;verbatim_end_date;drug_type_concept_id;stop_reason;refills;quantity;days_supply;sig;route_concept_id;lot_number;provider_id;visit_occurrence_id;visit_detail_id;drug_source_value;drug_source_concept_id;route_source_value
-1;4;19049105;1899-01-19;1899-01-19 20:00:00;1899-01-19;1899-01-19 20:00:00;;32817;;;1125;;;4132161;;;3;;kaliumkloridps__15;2000000056;GA
-2;3;1321341;1934-04-05;1934-04-05 20:00:00;1934-04-05;1934-04-05 20:00:00;;32817;;;4.8;;;;;;2;;noradrenalinsad__4800;2000000069;intravenous
-3;3;1321341;1867-07-04;1867-07-04 12:30:00;1867-07-04;1867-07-04 12:30:00;;32817;;;0.2;;;4171047;;;1;;noradrenalinsad__0.2;2000000069;IV
-4;4;1321341;1834-02-04;1834-02-04 13:32:01;1834-02-04;1834-02-04 13:33:00;;32817;;;0.0096;;;4171047;;;3;;noradrenalinsad__0.2;2000000069;IV
-5;3;35198096;1867-07-04;1867-07-04 14:45:00;1867-07-04;1867-07-04 14:45:00;;32817;;;;;;4171047;;;1;;novorapidiv__100;2000000071;IV
-7;3;1707687;1811-11-13;1811-11-13 13:10:01;1811-11-13;1811-11-13 13:11:00;;32817;;;8.8;;;4171047;;;1;;vancomycin1g__1.76;2000000085;IV
-8;3;1707687;1811-11-13;1811-11-13 05:02:01;1811-11-13;1811-11-13 05:03:00;;32817;;;6.25;;;4171047;;;1;;vancomycin1g__1.25;2000000085;IV
-9;3;35198096;1867-07-04;1867-07-04 14:45:00;1867-07-04;1867-07-04 14:45:00;;32817;;;8.0;;;4142048;;;1;;novorapidiv__8;2000000071;SC
+drug_exposure_id;person_id;drug_concept_id;drug_exposure_start_date;drug_exposure_start_datetime;drug_exposure_end_date;drug_exposure_end_datetime;verbatim_end_date;drug_type_concept_id;stop_reason;refills;quantity;days_supply;sig;route_concept_id;lot_number;provider_id;visit_occurrence_id;visit_detail_id;drug_source_value;drug_source_concept_id;route_source_value;era_lookback_interval
+1;4;19049105;1899-01-19;1899-01-19 20:00:00;1899-01-19;1899-01-19 20:00:00;;32817;;;1125;;;4132161;;;3;;kaliumkloridps__15;2000000056;GA;12 hours
+2;3;1321341;1934-04-05;1934-04-05 20:00:00;1934-04-05;1934-04-05 20:00:00;;32817;;;4.8;;;;;;2;;noradrenalinsad__4800;2000000069;intravenous;1 hour
+3;3;1321341;1867-07-04;1867-07-04 12:30:00;1867-07-04;1867-07-04 12:30:00;;32817;;;0.2;;;4171047;;;1;;noradrenalinsad__0.2;2000000069;IV;1 hour
+4;4;1321341;1834-02-04;1834-02-04 13:32:01;1834-02-04;1834-02-04 13:33:00;;32817;;;0.0096;;;4171047;;;3;;noradrenalinsad__0.2;2000000069;IV;1 hour
+5;3;35198096;1867-07-04;1867-07-04 14:45:00;1867-07-04;1867-07-04 14:45:00;;32817;;;;;;4171047;;;1;;novorapidiv__100;2000000071;IV;12 hours
+7;3;1707687;1811-11-13;1811-11-13 13:10:01;1811-11-13;1811-11-13 13:11:00;;32817;;;8.8;;;4171047;;;1;;vancomycin1g__1.76;2000000085;IV;12 hours
+8;3;1707687;1811-11-13;1811-11-13 05:02:01;1811-11-13;1811-11-13 05:03:00;;32817;;;6.25;;;4171047;;;1;;vancomycin1g__1.25;2000000085;IV;12 hours
+9;3;35198096;1867-07-04;1867-07-04 14:45:00;1867-07-04;1867-07-04 14:45:00;;32817;;;8.0;;;4142048;;;1;;novorapidiv__8;2000000071;SC;12 hours
