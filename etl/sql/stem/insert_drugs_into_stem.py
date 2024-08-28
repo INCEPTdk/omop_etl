@@ -74,6 +74,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
     ]
 
     quantity = []
+    source_quantity = []
     for dmwd in drug_mappings_with_data:
         criterion = and_(
             Administrations.drug_name == dmwd["source_variable"],
@@ -100,6 +101,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
         )
 
         quantity.append((criterion, this_quantity * this_conversion_factor))
+        source_quantity.append((criterion, this_quantity))
 
     unique_end_datetime = find_unique_column_names(
         session, Administrations, ConceptLookupStem, "end_date"
@@ -119,7 +121,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
 
     start_offset = case(
         (
-            Administrations.administration_type == "continuous",
+            Administrations.from_file.like("8%"),
             text("INTERVAL 59 seconds"),
         ),
         else_=text("INTERVAL 0 seconds"),
@@ -154,6 +156,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 "source_concept_id"
             ),
             case(*quantity, else_=null()).label("quantity_or_value_as_number"),
+            case(*source_quantity, else_=null()).label("value_source_value"),
             ConceptLookup.concept_id.label("route_concept_id"),
             administration_route.label("route_source_value"),
             func.coalesce(
@@ -163,6 +166,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             concat(
                 Administrations.administration_type, "_administrations"
             ).label("datasource"),
+            ConceptLookupStem.unit_source_value,
+            ConceptLookupStem.unit_concept_id,
         )
         .select_from(Administrations)
         .outerjoin(
@@ -205,14 +210,41 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                     and_(
                         Administrations.from_file.like("3%"),
                         Administrations.administration_type == "discrete",
+                        ConceptLookupStem.std_code_domain == "Drug",
                     ),
                     and_(
                         Administrations.from_file.like("8%"),
                         Administrations.administration_type == "continuous",
+                        ConceptLookupStem.std_code_domain == "Drug",
                     ),
                     and_(
                         Administrations.from_file.like("9%"),
                         Administrations.administration_type == "bolus",
+                        ConceptLookupStem.std_code_domain == "Drug",
+                    ),
+                    and_(
+                        ConceptLookupStem.std_code_domain != "Drug",
+                        case(
+                            (
+                                ConceptLookupStem.quantity_or_value_as_number
+                                == "value",
+                                Administrations.unit
+                                == ConceptLookupStem.unit_source_value,
+                            ),
+                            (
+                                ConceptLookupStem.quantity_or_value_as_number
+                                == "value0",
+                                Administrations.unit0
+                                == ConceptLookupStem.unit_source_value,
+                            ),
+                            (
+                                ConceptLookupStem.quantity_or_value_as_number
+                                == "value1",
+                                Administrations.unit1
+                                == ConceptLookupStem.unit_source_value,
+                            ),
+                            else_=True,
+                        ),
                     ),
                 ),
             )
@@ -242,6 +274,7 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ).label("source_value"),
             OmopConceptRelationship.concept_id_2.label("source_concept_id"),
             null().label("quantity_or_value_as_number"),
+            null().label("value_source_value"),
             ConceptLookup.concept_id.label("route_concept_id"),
             Prescriptions.epaspresadmroute.label("route_source_value"),
             literal(DEFAULT_ERA_LOOKBACK_INTERVAL).label(
@@ -254,6 +287,8 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
                 ),
                 else_="unmapped_administrations",
             ).label("datasource"),
+            null().label("unit_source_value"),
+            null().label("unit_concept_id"),
         )
         .select_from(Administrations)
         .join(
@@ -325,10 +360,13 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             OmopStem.source_value,
             OmopStem.source_concept_id,
             OmopStem.quantity_or_value_as_number,
+            OmopStem.value_source_value,
             OmopStem.route_concept_id,
             OmopStem.route_source_value,
             OmopStem.era_lookback_interval,
             OmopStem.datasource,
+            OmopStem.unit_source_value,
+            OmopStem.unit_concept_id,
         ],
         select=union_all(CustomMappedSelectSql, AutoMappedSelectSql),
         include_defaults=False,

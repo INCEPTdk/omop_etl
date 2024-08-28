@@ -1,5 +1,6 @@
 """Helper function for converting drug quantities to a standard units"""
 
+from fractions import Fraction
 from typing import Any, Dict, Final
 
 from sqlalchemy import and_, case, null
@@ -7,7 +8,7 @@ from sqlalchemy import and_, case, null
 
 def is_float(value):
     try:
-        float(value)
+        Fraction(value)
         return True
     except ValueError:
         return False
@@ -53,7 +54,7 @@ def get_conversion_factor(
     if recipe_name is not None and recipe_name not in RECIPES:
 
         if is_float(recipe_name):
-            conversion_factor = float(recipe_name)
+            conversion_factor = Fraction(recipe_name)
         else:
             logger.warning(
                 "  Recipe %s is not recognized or is invalid multiplier for quantity; quantities will be NULL.",

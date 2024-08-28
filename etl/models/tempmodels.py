@@ -81,7 +81,7 @@ class ConceptLookupStem(TempModelBase):
     care_site: Final[Column] = CharField(50)
     type_concept_id: Final[Column] = IntField()
     mapped_standard_code: Final[Column] = IntField()
-    mapped_std_code_desc: Final[Column] = CharField(200)
+    mapped_std_code_desc: Final[Column] = CharField(250)
     std_code_vocabulary: Final[Column] = CharField(30)
     std_code_concept_code: Final[Column] = CharField(200)
     std_code_domain: Final[Column] = CharField(30)

@@ -85,8 +85,11 @@ class Administrations(SourceModelBase, PKIdMixin):
     drug_name: Final[Column] = CharField(70)
     administration_type: Final[Column] = CharField(70)
     value: Final[Column] = FloatField()
+    unit: Final[Column] = CharField(50)
     value0: Final[Column] = FloatField()
+    unit0: Final[Column] = CharField(50)
     value1: Final[Column] = FloatField()
+    unit1: Final[Column] = CharField(50)
     from_file: Final[Column] = CharField(50)
 
 
