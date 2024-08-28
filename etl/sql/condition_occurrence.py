@@ -44,6 +44,7 @@ StemConditionOccurrence: Final[Select] = select(
     OmopStem.source_value,
     OmopStem.source_concept_id,
     OmopStem.condition_status_source_value,
+    OmopStem.era_lookback_interval,
 ).where(
     and_(
         OmopStem.domain_id == "Condition",
@@ -75,6 +76,7 @@ ConditionOccurrenceInsert: Final[Insert] = insert(
         OmopConditionOccurrence.condition_source_value,
         OmopConditionOccurrence.condition_source_concept_id,
         OmopConditionOccurrence.condition_status_source_value,
+        OmopConditionOccurrence.era_lookback_interval,
     ],
     select=StemConditionOccurrence,
 )
