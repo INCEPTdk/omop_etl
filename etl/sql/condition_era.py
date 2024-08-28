@@ -1,73 +1,34 @@
 "Condition era logic."
 
-from datetime import datetime
-
-from sqlalchemy import and_, case, cast, func, literal
-from sqlalchemy.dialects.postgresql import INTERVAL
+from sqlalchemy import insert
 from sqlalchemy.sql import Insert
 
-from ..models.omopcdm54.clinical import Stem as OmopStem
+from ..models.omopcdm54.clinical import (
+    ConditionOccurrence as OmopConditionOccurrence,
+)
 from ..models.omopcdm54.standardized_derived_elements import (
     ConditionEra as OmopConditionEra,
 )
-from ..sql.merge.mergeutils import _unite_intervals_sql
-from ..util.db import (
-    AbstractSession,
-    get_environment_variable as get_era_lookback_interval,
-)
-
-DEFAULT_ERA_LOOKBACK_INTERVAL = get_era_lookback_interval(
-    "CONDITION_ERA_LOOKBACK", "31 days"
-)
+from ..sql.utils import get_era_select
+from ..util.db import AbstractSession
 
 
 def get_condition_era_insert(session: AbstractSession = None) -> Insert:
-    lookback_interval = cast(
-        func.coalesce(
-            OmopStem.era_lookback_interval, DEFAULT_ERA_LOOKBACK_INTERVAL
-        ),
-        INTERVAL,
-    )
-
-    CtePreviousConditionDate = (
-        session.query(
-            OmopStem.person_id,
-            OmopStem.concept_id.label("condition_concept_id"),
-            (
-                func.coalesce(OmopStem.start_date, OmopStem.end_date)
-                - lookback_interval
-            ).label("condition_era_start_date"),
-            case(
-                (OmopStem.end_date > datetime.now(), OmopStem.start_date),
-                else_=func.coalesce(OmopStem.end_date, OmopStem.start_date),
-            ).label("condition_era_end_date"),
-            literal(1).label("condition_occurrence_count"),
-        )
-        .where(
-            and_(
-                OmopStem.concept_id != 0,
-                OmopStem.domain_id == "Condition",
-                OmopStem.start_date.isnot(None),
-                OmopStem.end_date.isnot(None),
-                OmopStem.start_date <= OmopStem.end_date,
-            )
-        )
-        .order_by(
-            OmopStem.person_id,
-            OmopStem.concept_id,
-            OmopStem.start_date,
-            OmopStem.end_date,
-        )
-        .cte(name="cte_previous_condition_date")
-    )
-
-    sql = _unite_intervals_sql(
-        source_cdm_table=CtePreviousConditionDate,
-        target_cdm_table=OmopConditionEra,
+    ConditionEraSelect = get_era_select(
+        clinical_table=OmopConditionOccurrence,
         key_columns=["person_id", "condition_concept_id"],
-        interval_start_column="condition_era_start_date",
-        interval_end_column="condition_era_end_date",
-        agg_columns="condition_occurrence_count",
-        agg_function="SUM",
+        start_column="condition_start_date",
+        end_column="condition_end_date",
     )
-    return sql
+
+    return insert(OmopConditionEra).from_select(
+        names=[
+            OmopConditionEra.person_id,
+            OmopConditionEra.condition_concept_id,
+            OmopConditionEra.condition_era_start_date,
+            OmopConditionEra.condition_era_end_date,
+            OmopConditionEra.condition_occurrence_count,
+        ],
+        select=session.query(ConditionEraSelect.subquery()),
+        include_defaults=False,
+    )
