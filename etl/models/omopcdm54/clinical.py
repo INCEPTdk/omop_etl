@@ -240,7 +240,7 @@ class ConditionOccurrence(ModelBase, PersonIdMixin, VisitAndProviderMixin):
         FK(Concept.concept_id)
     )
     condition_status_source_value: Final[Column] = CharField(50)
-    era_lookback_interval: Final[Column] = CharField(50, nullable=False)
+    era_lookback_interval: Final[Column] = CharField(50)
 
 
 @register_omop_model
