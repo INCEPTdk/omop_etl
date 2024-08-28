@@ -75,6 +75,7 @@ from .util.logger import ErrorHandler
 from .util.preprocessing import (
     validate_concept_ids,
     validate_domain_ids,
+    validate_era_lookback_intervals,
     validate_timezones,
 )
 
@@ -173,6 +174,10 @@ def run_etl(
         lookup_loader.data.get(ConceptLookupStem.__tablename__),
         session,
         "timezone",
+    )
+    validate_era_lookback_intervals(
+        lookup_loader.data.get(ConceptLookupStem.__tablename__),
+        "era_lookback_interval",
     )
 
     create_lookup_tables(session, lookup_loader.data)
