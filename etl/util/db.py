@@ -233,6 +233,12 @@ def get_environment_variable(
     default: str = None,
     validator: Callable = None,
 ) -> str:
+    """
+    Get the value of an environment variable, falling back to a default (if given) or None (otherwise).
+    Optionally, one ca provide a function validator, which should raise a ValueError if the value
+    doesn't conform to the desired format.
+    """
+
     value: str = os.getenv(environment_variable_name, default=None)
     if not value:
         logger.debug(
