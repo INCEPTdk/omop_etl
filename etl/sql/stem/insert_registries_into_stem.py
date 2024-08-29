@@ -8,6 +8,7 @@ from sqlalchemy import (
     INT,
     TIMESTAMP,
     and_,
+    case,
     cast,
     insert,
     literal,
@@ -100,7 +101,7 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 == func.lower(model.sks_code),
                 ConceptLookupStem.datasource == model.__tablename__,
             ),
-            isouter=os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE",
+            isouter=True,
         )
         .join(
             Concept,
@@ -126,6 +127,15 @@ def get_registry_stem_insert(session: Any = None, model: Any = None) -> Insert:
                 ConceptRelationship.relationship_id == "Maps to",
             ),
             isouter=True,
+        )
+        .where(
+            case(
+                (os.getenv("INCLUDE_UNMAPPED_CODES", "TRUE") == "TRUE", True),
+                else_=func.coalesce(
+                    cast(ConceptLookupStem.mapped_standard_code, INT),
+                    ConceptRelationship.concept_id_2,
+                ).isnot(None),
+            )
         )
     )
 
