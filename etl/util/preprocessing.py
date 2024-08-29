@@ -94,10 +94,24 @@ def validate_timezones(
     provided_tz = set(tz for tz in original_tz if not pd.isna(tz))
 
     for invalid_tz in provided_tz - allowed_tz:
-        logger.debug(
-            """Time zone %s invalid. It has been set to NULL.""", invalid_tz
-        )
+        logger.debug("Invalid time zone '%s' replaced by NULL.", invalid_tz)
 
     new_tz = [str(tz) if tz in allowed_tz else None for tz in original_tz]
     input_df[timezone_column] = new_tz
+    return input_df
+
+
+def validate_era_lookback_intervals(
+    input_df: pd.DataFrame, era_lookback_interval_column: str
+) -> pd.DataFrame:
+    for era in set(input_df[era_lookback_interval_column]):
+        try:
+            pd.to_timedelta(era)
+        except ValueError:
+            logger.debug(
+                "Invalid era_lookback_interval '%s' replaced by NULL", era
+            )
+            replace_idx = input_df[era_lookback_interval_column] == era
+            input_df.loc[replace_idx, era_lookback_interval_column] = None
+
     return input_df
