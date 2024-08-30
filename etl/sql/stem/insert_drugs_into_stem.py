@@ -20,7 +20,6 @@ from sqlalchemy import (
     select,
     union_all,
 )
-from sqlalchemy.orm import aliased
 from sqlalchemy.sql import Insert, text
 from sqlalchemy.sql.expression import null
 from sqlalchemy.sql.functions import concat
@@ -254,9 +253,6 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
 
     # Create SELECT statement for drugs without custom mappings
     # (they use go straight to ingredient level)
-
-    OmopConcept1 = aliased(OmopConcept)
-
     AutoMappedSelectSql = (
         select(
             literal("Drug").label("domain_id"),
@@ -313,14 +309,14 @@ def get_drug_stem_insert(session: Any = None, logger: Any = None) -> Insert:
             ),
         )
         .join(
-            OmopConcept1,
-            OmopConcept1.concept_code == Prescriptions.epaspresdrugatc,
+            OmopConcept,
+            OmopConcept.concept_code == Prescriptions.epaspresdrugatc,
             isouter=INCLUDE_UNMAPPED_CODES,
         )
         .join(
             OmopConceptRelationship,
             and_(
-                OmopConceptRelationship.concept_id_1 == OmopConcept1.concept_id,
+                OmopConceptRelationship.concept_id_1 == OmopConcept.concept_id,
                 OmopConceptRelationship.relationship_id
                 == "ATC - RxNorm pr lat",
             ),

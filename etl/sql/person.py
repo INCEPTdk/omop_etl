@@ -27,10 +27,10 @@ is_person_from_registry = (
 )
 
 hash_person_id_func = (
-    func.floor(func.hash(SourcePerson.cpr_enc) / 2)
+    func.divide(func.hash(SourcePerson.cpr_enc), 2)
     if is_person_from_registry
-    else func.floor(
-        func.hash(concat(DEPARTMENT_SHAK_CODE, "|", SourcePerson.cpr_enc)) / 2
+    else func.divide(
+        func.hash(concat(DEPARTMENT_SHAK_CODE, "|", SourcePerson.cpr_enc)), 2
     )
 )
 
